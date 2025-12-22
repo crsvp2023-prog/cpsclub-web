@@ -1,17 +1,10 @@
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b">
-        <div className="mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">CPS Club</h1>
-          <nav className="space-x-6 text-sm font-medium">
-            <a href="#about" className="hover:text-blue-600">About</a>
-            <a href="#events" className="hover:text-blue-600">Events</a>
-            <a href="#contact" className="hover:text-blue-600">Contact</a>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero */}
       <section className="bg-gray-50">
@@ -41,13 +34,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t">
-        <div className="mx-auto max-w-7xl px-6 py-8 text-sm text-gray-500 flex justify-between">
-          <span>© {new Date().getFullYear()} CPS Cricket Club</span>
-          <span>Sydney, Australia</span>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }
