@@ -3,6 +3,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* CPS Club color palette inspired by cricket.com.au */
+  --color-primary: #005a3d; /* deep green (classic) */
+  --color-primary-2: #00a652; /* bright green */
+  --color-accent: #ffc400; /* gold (classic) */
+  --color-dark: #012c5a; /* navy */
+  --color-muted: #6b7280; /* muted gray */
 }
 
 @theme inline {
@@ -24,3 +30,18 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Utility helpers (small set to use in components) */
+.bg-primary-gradient {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-2));
+}
+.btn-primary {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-2));
+  color: white;
+}
+.ring-primary {
+  box-shadow: 0 0 0 6px rgba(0,166,82,0.10);
+}
+.text-accent { color: var(--color-accent); }
+.text-primary { color: var(--color-primary); }
+.bg-accent { background-color: var(--color-accent); }

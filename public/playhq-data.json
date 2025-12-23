@@ -1,0 +1,61 @@
+{
+  "standings": [
+    {
+      "position": 1,
+      "team": "CPS Club",
+      "played": 8,
+      "wins": 7,
+      "losses": 1,
+      "points": 14,
+      "nrr": "+0.85"
+    },
+    {
+      "position": 2,
+      "team": "Eastern Suburbs",
+      "played": 8,
+      "wins": 6,
+      "losses": 2,
+      "points": 12,
+      "nrr": "+0.52"
+    },
+    {
+      "position": 3,
+      "team": "North Sydney",
+      "played": 8,
+      "wins": 5,
+      "losses": 3,
+      "points": 10,
+      "nrr": "-0.18"
+    },
+    {
+      "position": 4,
+      "team": "Parramatta",
+      "played": 8,
+      "wins": 4,
+      "losses": 4,
+      "points": 8,
+      "nrr": "+0.22"
+    },
+    {
+      "position": 5,
+      "team": "Strathfield",
+      "played": 8,
+      "wins": 3,
+      "losses": 5,
+      "points": 6,
+      "nrr": "-0.45"
+    },
+    {
+      "position": 6,
+      "team": "Cronulla-Sutherland",
+      "played": 8,
+      "wins": 2,
+      "losses": 6,
+      "points": 4,
+      "nrr": "-0.62"
+    }
+  ],
+  "lastUpdated": "2025-12-23T05:54:55.510Z",
+  "source": "PlayHQ Web Scrape (Puppeteer)",
+  "recordsFound": 0
+}
