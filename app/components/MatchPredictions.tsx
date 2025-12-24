@@ -13,32 +13,58 @@ interface Prediction {
   matchDate: string;
 }
 
-export default function MatchPredictions() {
-  const [predictions] = useState<Prediction[]>([
-    {
-      id: '1',
-      question: 'Who will win: CPSC vs Old Ignatians?',
-      options: [
-        { name: 'CPSC', votes: 234 },
-        { name: 'Old Ignatians', votes: 156 },
-      ],
-      totalVotes: 390,
-      matchDate: '25 Dec 2025',
-    },
-    {
-      id: '2',
-      question: 'Highest Run Scorer?',
-      options: [
-        { name: 'Player A', votes: 145 },
-        { name: 'Player B', votes: 98 },
-        { name: 'Player C', votes: 112 },
-      ],
-      totalVotes: 355,
-      matchDate: '25 Dec 2025',
-    },
-  ]);
+const PREDICTIONS_DATA: Prediction[] = [
+  {
+    id: '1',
+    question: 'Who will win: CPSC vs Old Ignatians?',
+    options: [
+      { name: 'CPSC', votes: 234 },
+      { name: 'Old Ignatians', votes: 156 },
+    ],
+    totalVotes: 390,
+    matchDate: 'Jan 10, 2026',
+  },
+  {
+    id: '2',
+    question: 'Highest Run Scorer?',
+    options: [
+      { name: 'Player A', votes: 145 },
+      { name: 'Player B', votes: 98 },
+      { name: 'Player C', votes: 112 },
+    ],
+    totalVotes: 355,
+    matchDate: 'Jan 10, 2026',
+  },
+  {
+    id: '3',
+    question: 'Will we see a century?',
+    options: [
+      { name: 'Yes', votes: 187 },
+      { name: 'No', votes: 142 },
+    ],
+    totalVotes: 329,
+    matchDate: 'Jan 15, 2026',
+  },
+];
 
+export default function MatchPredictions() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [predictions] = useState<Prediction[]>(PREDICTIONS_DATA);
   const [userVotes, setUserVotes] = useState<{ [key: string]: number }>({});
+
+  const goToPrevious = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? predictions.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === predictions.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const currentPrediction = predictions[currentIndex];
 
   const handleVote = (predictionId: string, optionIndex: number) => {
     setUserVotes(prev => ({
@@ -52,85 +78,118 @@ export default function MatchPredictions() {
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-16">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--color-dark)] mb-4">
-          Match <span className="text-[var(--color-primary)]">Predictions</span>
-        </h2>
-        <p className="text-lg text-gray-600">Make your predictions and compete with fans!</p>
-      </div>
+    <section className="relative w-full h-full">
+      <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
+        {/* Title */}
+        <div className="text-center mb-4">
+          <h2 className="text-xl md:text-2xl font-extrabold text-white">
+            Match <span className="text-[var(--color-accent)]">Predictions</span>
+          </h2>
+          <p className="text-xs md:text-sm text-[#0d3e2a] mt-1">
+            Make your predictions and compete with fans!
+          </p>
+        </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {predictions.map(prediction => (
-          <div
-            key={prediction.id}
-            className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow"
-          >
-            <div className="mb-6">
-              <p className="text-sm font-semibold text-[var(--color-primary-2)] mb-2">
-                {prediction.matchDate}
-              </p>
-              <h3 className="text-xl font-bold text-[var(--color-dark)]">
-                {prediction.question}
-              </h3>
-              <p className="text-sm text-gray-500 mt-2">
-                {prediction.totalVotes.toLocaleString()} votes
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              {prediction.options.map((option, index) => {
-                const percentage = getPercentage(option.votes, prediction.totalVotes);
-                const isSelected = userVotes[prediction.id] === index;
-
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleVote(prediction.id, index)}
-                    className={`w-full text-left p-4 rounded-xl transition-all duration-300 border-2 ${
-                      isSelected
-                        ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
-                        : 'border-gray-200 hover:border-[var(--color-primary)]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`font-semibold ${isSelected ? 'text-[var(--color-primary)]' : 'text-[var(--color-dark)]'}`}>
-                        {option.name}
-                      </span>
-                      <span className="text-sm font-bold text-[var(--color-primary)]">
-                        {percentage}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] h-full transition-all duration-500"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {option.votes.toLocaleString()} votes
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-
-            {userVotes[prediction.id] !== undefined && (
-              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm font-semibold text-green-700">
-                  ✓ Your vote recorded! Good luck!
-                </p>
-              </div>
-            )}
+        {/* Prediction Card */}
+        <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl p-3 shadow-lg border border-blue-200 mb-4 flex-1 flex flex-col">
+          <div className="mb-3">
+            <p className="text-xs font-semibold text-[var(--color-primary-2)] mb-0.5">
+              {currentPrediction.matchDate}
+            </p>
+            <h3 className="text-base font-bold text-[var(--color-dark)]">
+              {currentPrediction.question}
+            </h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {currentPrediction.totalVotes.toLocaleString()} votes
+            </p>
           </div>
-        ))}
+
+          <div className="space-y-1.5 flex-1 overflow-y-auto">
+            {currentPrediction.options.map((option, index) => {
+              const percentage = getPercentage(option.votes, currentPrediction.totalVotes);
+              const isSelected = userVotes[currentPrediction.id] === index;
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleVote(currentPrediction.id, index)}
+                  className={`w-full text-left p-1.5 rounded-lg transition-all duration-300 border-2 text-xs ${
+                    isSelected
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                      : 'border-gray-200 hover:border-[var(--color-primary)]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className={`font-semibold text-xs ${isSelected ? 'text-[var(--color-primary)]' : 'text-[var(--color-dark)]'}`}>
+                      {option.name}
+                    </span>
+                    <span className="text-xs font-bold text-[var(--color-primary)]">
+                      {percentage}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] h-full transition-all duration-500"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {option.votes.toLocaleString()} votes
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+
+          {userVotes[currentPrediction.id] !== undefined && (
+            <div className="mt-2 p-1.5 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-xs font-semibold text-green-700">
+                ✓ Vote recorded!
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* CTA Button */}
+        <div className="flex justify-center">
+          <button className="px-6 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-xs uppercase tracking-wider hover:bg-[#FFC939]">
+            Vote Now
+          </button>
+        </div>
       </div>
 
-      <div className="text-center mt-12">
-        <button className="px-12 py-4 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 text-lg uppercase tracking-wider hover:bg-[#FFC939]">
-          View All Predictions
-        </button>
-      </div>
+      {/* Carousel Navigation - Only show if multiple predictions */}
+      {predictions.length > 1 && (
+        <div className="flex justify-center gap-4 mt-3">
+          <button
+            onClick={goToPrevious}
+            className="w-9 h-9 rounded-full bg-[var(--color-primary)] text-white font-bold hover:shadow-lg hover:scale-110 transition-all flex items-center justify-center text-sm"
+            aria-label="Previous"
+          >
+            ←
+          </button>
+          <div className="flex gap-2 items-center">
+            {predictions.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentIndex(index)}
+                className={`h-2 rounded-full transition-all ${
+                  index === currentIndex
+                    ? 'w-6 bg-[var(--color-primary)]'
+                    : 'w-2 bg-gray-300 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={goToNext}
+            className="w-9 h-9 rounded-full bg-[var(--color-primary)] text-white font-bold hover:shadow-lg hover:scale-110 transition-all flex items-center justify-center text-sm"
+            aria-label="Next"
+          >
+            →
+          </button>
+        </div>
+      )}
     </section>
   );
 }

@@ -40,30 +40,30 @@ export default function SponsorSpotlight() {
   const currentSponsor = featuredSponsors[currentIndex];
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-16">
-      <div className="text-center mb-12">
-        <div className="inline-block px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)] mb-6">
-          <p className="text-sm font-semibold text-[var(--color-primary-2)]">Featured Partner</p>
+    <section className="mx-auto max-w-7xl px-6 py-12 bg-gradient-to-br from-[var(--color-primary)] via-[#0052CC] to-[var(--color-primary-2)] rounded-3xl">
+      <div className="text-center mb-8">
+        <div className="inline-block px-4 py-2 bg-[var(--color-accent)]/20 rounded-full border border-[var(--color-accent)]/50 mb-4">
+          <p className="text-sm font-semibold text-white">Featured Partner</p>
         </div>
-        <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--color-dark)] mb-4">
-          Sponsor <span className="text-[var(--color-primary)]">Spotlight</span>
+        <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
+          Sponsor <span className="text-[var(--color-accent)]">Spotlight</span>
         </h2>
-        <p className="text-lg text-gray-600">Proudly supported by our amazing partners</p>
+        <p className="text-base text-white/80">Proudly supported by our amazing partners</p>
       </div>
 
       {/* Main Carousel */}
-      <div className="relative mb-8">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-          <div className="grid md:grid-cols-2 gap-8 p-8 md:p-12">
+      <div className="relative mb-6">
+        <div className="bg-white/95 rounded-2xl shadow-xl overflow-hidden border border-white/30">
+          <div className="grid md:grid-cols-2 gap-6 p-6 md:p-8">
             {/* Logo/Image Side */}
-            <div className="flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-8 min-h-64">
+            <div className="flex items-center justify-center bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 min-h-48">
               <div className="text-center">
                 <img 
                   src={currentSponsor.logo || "/images/sponsors/default.png"} 
                   alt={currentSponsor.name}
-                  className="h-32 w-auto mx-auto object-contain mb-4"
+                  className="h-24 w-auto mx-auto object-contain mb-3"
                 />
-                <p className="text-2xl font-bold text-[var(--color-dark)]">
+                <p className="text-lg font-bold text-[var(--color-dark)]">
                   {currentSponsor.name}
                 </p>
               </div>
@@ -71,43 +71,43 @@ export default function SponsorSpotlight() {
 
             {/* Info Side */}
             <div className="flex flex-col justify-center">
-              <h3 className="text-3xl font-bold text-[var(--color-dark)] mb-4">
+              <h3 className="text-2xl font-bold text-[var(--color-dark)] mb-3">
                 {currentSponsor.name}
               </h3>
               
-              <div className="bg-blue-50 rounded-lg p-6 mb-6 border border-blue-200">
-                <p className="text-gray-700 leading-relaxed text-lg font-medium">
+              <div className="bg-blue-50/50 rounded-lg p-4 mb-4 border border-[var(--color-primary)]/20">
+                <p className="text-[#0d3e2a] leading-relaxed text-base font-bold">
                   "{currentSponsor.description}"
                 </p>
               </div>
 
-              <div className="space-y-3 mb-8">
+              <div className="space-y-2 mb-6">
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full mr-3"></span>
-                  <p className="text-gray-700">Premium sponsorship package included</p>
+                  <p className="text-gray-700 text-sm">Premium sponsorship package included</p>
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full mr-3"></span>
-                  <p className="text-gray-700">Featured in all marketing materials</p>
+                  <p className="text-gray-700 text-sm">Featured in all marketing materials</p>
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full mr-3"></span>
-                  <p className="text-gray-700">Exclusive networking events</p>
+                  <p className="text-gray-700 text-sm">Exclusive networking events</p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <a 
                   href={currentSponsor.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-8 py-3 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 text-center uppercase tracking-wider hover:bg-[#FFC939]"
+                  className="flex-1 px-6 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 text-center text-sm uppercase tracking-wider hover:bg-[#FFC939]"
                 >
                   Visit Website
                 </a>
                 <a 
                   href="/sponsorship"
-                  className="flex-1 px-8 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-bold rounded-lg hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 text-center"
+                  className="flex-1 px-6 py-2 border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-bold rounded-lg hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 text-center text-sm"
                 >
                   Learn More
                 </a>
@@ -119,13 +119,13 @@ export default function SponsorSpotlight() {
         {/* Navigation Arrows */}
         <button
           onClick={prevSlide}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 md:translate-x-0 md:left-4 bg-white border-2 border-[var(--color-primary)] text-[var(--color-primary)] p-3 rounded-full hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 z-10"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 md:translate-x-0 md:left-3 bg-white border-2 border-[var(--color-primary)] text-[var(--color-primary)] p-2 rounded-full hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 z-10"
         >
           ←
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 md:translate-x-0 md:right-4 bg-white border-2 border-[var(--color-primary)] text-[var(--color-primary)] p-3 rounded-full hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 z-10"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 md:translate-x-0 md:right-3 bg-white border-2 border-[var(--color-primary)] text-[var(--color-primary)] p-2 rounded-full hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 z-10"
         >
           →
         </button>
@@ -139,8 +139,8 @@ export default function SponsorSpotlight() {
             onClick={() => goToSlide(index)}
             className={`h-3 rounded-full transition-all duration-300 ${
               index === currentIndex
-                ? 'bg-[var(--color-primary)] w-8'
-                : 'bg-gray-300 w-3 hover:bg-gray-400'
+                ? 'bg-white w-8'
+                : 'bg-white/30 w-3 hover:bg-white/50'
             }`}
           />
         ))}
@@ -148,7 +148,7 @@ export default function SponsorSpotlight() {
 
       {/* Sponsor Grid - Show All */}
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-[var(--color-dark)] mb-8">
+        <h3 className="text-2xl font-bold text-white mb-8">
           All Our Partners
         </h3>
       </div>
@@ -178,11 +178,11 @@ export default function SponsorSpotlight() {
       </div>
 
       {/* Become a Sponsor CTA */}
-      <div className="mt-16 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-primary-2)]/10 rounded-2xl p-12 text-center border-2 border-dashed border-[var(--color-primary)]">
-        <h3 className="text-3xl font-bold text-[var(--color-dark)] mb-4">
+      <div className="mt-16 bg-white/10 rounded-2xl p-12 text-center border-2 border-dashed border-white/40">
+        <h3 className="text-3xl font-bold text-white mb-4">
           Want to Become a Sponsor?
         </h3>
-        <p className="text-gray-700 mb-8 text-lg max-w-2xl mx-auto">
+        <p className="text-white/90 mb-8 text-lg max-w-2xl mx-auto">
           Join our growing network of sponsors and gain exposure to thousands of cricket fans. 
           Perfect for local businesses looking to grow their brand!
         </p>

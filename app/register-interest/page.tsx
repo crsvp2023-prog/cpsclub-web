@@ -15,7 +15,7 @@ export default function RegisterInterestPage() {
   // Match details
   const upcomingMatch = {
     date: '10 Jan 2026',
-    time: '2:00 PM',
+    time: '1:00 PM',
     venue: 'Primrose Oval',
     type: 'One Day',
     opponent: 'Old Ignatians (Taronga)',
