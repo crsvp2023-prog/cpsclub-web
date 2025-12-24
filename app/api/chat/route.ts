@@ -1,10 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
+
+const systemPrompt = `You are a helpful AI assistant for CPS Club (Chatswood Premier Sports Club), a passionate cricket community based in Chatswood, NSW, Australia. 
+
+Key information about CPS Club:
+- We are a social group of cricket enthusiasts
+- We organize exciting cricket tournaments and community events
+- We host senior cricket coaching sessions every Saturday from 9AM-11AM at Chatswood Premier Sports Club
+- Contact: crsvp.2023@gmail.com
+- We proudly donated over AUD 8,000 to COVID-19 relief efforts
+- Location: Gordon Ave, Chatswood, NSW 2067
+- We have a gallery of photos from our tournaments and events
+- We have a scores page with live cricket match updates
+
+When answering questions:
+1. Be friendly and helpful
+2. Provide relevant information about CPS Club
+3. Direct users to appropriate pages (Events, About, Gallery, Scores, Contact) when needed
+4. Encourage them to contact us for more information
+5. Keep responses concise and conversational`;
 
 export async function POST(request: NextRequest) {
   try {
     const { message } = await request.json();
 
     console.log('Chat message received:', message?.substring(0, 50));
+    console.log('API Key exists:', !!process.env.NEXT_PUBLIC_GEMINI_API_KEY);
 
     if (!message || message.trim() === '') {
       return NextResponse.json(
@@ -13,14 +36,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Provide helpful responses about CPS Club
-    const response = provideCPSClubResponse(message);
-    return NextResponse.json({ message: response });
+    // Check if API key is configured
+    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+      console.warn('⚠️ NEXT_PUBLIC_GEMINI_API_KEY not configured');
+      const fallbackResponse = provideCPSClubResponse(message);
+      return NextResponse.json({ message: fallbackResponse });
+    }
 
-  } catch (error) {
-    console.error('❌ CHAT API ERROR:', error);
+    // Try different models in order
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-pro'];
+    let result = null;
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`🚀 Trying model: ${modelName}...`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        result = await model.generateContent(message);
+        console.log(`✅ Success with model: ${modelName}`);
+        break;
+      } catch (error: any) {
+        lastError = error;
+        console.warn(`❌ Failed with ${modelName}:`, error?.message);
+        continue;
+      }
+    }
+
+    if (!result) {
+      console.error('❌ All models failed');
+      console.error('Last error:', lastError);
+      const fallbackResponse = provideCPSClubResponse(message);
+      return NextResponse.json({
+        message: fallbackResponse,
+        debug: {
+          error: lastError?.message || 'All models failed',
+          triedModels: modelsToTry
+        }
+      });
+    }
+
+    const responseText = result.response.text();
+    return NextResponse.json({ message: responseText });
+
+  } catch (error: any) {
+    console.error('❌ REQUEST PARSING ERROR:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        message: error?.message 
+      },
       { status: 500 }
     );
   }
@@ -29,7 +93,7 @@ export async function POST(request: NextRequest) {
 function provideCPSClubResponse(message: string): string {
   const lowerMessage = message.toLowerCase();
   
-  // CPS Club information responses
+  // CPS Club information responses (fallback)
   const responses: { [key: string]: string } = {
     'hello|hi|hey|g\'day': 'Hi there! 👋 Welcome to CPS Club! How can I help you today?',
     'what is cps|about cps|cps club': 'CPS Club is a passionate cricket community based in Chatswood, NSW. We\'re a social group of like-minded people who come together to celebrate cricket, organize tournaments, and support our community.',

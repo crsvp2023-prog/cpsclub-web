@@ -3,10 +3,10 @@
 import Image from "next/image";
 
 const fanFestPhotos = [
-  { src: "/images/fanfest/fanfest-1.jpg", alt: "Fan Fest 2024 - Team photo" },
-  { src: "/images/fanfest/fanfest-2.jpg", alt: "Fan Fest 2024 - Event highlights" },
-  { src: "/images/fanfest/fanfest-3.jpg", alt: "Fan Fest 2024 - Cricket action" },
-  { src: "/images/fanfest/fanfest-4.jpg", alt: "Fan Fest 2024 - Crowd moments" },
+  { src: "/images/fanfest/fanfest-1.webp", alt: "Fan Fest 2024 - Team photo" },
+  { src: "/images/fanfest/fanfest-2.webp", alt: "Fan Fest 2024 - Event highlights" },
+  { src: "/images/fanfest/fanfest-3.webp", alt: "Fan Fest 2024 - Cricket action" },
+  { src: "/images/fanfest/fanfest-4.webp", alt: "Fan Fest 2024 - Crowd moments" },
 ];
 
 export default function FanFestGallery() {

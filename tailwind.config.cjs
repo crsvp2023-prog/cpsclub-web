@@ -8,11 +8,25 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#005a3d',
-        'primary-2': '#00a652',
-        accent: '#ffc400',
-        dark: '#012c5a',
-        muted: '#6b7280'
+        primary: '#00215d',
+        'primary-2': '#003d99',
+        accent: '#FFD100',
+        dark: '#00215d',
+        muted: '#666666'
+      },
+      fontFamily: {
+        sans: ['Arial', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'sans-serif']
+      },
+      fontSize: {
+        'xs': ['12px', '16px'],
+        'sm': ['14px', '20px'],
+        'base': ['16px', '24px'],
+        'lg': ['18px', '28px'],
+        'xl': ['20px', '28px'],
+        '2xl': ['24px', '32px'],
+        '3xl': ['30px', '36px'],
+        '4xl': ['36px', '40px'],
+        '5xl': ['48px', '52px']
       }
     }
   },

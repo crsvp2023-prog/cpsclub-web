@@ -28,7 +28,7 @@ export default function AboutPage() {
 
   return (
     <>
-    <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20">
+    <main className="min-h-screen bg-white pt-20">
       <style jsx>{`
         @keyframes slideUp {
           from {
@@ -50,56 +50,134 @@ export default function AboutPage() {
         .animate-fadeIn {
           animation: fadeIn 0.8s ease-out;
         }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
       `}</style>
 
       {/* Hero Section */}
-      <section className="relative py-16 px-6 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)]">
-        <div className="max-w-7xl mx-auto text-center">
+      <section className="relative py-24 px-6 bg-gradient-to-br from-[var(--color-dark)] via-[#0033A8] to-[var(--color-primary)]">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[var(--color-accent)] rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--color-primary-2)] rounded-full blur-3xl" />
+        </div>
+        <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="animate-slideUp">
-            <h1 className="text-5xl md:text-6xl font-black text-white mb-6">About CPS Club</h1>
+            <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-accent)]/20 rounded-full border border-[var(--color-accent)]/50">
+              <p className="text-sm font-semibold text-[var(--color-accent)] uppercase tracking-wider">Our Story</p>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">About CPS Club</h1>
             <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-              Champions united by excellence, transforming communities through cricket while driving
-              meaningful change and inspiring healthier, stronger futures for all.
+              Uniting cricket enthusiasts since 2016, we're a community dedicated to excellence, wellness, and creating lasting connections.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Stats */}
+      <section className="py-16 px-6 bg-gradient-to-r from-white to-blue-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
+              <p className="text-4xl font-bold text-[var(--color-primary)] mb-2">2016</p>
+              <p className="text-gray-700 font-semibold">Founded</p>
+            </div>
+            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
+              <p className="text-4xl font-bold text-[var(--color-primary-2)] mb-2">100+</p>
+              <p className="text-gray-700 font-semibold">Members</p>
+            </div>
+            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
+              <p className="text-4xl font-bold text-[var(--color-accent)] mb-2">2023</p>
+              <p className="text-gray-700 font-semibold">Incorporated</p>
+            </div>
+            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
+              <p className="text-4xl font-bold text-[#00a652] mb-2">$8K+</p>
+              <p className="text-gray-700 font-semibold">Donated</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Mission Section */}
-      <section className="py-20 px-6">
+      <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-3xl shadow-xl p-12 animate-fadeIn">
-            <h2 className="text-4xl font-black text-[var(--color-dark)] mb-8">Our Mission</h2>
-            <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              We are a powerhouse of passionate, forward-thinking individuals united to empower every person to thrive,
-              lead authentically, and foster genuine connections within an inclusive, vibrant community dedicated to wellness
-              and mutual success.
-            </p>
-            <div className="h-1 w-20 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] mb-6" />
-            <p className="text-lg text-gray-700 leading-relaxed">
-              We successfully orchestrated 2 transformative cricket tournaments, fueling community vitality and wellness.
-              Standing firm in our commitment to social impact, we mobilized AUD 8,000+ for COVID-19 relief—demonstrating
-              our unwavering dedication to strengthening the communities we serve.
-            </p>
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
+            <div className="animate-slideUp">
+              <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)]">
+                <p className="text-sm font-semibold text-[var(--color-primary-2)] uppercase tracking-wider">Who We Are</p>
+              </div>
+              <h2 className="text-5xl font-bold text-[var(--color-dark)] mb-6">Our Mission</h2>
+              <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                We are a powerhouse of passionate, forward-thinking individuals united to empower every person to thrive, lead authentically, and foster genuine connections within an inclusive, vibrant community dedicated to wellness and mutual success.
+              </p>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="text-2xl">🎯</div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">Excellence</h4>
+                    <p className="text-gray-600">Committed to the highest standards of sport and community</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="text-2xl">🤝</div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">Community</h4>
+                    <p className="text-gray-600">Building strong connections and lasting relationships</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="text-2xl">💪</div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">Wellness</h4>
+                    <p className="text-gray-600">Promoting physical fitness and mental well-being</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="animate-slideUp relative" style={{ animationDelay: '0.2s' }}>
+              <div className="bg-gradient-to-br from-[var(--color-primary)] via-[#003d99] to-[#00215d] rounded-2xl p-12 text-white shadow-2xl border border-[var(--color-accent)]/20 relative overflow-hidden group">
+                {/* Decorative elements */}
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-[var(--color-accent)] rounded-full opacity-5 blur-3xl"></div>
+                <div className="relative z-10">
+                  <div className="text-6xl mb-6 animate-float">🏏</div>
+                  <h3 className="text-5xl font-black mb-4" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.05em', color: '#FFD100' }}>One Team,<br />One Dream</h3>
+                  <p className="text-lg text-white/90 mb-6 font-semibold" style={{ fontFamily: 'Arial, sans-serif' }}>
+                    Our motto embodies the collective spirit and shared aspirations of every member in our community.
+                  </p>
+                  <div className="bg-white/10 backdrop-blur p-6 rounded-xl border border-[var(--color-accent)]/30">
+                    <p className="text-sm text-white/80">Founded in 2016 and officially incorporated in 2023, CPS Club has grown into a thriving community of over 100 passionate cricket enthusiasts.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Achievements Timeline */}
-      <section className="py-20 px-6 bg-white/50">
+      <section className="py-24 px-6 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-black text-[var(--color-dark)] mb-16 text-center">Our Achievements</h2>
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="text-center mb-16">
+            <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-accent)]/10 rounded-full border border-[var(--color-accent)]">
+              <p className="text-sm font-semibold text-[var(--color-accent)] uppercase tracking-wider">Milestones</p>
+            </div>
+            <h2 className="text-5xl font-bold text-[var(--color-dark)]">Our Achievements</h2>
+          </div>
+          <div className="grid md:grid-cols-4 gap-6">
             {achievements.map((achievement, index) => (
               <div
                 key={index}
-                className="animate-slideUp text-center"
+                className="animate-slideUp group"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 h-full">
-                  <div className="text-6xl mb-4">{achievement.icon}</div>
-                  <p className="text-white/80 text-sm font-bold mb-2">{achievement.year}</p>
-                  <h3 className="text-xl font-bold text-white">{achievement.title}</h3>
+                <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:shadow-xl hover:border-[var(--color-primary)] transition-all duration-300 h-full">
+                  <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{achievement.icon}</div>
+                  <p className="text-sm text-[var(--color-primary-2)] font-bold mb-2 uppercase tracking-wider">{achievement.year}</p>
+                  <h3 className="text-lg font-bold text-gray-800">{achievement.title}</h3>
                 </div>
               </div>
             ))}
@@ -107,43 +185,60 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* COVID Relief & Certificates Section */}
-      <section className="py-20 px-6">
+      {/* COVID Relief & Community Impact Section */}
+      <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-black text-[var(--color-dark)] mb-12 text-center">Community Impact</h2>
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="text-center mb-16">
+            <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary)]/10 rounded-full border border-[var(--color-primary)]">
+              <p className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-wider">Impact</p>
+            </div>
+            <h2 className="text-5xl font-bold text-[var(--color-dark)] mb-4">Community Impact</h2>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto">We don't just play cricket—we give back to the community that supports us</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
             {/* Donation Card */}
-            <div className="animate-slideUp bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300">
-              <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] p-8">
-                <div className="text-6xl mb-4">💚</div>
-                <h3 className="text-2xl font-bold text-white">COVID-19 Relief</h3>
-              </div>
-              <div className="p-8">
-                <p className="text-gray-700 text-lg font-bold mb-4">AUD 8,000+ Mobilized for Impact</p>
-                <p className="text-gray-600 leading-relaxed mb-6">
-                  During the darkest hours of the pandemic, our community united with unwavering resolve to mobilize over 8,000 dollars in critical relief support. We championed real, lasting change when it mattered most.
-                </p>
-                <div className="bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
-                  <p className="text-sm text-gray-600 font-semibold">Certificate of Donation Available</p>
-                  <p className="text-xs text-gray-500 mt-2">View our official donation certificate documenting our contribution to the community during COVID-19.</p>
+            <div className="animate-slideUp group">
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 h-full border-t-4 border-[var(--color-primary)]">
+                <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] p-8">
+                  <div className="text-6xl mb-4">💚</div>
+                  <h3 className="text-2xl font-bold text-white">COVID-19 Relief</h3>
+                  <p className="text-white/80 mt-2">2020 - Community Support</p>
+                </div>
+                <div className="p-8">
+                  <div className="mb-6">
+                    <p className="text-4xl font-bold text-[var(--color-primary)] mb-2">$8,000+</p>
+                    <p className="text-gray-700 font-semibold">Mobilized for Relief</p>
+                  </div>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    When the pandemic hit hardest, our community came together. We mobilized over $8,000 in critical relief support, demonstrating our unwavering commitment to strengthening the communities we serve.
+                  </p>
+                  <div className="bg-blue-50 p-4 rounded-xl">
+                    <p className="text-xs text-gray-600 font-semibold">✓ Official Certificate Available</p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Tournaments Card */}
-            <div className="animate-slideUp bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{ animationDelay: '0.1s' }}>
-              <div className="bg-gradient-to-r from-[var(--color-primary-2)] to-[var(--color-accent)] p-8">
-                <div className="text-6xl mb-4">🏏</div>
-                <h3 className="text-2xl font-bold text-white">Cricket Tournaments</h3>
-              </div>
-              <div className="p-8">
-                <p className="text-gray-700 text-lg font-bold mb-4">2 Game-Changing Tournaments</p>
-                <p className="text-gray-600 leading-relaxed mb-6">
-                  We orchestrated 2 landmark cricket tournaments that electrified the region, driving unprecedented engagement and promoting dynamic wellness. These transformative events united passionate competitors and inspired a generation of cricket excellence.
-                </p>
-                <div className="bg-green-50 p-6 rounded-xl border-2 border-green-200">
-                  <p className="text-sm text-gray-600 font-semibold">Tournament Highlights Available</p>
-                  <p className="text-xs text-gray-500 mt-2">View photos and videos from our tournaments showcasing the excitement and community spirit.</p>
+            <div className="animate-slideUp group" style={{ animationDelay: '0.1s' }}>
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 h-full border-t-4 border-[var(--color-accent)]">
+                <div className="bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary-2)] p-8">
+                  <div className="text-6xl mb-4">🏏</div>
+                  <h3 className="text-2xl font-bold text-white">Cricket Tournaments</h3>
+                  <p className="text-white/80 mt-2">2020, 2022 - Community Events</p>
+                </div>
+                <div className="p-8">
+                  <div className="mb-6">
+                    <p className="text-4xl font-bold text-[var(--color-accent)] mb-2">2 Events</p>
+                    <p className="text-gray-700 font-semibold">Organized & Delivered</p>
+                  </div>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    We orchestrated 2 landmark cricket tournaments that electrified the region, driving unprecedented engagement, promoting wellness, and inspiring a generation of cricket excellence.
+                  </p>
+                  <div className="bg-amber-50 p-4 rounded-xl">
+                    <p className="text-xs text-gray-600 font-semibold">✓ Photos & Videos Available</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -152,80 +247,77 @@ export default function AboutPage() {
       </section>
 
       {/* Media Gallery Section */}
-      <section className="py-20 px-6 bg-white/50">
+      <section className="py-24 px-6 bg-gradient-to-b from-white to-blue-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-black text-[var(--color-dark)] mb-12 text-center">Gallery & Videos</h2>
+          <div className="text-center mb-16">
+            <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)]">
+              <p className="text-sm font-semibold text-[var(--color-primary-2)] uppercase tracking-wider">Media</p>
+            </div>
+            <h2 className="text-5xl font-bold text-[var(--color-dark)] mb-4">Gallery & Videos</h2>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto">Explore moments from our tournaments, events, and community gatherings</p>
+          </div>
           
           {/* Tab Navigation */}
-          <div className="flex justify-center gap-4 mb-12 border-b-2 border-gray-200 pb-4">
+          <div className="flex justify-center flex-wrap gap-3 mb-12">
             <button
               onClick={() => setActiveTab('certificates')}
-              className={`px-8 py-3 font-bold transition-all duration-300 relative ${
+              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
                 activeTab === 'certificates'
-                  ? 'text-[var(--color-primary)] font-black text-lg'
-                  : 'text-gray-600 hover:text-[var(--color-primary)]'
+                  ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white shadow-lg'
+                  : 'bg-white text-[var(--color-dark)] border-2 border-gray-200 hover:border-[var(--color-primary)]'
               }`}
             >
               📜 Certificates
-              {activeTab === 'certificates' && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] rounded-full"></div>
-              )}
             </button>
             <button
               onClick={() => setActiveTab('tournaments')}
-              className={`px-8 py-3 font-bold transition-all duration-300 relative ${
+              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
                 activeTab === 'tournaments'
-                  ? 'text-[var(--color-primary)] font-black text-lg'
-                  : 'text-gray-600 hover:text-[var(--color-primary)]'
+                  ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white shadow-lg'
+                  : 'bg-white text-[var(--color-dark)] border-2 border-gray-200 hover:border-[var(--color-primary)]'
               }`}
             >
               🏏 Tournaments
-              {activeTab === 'tournaments' && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] rounded-full"></div>
-              )}
             </button>
             <button
               onClick={() => setActiveTab('videos')}
-              className={`px-8 py-3 font-bold transition-all duration-300 relative ${
+              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
                 activeTab === 'videos'
-                  ? 'text-[var(--color-primary)] font-black text-lg'
-                  : 'text-gray-600 hover:text-[var(--color-primary)]'
+                  ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white shadow-lg'
+                  : 'bg-white text-[var(--color-dark)] border-2 border-gray-200 hover:border-[var(--color-primary)]'
               }`}
             >
               🎬 Videos
-              {activeTab === 'videos' && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] rounded-full"></div>
-              )}
             </button>
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white rounded-3xl shadow-xl p-12 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-lg p-12 animate-fadeIn">
             {activeTab === 'certificates' && (
               <div className="space-y-8">
-                <h3 className="text-2xl font-bold text-[var(--color-dark)]">Donation Certificates</h3>
+                <h3 className="text-3xl font-bold text-[var(--color-dark)]">Donation Certificates</h3>
                 <div className="grid md:grid-cols-2 gap-8">
-                  <div className="bg-gray-50 rounded-2xl p-8 border-4 border-blue-200 hover:shadow-xl transition-all duration-300">
+                  <div className="group bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border-2 border-blue-200 hover:border-[var(--color-primary)] hover:shadow-xl transition-all duration-300">
                     <div className="text-center">
-                      <div className="text-6xl mb-4">📜</div>
-                      <h4 className="text-lg font-bold text-gray-800 mb-2">COVID-19 Relief Certificate</h4>
-                      <p className="text-gray-600 mb-6">AUD 8,000+ Donation Certificate</p>
+                      <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">📜</div>
+                      <h4 className="text-xl font-bold text-gray-800 mb-2">COVID-19 Relief Certificate</h4>
+                      <p className="text-gray-600 mb-6 font-semibold">AUD 8,000+ Donation</p>
                       <button 
                         onClick={() => setSelectedPdf('/documents/covid-relief-certificate.pdf')}
-                        className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300"
+                        className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300"
                       >
                         View Certificate
                       </button>
                     </div>
                   </div>
-                  <div className="bg-gray-50 rounded-2xl p-8 border-4 border-green-200 hover:shadow-xl transition-all duration-300">
+                  <div className="group bg-gradient-to-br from-green-50 to-white rounded-2xl p-8 border-2 border-green-200 hover:border-[var(--color-primary)] hover:shadow-xl transition-all duration-300">
                     <div className="text-center">
-                      <div className="text-6xl mb-4">🏅</div>
-                      <h4 className="text-lg font-bold text-gray-800 mb-2">Community Recognition</h4>
-                      <p className="text-gray-600 mb-6">Recognized for community service</p>
+                      <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">🏅</div>
+                      <h4 className="text-xl font-bold text-gray-800 mb-2">Community Recognition</h4>
+                      <p className="text-gray-600 mb-6 font-semibold">Service Award</p>
                       <button 
                         onClick={() => setSelectedPdf('/documents/community-recognition.pdf')}
-                        className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300"
+                        className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300"
                       >
                         View Details
                       </button>
@@ -237,26 +329,26 @@ export default function AboutPage() {
 
             {activeTab === 'tournaments' && (
               <div className="space-y-8">
-                <h3 className="text-2xl font-bold text-[var(--color-dark)]">Tournament Highlights</h3>
+                <h3 className="text-3xl font-bold text-[var(--color-dark)]">Tournament Highlights</h3>
                 <div className="grid md:grid-cols-2 gap-8">
-                  <div className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
-                    <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] h-48 flex items-center justify-center">
-                      <div className="text-6xl">🏏</div>
+                  <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200">
+                    <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] h-56 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <div className="text-7xl">🏏</div>
                     </div>
-                    <div className="p-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-2">Tournament 1 - 2020</h4>
-                      <p className="text-gray-600 mb-4">Historic record-breaking attendance with thrilling championship-caliber competition</p>
+                    <div className="p-8">
+                      <h4 className="text-xl font-bold text-gray-800 mb-2">Tournament 2020</h4>
+                      <p className="text-gray-600 mb-6 leading-relaxed">Historic record-breaking attendance with thrilling championship-caliber competition and passionate community participation.</p>
                       <button className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-4 py-2 rounded-lg font-bold hover:shadow-lg transition-all duration-300">
                         View Photos
                       </button>
                     </div>
                   </div>
-                  <div className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
-                    <div className="bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-accent)] h-48 flex items-center justify-center">
-                      <div className="text-6xl">🎯</div>
+                  <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200">
+                    <div className="bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-accent)] h-56 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <div className="text-7xl">🎯</div>
                     </div>
-                    <div className="p-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-2">Tournament 2 - 2022</h4>
+                    <div className="p-8">
+                      <h4 className="text-xl font-bold text-gray-800 mb-2">Tournament 2022</h4>
                       <p className="text-gray-600 mb-4">Unprecedented community mobilization showcasing elite sportsmanship and unity</p>
                       <button className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-4 py-2 rounded-lg font-bold hover:shadow-lg transition-all duration-300">
                         View Photos
@@ -269,16 +361,16 @@ export default function AboutPage() {
 
             {activeTab === 'videos' && (
               <div className="space-y-8">
-                <h3 className="text-2xl font-bold text-[var(--color-dark)]">Video Highlights</h3>
+                <h3 className="text-3xl font-bold text-[var(--color-dark)]">Video Highlights</h3>
                 {videos.length > 0 && videos.some(v => v.youtubeId) ? (
                   <div className="space-y-8">
                     {videos.map((video, idx) => (
                       video.youtubeId && (
-                        <div key={idx} className="flex justify-center">
-                          <div className="w-full max-w-2xl rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
-                            <div className="relative w-full pb-[56.25%] bg-gray-900">
+                        <div key={idx} className="animate-slideUp">
+                          <div className="bg-gray-900 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                            <div className="relative w-full pb-[56.25%]">
                               <iframe
-                                className="absolute top-0 left-0 w-full h-full"
+                                className="absolute top-0 left-0 w-full h-full group-hover:scale-105 transition-transform duration-300"
                                 src={`https://www.youtube.com/embed/${video.youtubeId}`}
                                 title={video.title}
                                 frameBorder="0"
@@ -287,8 +379,8 @@ export default function AboutPage() {
                               />
                             </div>
                             <div className="p-6 bg-white">
-                              <h4 className="text-lg font-bold text-gray-800 mb-2">{video.title}</h4>
-                              <p className="text-gray-600">{video.description}</p>
+                              <h4 className="text-xl font-bold text-gray-800 mb-2">{video.title}</h4>
+                              <p className="text-gray-600 leading-relaxed">{video.description}</p>
                             </div>
                           </div>
                         </div>
@@ -296,25 +388,8 @@ export default function AboutPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div className="bg-gray-50 rounded-2xl p-8 border-4 border-gray-200 text-center">
-                      <div className="text-6xl mb-4">🎬</div>
-                      <h4 className="text-lg font-bold text-gray-800 mb-2">Cricket Tournament Highlights</h4>
-                      <p className="text-gray-600 mb-6">Best moments from our tournaments</p>
-                      <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-200">
-                        <p className="text-sm text-gray-700 font-semibold">Add YouTube Link</p>
-                        <p className="text-xs text-gray-600 mt-2">YouTube video ID to be added</p>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 rounded-2xl p-8 border-4 border-gray-200 text-center">
-                      <div className="text-6xl mb-4">▶️</div>
-                      <h4 className="text-lg font-bold text-gray-800 mb-2">Community Stories</h4>
-                      <p className="text-gray-600 mb-6">Inspiring stories from our members</p>
-                      <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-200">
-                        <p className="text-sm text-gray-700 font-semibold">Add YouTube Link</p>
-                        <p className="text-xs text-gray-600 mt-2">YouTube video ID to be added</p>
-                      </div>
-                    </div>
+                  <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-12 text-center border-2 border-blue-200">
+                    <p className="text-gray-600 text-lg">More videos coming soon!</p>
                   </div>
                 )}
               </div>
@@ -323,26 +398,19 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-20 px-6 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)]">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-black text-white mb-6">Join the Movement</h2>
+      {/* Call to Action Section */}
+      <section className="py-24 px-6 bg-gradient-to-r from-[var(--color-dark)] to-[var(--color-primary)]">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-5xl font-bold text-white mb-6">Join Our Community</h2>
           <p className="text-xl text-white/90 mb-8 leading-relaxed">
-            Become part of a revolutionary community redefining excellence through cricket, championing wellness,
-            and catalyzing transformative social impact.
+            Whether you're a seasoned cricketer or just starting out, there's a place for you in the CPS Cricket Club. Join us and be part of something special.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="/contact"
-              className="bg-white text-[var(--color-primary)] px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              Get In Touch
+            <a href="/register-interest" className="bg-[var(--color-accent)] text-[var(--color-dark)] px-8 py-4 rounded-full font-bold hover:shadow-lg hover:scale-105 transform transition-all duration-200 text-lg">
+              Register Now
             </a>
-            <a
-              href="/events"
-              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-bold hover:bg-white/10 transition-all duration-300"
-            >
-              View Events
+            <a href="/contact" className="border-2 border-white text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-[var(--color-dark)] transition-all duration-200 text-lg">
+              Get in Touch
             </a>
           </div>
         </div>

@@ -1,5 +1,11 @@
 import Hero from "./components/Hero";
 import Sponsors from "./components/Sponsors";
+import InstagramFeed from "./components/InstagramFeed";
+import FacebookFeed from "./components/FacebookFeed";
+import MatchCountdown from "./components/MatchCountdown";
+import MatchPredictions from "./components/MatchPredictions";
+import SponsorSpotlight from "./components/SponsorSpotlight";
+import NewsletterSignup from "./components/NewsletterSignup";
 import Image from "next/image";
 
 export default function HomePage() {
@@ -7,41 +13,51 @@ export default function HomePage() {
     <>
       <Hero />
 
-      {/* About */}
-      <section id="about" className="bg-gradient-to-br from-white via-blue-50 to-green-50 py-20">
-        <div className="mx-auto max-w-7xl px-6 py-20 grid md:grid-cols-2 gap-16 items-center">
+      {/* Match Countdown */}
+      <MatchCountdown />
+      <section id="about" className="bg-white py-20">
+        <div className="mx-auto max-w-7xl px-6 py-0 grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)]">
-              <p className="text-sm font-semibold text-[var(--color-primary-2)]">Our Story</p>
+            <div className="inline-block mb-3 px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)]">
+              <p className="text-sm font-semibold text-[var(--color-primary-2)] uppercase tracking-wide">Our Story</p>
             </div>
             
-            <h2 className="text-5xl md:text-6xl font-extrabold text-[var(--color-dark)] mb-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-[var(--color-dark)] mb-6 leading-tight">
               About <span className="text-[var(--color-primary-2)]">CPS Club</span>
             </h2>
             
-            <div className="space-y-4 text-gray-700 leading-relaxed">
-              <p>
+            <div className="space-y-5 text-gray-700 leading-relaxed">
+              <p className="text-base">
                 In <span className="font-semibold text-[var(--color-dark)]">March 2023</span>, after more than seven years since its inception, a community cricket initiative was given a new identity and purpose. The dedicated group of cricket enthusiasts based in Chatswood decided to formalize their endeavor, leading to the incorporation of the club as the Chatswood Premier Sports Club.
               </p>
               
-              <p>
+              <p className="text-base">
                 The primary goal of this initiative has always been to foster <span className="font-semibold text-[var(--color-primary)]">physical fitness</span> and create a <span className="font-semibold text-[var(--color-primary)]">sense of unity</span> within the community. Regardless of age or skill level, the club provided a welcoming platform for individuals to come together, socialize, and partake in the joy of cricket.
               </p>
             </div>
 
             {/* Motto Box */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-xl text-white">
-              <p className="text-sm font-semibold text-white/80 mb-2">OUR MOTTO</p>
-              <h3 className="text-3xl font-extrabold">One Team, One Dream</h3>
-              <p className="mt-2 text-white/90">Reinforcing the collective spirit and shared aspirations of our members</p>
+            <div className="mt-8 p-8 bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-primary-2)] to-[#00215d] rounded-2xl text-white shadow-2xl border border-[var(--color-accent)]/20 relative overflow-hidden group">
+              {/* Decorative background elements */}
+              <div className="absolute -top-20 -right-20 w-40 h-40 bg-[var(--color-accent)] rounded-full opacity-5 blur-3xl"></div>
+              <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-[var(--color-accent)] rounded-full opacity-5 blur-3xl"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1 h-6 bg-[var(--color-accent)] rounded-full"></div>
+                  <p className="text-xs font-bold text-white/80 uppercase tracking-widest">💪 Our Motto</p>
+                </div>
+                <h3 className="text-5xl font-black mb-4" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.05em', color: '#FFD100' }}>One Team,<br />One Dream</h3>
+                <p className="mt-4 text-lg text-white/90 font-semibold leading-relaxed" style={{ fontFamily: 'Arial, sans-serif' }}>Reinforcing the collective spirit and shared aspirations of our members. Unity. Excellence. Community.</p>
+              </div>
             </div>
           </div>
           <div className="space-y-6">
             <div className="inline-block px-4 py-2 bg-[var(--color-accent)]/10 rounded-full border border-[var(--color-accent)]">
-              <p className="text-sm font-semibold text-[var(--color-accent)]">✨ Featured Event</p>
+              <p className="text-sm font-semibold text-[var(--color-accent)] uppercase tracking-wide">✨ Featured Event</p>
             </div>
             
-            <h3 className="text-4xl md:text-5xl font-extrabold text-[var(--color-dark)]">
+            <h3 className="text-4xl md:text-5xl font-bold text-[var(--color-dark)]">
               Fan Fest <span className="text-[var(--color-primary-2)]">2024</span>
             </h3>
             <p className="text-2xl font-bold text-[var(--color-primary-2)]">with Brett Lee</p>
@@ -85,8 +101,18 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Match Predictions */}
+      <MatchPredictions />
+
+      {/* Sponsor Spotlight */}
+      <SponsorSpotlight />
+
+      {/* Newsletter Signup */}
+      <NewsletterSignup />
       
-      <Sponsors />
+      <InstagramFeed />
+      <FacebookFeed />
     </>
   );
 }
