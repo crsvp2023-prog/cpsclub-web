@@ -24,13 +24,16 @@ export default function Hero() {
           <div className="mt-12 flex flex-col sm:flex-row items-center gap-6">
             <a
               href="/register"
-              className="inline-flex items-center gap-3 bg-[var(--color-accent)] text-[var(--color-dark)] px-8 py-4 rounded-lg shadow-xl hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transform transition-all duration-200 text-lg font-bold focus:outline-none"
-              style={{ fontFamily: 'Arial, sans-serif' }}
+              className="inline-flex items-center gap-3 bg-[var(--color-accent)] text-[var(--color-dark)] px-12 py-6 rounded-xl shadow-2xl hover:shadow-3xl hover:scale-125 hover:-translate-y-2 transform transition-all duration-200 text-2xl font-black focus:outline-none border-2 border-white/30 relative overflow-hidden group"
+              style={{ fontFamily: 'Arial, sans-serif', minWidth: '300px', justifyContent: 'center', letterSpacing: '0.05em' }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              {/* Animated background shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 translate-x-full group-hover:translate-x-0"></div>
+              
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 relative z-10" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
-              Register Now
+              <span className="relative z-10">Register Now</span>
             </a>
             <a href="#about" className="text-base text-white/80 hover:text-[var(--color-accent)] transition-colors font-medium" style={{ fontFamily: 'Arial, sans-serif' }}>
               ↓ Learn more about us

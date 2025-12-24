@@ -127,7 +127,7 @@ export default function MatchPredictions() {
       </div>
 
       <div className="text-center mt-12">
-        <button className="px-8 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300">
+        <button className="px-12 py-4 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 text-lg uppercase tracking-wider hover:bg-[#FFC939]">
           View All Predictions
         </button>
       </div>

@@ -20,9 +20,9 @@ export default function Header() {
   }, []);
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300`} style={{ backgroundColor: '#00215d' }}>
+    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 shadow-md`} style={{ backgroundColor: '#003B82' }}>
       {/* Top accent bar */}
-      <div className="h-1 w-full" style={{ backgroundColor: '#FFD100' }}></div>
+      <div className="h-1.5 w-full" style={{ backgroundColor: '#FFB81C' }}></div>
 
       {/* Main Header */}
       <div className="w-full">
@@ -38,7 +38,7 @@ export default function Header() {
             />
             <div className="flex flex-col">
               <h1 className="text-lg font-semibold text-white" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.5px' }}>CPS CLUB</h1>
-              <p className="text-xs text-[var(--color-accent)] font-bold" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.3px' }}>ONE TEAM, ONE DREAM</p>
+              <p className="text-xs text-[#FFB81C] font-bold" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.3px' }}>ONE TEAM, ONE DREAM</p>
             </div>
           </div>
 

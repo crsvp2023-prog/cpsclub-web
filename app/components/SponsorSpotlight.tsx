@@ -101,13 +101,13 @@ export default function SponsorSpotlight() {
                   href={currentSponsor.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
+                  className="flex-1 px-8 py-3 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 text-center uppercase tracking-wider hover:bg-[#FFC939]"
                 >
                   Visit Website
                 </a>
                 <a 
                   href="/sponsorship"
-                  className="flex-1 px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-bold rounded-lg hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 text-center"
+                  className="flex-1 px-8 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-bold rounded-lg hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 text-center"
                 >
                   Learn More
                 </a>
@@ -188,7 +188,7 @@ export default function SponsorSpotlight() {
         </p>
         <a 
           href="/sponsorship"
-          className="inline-block px-8 py-4 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
+          className="inline-block px-10 py-4 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 uppercase tracking-wider hover:bg-[#FFC939]"
         >
           Explore Sponsorship Opportunities
         </a>

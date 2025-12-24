@@ -103,7 +103,7 @@ export default function MatchCountdown() {
       <div className="flex flex-col md:flex-row gap-4 justify-center">
         <Link
           href="/register-interest"
-          className="px-8 py-4 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 text-center"
+          className="px-12 py-4 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 text-lg uppercase tracking-wider hover:bg-[#FFC939]"
         >
           Register Interest
         </Link>
