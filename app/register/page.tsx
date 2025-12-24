@@ -108,7 +108,6 @@ export default function RegisterPage() {
 
       const apiData = await apiResponse.json();
       console.log("Registration saved:", apiData);
-      }, { merge: true });
 
       console.log("User data saved successfully");
 
