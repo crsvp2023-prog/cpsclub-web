@@ -121,7 +121,7 @@ export default function UpcomingMatches() {
                 </div>
 
                 {/* CTA Button */}
-                <button className="w-full mt-6 px-4 py-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white rounded-lg font-bold hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <button className="w-full mt-6 px-6 py-3 bg-[var(--color-accent)] text-[var(--color-dark)] rounded-lg font-black hover:shadow-lg hover:scale-105 transition-all duration-300 uppercase tracking-wider hover:bg-[#FFC939]">
                   Learn More
                 </button>
               </div>
@@ -133,7 +133,7 @@ export default function UpcomingMatches() {
         <div className="text-center mt-12">
           <a
             href="/events"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-[var(--color-accent)] text-[var(--color-dark)] rounded-full font-black text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 uppercase tracking-wider hover:bg-[#FFC939]"
           >
             📅 View Full Schedule
             <span>→</span>

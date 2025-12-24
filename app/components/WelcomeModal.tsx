@@ -84,7 +84,7 @@ export default function WelcomeModal() {
             <button
               onClick={handleClose}
               className="flex-1 px-6 py-3 bg-gray-200 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-300 transition-all duration-300"
-              style={{ fontFamily: 'Arial, sans-serif' }}
+              style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.1em' }}
             >
               Explore More
             </button>

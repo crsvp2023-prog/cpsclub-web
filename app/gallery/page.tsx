@@ -112,7 +112,13 @@ export default function GalleryPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <main className="min-h-screen bg-gradient-to-br from-[#f8f9ff] via-white to-[#f0f4ff] relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-[var(--color-primary)] rounded-full opacity-5 blur-3xl"></div>
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--color-accent)] rounded-full opacity-5 blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/3 w-60 h-60 bg-[var(--color-primary-2)] rounded-full opacity-3 blur-2xl"></div>
+      
+      <div className="relative z-10">
       {/* Header */}
       <section className="pt-32 pb-16 px-6">
         <div className="max-w-7xl mx-auto text-center">
@@ -294,6 +300,7 @@ export default function GalleryPage() {
           </div>
         </div>
       </section>
+      </div>
     </main>
   );
 }

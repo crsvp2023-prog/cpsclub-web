@@ -60,12 +60,20 @@ export default function AdminRegisterInterestPage() {
         body: JSON.stringify({ status: newStatus }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setRegistrations(regs =>
           regs.map(r => (r.id === id ? { ...r, status: newStatus } : r))
         );
+        alert('Status updated successfully!');
+      } else {
+        alert(`Error: ${data.error || 'Failed to update status'}\n${data.details || ''}`);
+        console.error('Error response:', data);
       }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      alert(`Failed to update status: ${errorMsg}`);
       console.error('Error updating status:', error);
     }
   };
@@ -78,10 +86,18 @@ export default function AdminRegisterInterestPage() {
         method: 'DELETE',
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setRegistrations(regs => regs.filter(r => r.id !== id));
+        alert('Registration deleted successfully!');
+      } else {
+        alert(`Error: ${data.error || 'Failed to delete registration'}\n${data.details || ''}`);
+        console.error('Error response:', data);
       }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      alert(`Failed to delete registration: ${errorMsg}`);
       console.error('Error deleting registration:', error);
     }
   };
@@ -112,40 +128,45 @@ export default function AdminRegisterInterestPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9ff] via-white to-[#f0f4ff] relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-[var(--color-primary)] rounded-full opacity-5 blur-3xl"></div>
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--color-accent)] rounded-full opacity-5 blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/3 w-60 h-60 bg-[var(--color-primary-2)] rounded-full opacity-3 blur-2xl"></div>
+
       <Header />
 
       {/* Page Header */}
-      <section className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12">
+      <section className="bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-2)] to-[var(--color-accent)] text-white py-12 relative z-10">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-2">Register Interest Submissions</h1>
-          <p className="text-blue-100">Manage and review member registration inquiries</p>
+          <p className="text-white/80">Manage and review member registration inquiries</p>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="flex-grow py-12">
+      <section className="flex-grow py-12 relative z-10">
         <div className="container mx-auto px-4">
           {/* Stats Cards */}
           <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <p className="text-gray-600 text-sm">Total Registrations</p>
-              <p className="text-3xl font-bold text-blue-600">{registrations.length}</p>
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-lg border border-white/50">
+              <p className="text-gray-600 text-sm font-semibold">Total Registrations</p>
+              <p className="text-3xl font-bold text-[var(--color-primary)]">{registrations.length}</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <p className="text-gray-600 text-sm">Pending</p>
-              <p className="text-3xl font-bold text-yellow-600">
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-lg border border-white/50">
+              <p className="text-gray-600 text-sm font-semibold">Pending</p>
+              <p className="text-3xl font-bold text-amber-600">
                 {registrations.filter(r => r.status === 'pending').length}
               </p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <p className="text-gray-600 text-sm">Approved</p>
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-lg border border-white/50">
+              <p className="text-gray-600 text-sm font-semibold">Approved</p>
               <p className="text-3xl font-bold text-green-600">
                 {registrations.filter(r => r.status === 'approved').length}
               </p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <p className="text-gray-600 text-sm">Rejected</p>
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-lg border border-white/50">
+              <p className="text-gray-600 text-sm font-semibold">Rejected</p>
               <p className="text-3xl font-bold text-red-600">
                 {registrations.filter(r => r.status === 'rejected').length}
               </p>
@@ -153,24 +174,24 @@ export default function AdminRegisterInterestPage() {
           </div>
 
           {/* Filters and Search */}
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6 mb-6 border border-white/50">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">Search</label>
+                <label className="block text-[var(--color-dark)] font-semibold mb-2">Search</label>
                 <input
                   type="text"
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">Filter by Status</label>
+                <label className="block text-[var(--color-dark)] font-semibold mb-2">Filter by Status</label>
                 <select
                   value={filter}
                   onChange={e => setFilter(e.target.value as any)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >
                   <option value="all">All Registrations</option>
                   <option value="pending">Pending</option>
@@ -182,7 +203,7 @@ export default function AdminRegisterInterestPage() {
           </div>
 
           {/* Registrations Table */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border border-white/50">
             {loading ? (
               <div className="p-8 text-center text-gray-600">Loading registrations...</div>
             ) : filteredRegistrations.length === 0 ? (
@@ -190,32 +211,32 @@ export default function AdminRegisterInterestPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] border-b">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Email</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Phone</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Role</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Experience</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Submitted</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Name</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Email</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Phone</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Role</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Experience</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Submitted</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredRegistrations.map(reg => (
-                      <tr key={reg.id} className="border-b hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{reg.fullName}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{reg.email}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{reg.phone || '-'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{reg.role}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{reg.experience}</td>
+                      <tr key={reg.id} className="border-b hover:bg-blue-50/50 transition">
+                        <td className="px-6 py-4 text-sm font-medium text-[var(--color-dark)]">{reg.fullName}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{reg.email}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{reg.phone || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{reg.role}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{reg.experience}</td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(reg.status)}`}>
                             {reg.status.charAt(0).toUpperCase() + reg.status.slice(1)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-gray-700">
                           {reg.submittedAt?.toDate?.().toLocaleDateString() || 'N/A'}
                         </td>
                         <td className="px-6 py-4">
@@ -223,20 +244,20 @@ export default function AdminRegisterInterestPage() {
                             <button
                               onClick={() => updateStatus(reg.id, 'approved')}
                               disabled={reg.status === 'approved'}
-                              className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 disabled:opacity-50"
+                              className="px-3 py-1 bg-green-500 text-white text-xs rounded font-semibold hover:bg-green-600 disabled:opacity-50 transition"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() => updateStatus(reg.id, 'rejected')}
                               disabled={reg.status === 'rejected'}
-                              className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
+                              className="px-3 py-1 bg-red-500 text-white text-xs rounded font-semibold hover:bg-red-600 disabled:opacity-50 transition"
                             >
                               Reject
                             </button>
                             <button
                               onClick={() => deleteRegistration(reg.id)}
-                              className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                              className="px-3 py-1 bg-gray-500 text-white text-xs rounded font-semibold hover:bg-gray-600 transition"
                             >
                               Delete
                             </button>
@@ -253,28 +274,28 @@ export default function AdminRegisterInterestPage() {
           {/* Expandable Details */}
           {filteredRegistrations.length > 0 && (
             <div className="mt-8">
-              <h3 className="text-2xl font-bold mb-4">Detailed Submissions</h3>
+              <h3 className="text-2xl font-bold mb-4 text-[var(--color-dark)]">Detailed Submissions</h3>
               <div className="space-y-4">
                 {filteredRegistrations.map(reg => (
                   <details
                     key={reg.id}
-                    className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+                    className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition border border-white/50"
                   >
-                    <summary className="font-semibold text-gray-800">
+                    <summary className="font-semibold text-[var(--color-dark)]">
                       {reg.fullName} - {reg.email}
                     </summary>
-                    <div className="mt-4 pt-4 border-t space-y-2">
+                    <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
                       <p>
-                        <span className="font-semibold">Phone:</span> {reg.phone || 'Not provided'}
+                        <span className="font-semibold text-[var(--color-dark)]">Phone:</span> {reg.phone || 'Not provided'}
                       </p>
                       <p>
-                        <span className="font-semibold">Role:</span> {reg.role}
+                        <span className="font-semibold text-[var(--color-dark)]">Role:</span> {reg.role}
                       </p>
                       <p>
-                        <span className="font-semibold">Experience:</span> {reg.experience}
+                        <span className="font-semibold text-[var(--color-dark)]">Experience:</span> {reg.experience}
                       </p>
                       <p>
-                        <span className="font-semibold">Comments:</span>
+                        <span className="font-semibold text-[var(--color-dark)]">Comments:</span>
                       </p>
                       <p className="text-gray-700 whitespace-pre-wrap">
                         {reg.comments || 'No additional comments'}
