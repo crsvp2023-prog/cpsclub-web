@@ -330,6 +330,35 @@ export default function AboutPage() {
             {activeTab === 'tournaments' && (
               <div className="space-y-8">
                 <h3 className="text-3xl font-bold text-[var(--color-dark)]">Tournament Highlights</h3>
+                
+                {/* Featured: Fan Fest 2024 with Brett Lee */}
+                <div className="relative group bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-2)] to-[var(--color-accent)] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 border-2 border-[var(--color-accent)]">
+                  <div className="absolute inset-0 opacity-10 bg-pattern"></div>
+                  <div className="relative z-10 p-12 md:p-16">
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                      <div className="flex-1 text-white">
+                        <div className="inline-block mb-4 px-4 py-2 bg-white/20 rounded-full backdrop-blur">
+                          <p className="text-sm font-bold uppercase tracking-wider">⭐ FEATURED EVENT</p>
+                        </div>
+                        <h4 className="text-5xl font-black mb-4">Fan Fest 2024</h4>
+                        <p className="text-3xl font-bold text-[var(--color-accent)] mb-6">with Brett Lee</p>
+                        <p className="text-lg text-white/90 mb-6 leading-relaxed max-w-2xl">
+                          An unprecedented cricket celebration featuring legendary fast bowler Brett Lee! Our Fan Fest 2024 showcased elite cricket, incredible community engagement, and unforgettable moments with one of cricket's greatest icons.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <button className="px-8 py-3 bg-white text-[var(--color-primary)] font-black rounded-lg hover:bg-gray-100 hover:shadow-lg transition-all duration-300 uppercase tracking-wider">
+                            View Photos
+                          </button>
+                          <button className="px-8 py-3 border-2 border-white text-white font-bold rounded-lg hover:bg-white/10 transition-all duration-300">
+                            Learn More
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 text-7xl animate-bounce">🏏</div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200">
                     <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] h-56 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">

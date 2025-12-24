@@ -53,14 +53,17 @@ export default function HomePage() {
             </div>
           </div>
           <div className="space-y-6">
-            <div className="inline-block px-4 py-2 bg-[var(--color-accent)]/10 rounded-full border border-[var(--color-accent)]">
-              <p className="text-sm font-semibold text-[var(--color-accent)] uppercase tracking-wide">✨ Featured Event</p>
+            <div className="inline-block px-4 py-2 bg-[var(--color-accent)]/20 rounded-full border border-[var(--color-accent)]">
+              <p className="text-sm font-semibold text-[var(--color-accent)] uppercase tracking-wider">⭐ FEATURED HIGHLIGHT</p>
             </div>
             
-            <h3 className="text-4xl md:text-5xl font-bold text-[var(--color-dark)]">
-              Fan Fest <span className="text-[var(--color-primary-2)]">2024</span>
-            </h3>
-            <p className="text-2xl font-bold text-[var(--color-primary-2)]">with Brett Lee</p>
+            <div>
+              <h3 className="text-5xl md:text-6xl font-black text-[var(--color-dark)] mb-2">
+                Fan Fest <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)]">2024</span>
+              </h3>
+              <p className="text-3xl md:text-4xl font-black text-[var(--color-accent)] mb-2">with Brett Lee</p>
+              <p className="text-lg text-[var(--color-primary-2)] font-bold">🏏 An Unforgettable Cricket Celebration</p>
+            </div>
             
             {/* Fan Fest Photos Grid with hover effects */}
             <div className="grid grid-cols-2 gap-4">
@@ -77,27 +80,38 @@ export default function HomePage() {
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   {/* Overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                    <p className="text-white text-sm font-semibold p-3">Event Moment {num}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                    <p className="text-white text-sm font-bold p-3">Event Moment {num}</p>
                   </div>
                 </div>
               ))}
             </div>
             
-            <div className="bg-gradient-to-r from-[var(--color-dark)]/5 to-[var(--color-primary)]/5 rounded-xl p-6 border-l-4 border-[var(--color-primary-2)]">
-              <p className="text-gray-700 leading-relaxed">
-                We are excited to share the highlights from the <span className="font-bold text-[var(--color-dark)]">Fan Fest 2024</span> held on <span className="font-semibold">Sunday, 22 September 2024</span>, at the Chatswood Premier Sports Club in association with <span className="font-semibold">JICS</span>. The event was a resounding success, thanks to the incredible planning and organization by our team.
+            <div className="bg-gradient-to-r from-[var(--color-accent)]/10 via-[var(--color-primary)]/5 to-[var(--color-primary-2)]/10 rounded-2xl p-8 border-l-4 border-[var(--color-accent)] shadow-lg">
+              <p className="text-gray-700 text-lg leading-relaxed mb-4">
+                We are thrilled to share the highlights from the <span className="font-black text-[var(--color-dark)]">Fan Fest 2024</span> held on <span className="font-semibold">Sunday, 22 September 2024</span>, at the Chatswood Premier Sports Club in association with <span className="font-semibold">JICS</span>. This event featured the legendary <span className="font-black text-[var(--color-accent)]">Brett Lee</span> and was a resounding success!
               </p>
-              <p className="mt-3 text-[var(--color-primary)] font-bold">🎉 Special thanks to Aman Sethi for making this event memorable!</p>
+              <div className="flex items-center gap-2 text-[var(--color-primary)] font-bold">
+                <span className="text-2xl">✨</span>
+                <p>Special thanks to Aman Sethi for making this event unforgettable!</p>
+              </div>
             </div>
             
-            <a
-              href="/gallery"
-              className="inline-flex items-center gap-2 mt-4 px-8 py-4 bg-gradient-to-r from-[var(--color-primary-2)] to-[var(--color-accent)] text-white rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
-            >
-              🖼️ View Full Gallery
-              <span>→</span>
-            </a>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <a
+                href="/gallery"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--color-accent)] text-[var(--color-dark)] rounded-xl font-black text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 uppercase tracking-wider hover:bg-[#FFC939]"
+              >
+                🖼️ View Full Gallery
+                <span>→</span>
+              </a>
+              <a
+                href="/about"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-xl font-bold text-lg hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300"
+              >
+                Learn More About Brett Lee
+              </a>
+            </div>
           </div>
         </div>
       </section>
