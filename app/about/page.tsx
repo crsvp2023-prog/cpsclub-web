@@ -110,30 +110,30 @@ export default function AboutPage() {
               <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)]">
                 <p className="text-sm font-semibold text-[var(--color-primary-2)] uppercase tracking-wider">Who We Are</p>
               </div>
-              <h2 className="text-5xl font-bold text-[var(--color-dark)] mb-6">Our Mission</h2>
-              <p className="text-lg text-gray-700 leading-relaxed mb-6">
+              <h2 className="text-5xl font-bold text-[#0d3e2a] mb-6">Our Mission</h2>
+              <p className="text-lg text-[#0d3e2a] leading-relaxed mb-6">
                 We are a powerhouse of passionate, forward-thinking individuals united to empower every person to thrive, lead authentically, and foster genuine connections within an inclusive, vibrant community dedicated to wellness and mutual success.
               </p>
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="text-2xl">🎯</div>
                   <div>
-                    <h4 className="font-bold text-gray-800">Excellence</h4>
-                    <p className="text-gray-600">Committed to the highest standards of sport and community</p>
+                    <h4 className="font-bold text-[#0d3e2a]">Excellence</h4>
+                    <p className="text-[#1a5640]">Committed to the highest standards of sport and community</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="text-2xl">🤝</div>
                   <div>
-                    <h4 className="font-bold text-gray-800">Community</h4>
-                    <p className="text-gray-600">Building strong connections and lasting relationships</p>
+                    <h4 className="font-bold text-[#0d3e2a]">Community</h4>
+                    <p className="text-[#1a5640]">Building strong connections and lasting relationships</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="text-2xl">💪</div>
                   <div>
-                    <h4 className="font-bold text-gray-800">Wellness</h4>
-                    <p className="text-gray-600">Promoting physical fitness and mental well-being</p>
+                    <h4 className="font-bold text-[#0d3e2a]">Wellness</h4>
+                    <p className="text-[#1a5640]">Promoting physical fitness and mental well-being</p>
                   </div>
                 </div>
               </div>

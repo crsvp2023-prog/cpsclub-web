@@ -1,3 +1,7 @@
+'use client';
+
+import Image from 'next/image';
+
 export default function Hero() {
   return (
     <>
@@ -7,42 +11,43 @@ export default function Hero() {
       <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-3xl" />
       <div className="absolute top-1/2 left-1/3 w-60 h-60 bg-[var(--color-accent)] rounded-full opacity-5 blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
       
-      <div className="mx-auto max-w-7xl px-6 py-40 grid md:grid-cols-2 gap-12 items-center relative z-10">
-        <div>
-          <div className="inline-block mb-6 px-4 py-2 bg-[var(--color-accent)]/15 rounded-full border border-[var(--color-accent)]/40">
+      <div className="mx-auto max-w-7xl px-6 py-12 grid md:grid-cols-2 gap-8 items-start relative z-10">
+        <div className="md:col-span-1">
+          <div className="inline-block mb-4 px-3 py-1 bg-[var(--color-accent)]/15 rounded-full border border-[var(--color-accent)]/40">
             <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-widest">🏏 Welcome to Excellence</p>
           </div>
           
-          <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-white leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
             CPS<br />Cricket Club
           </h1>
           
-          <p className="mt-8 text-lg text-white/90 max-w-2xl leading-relaxed font-normal" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <p className="mt-3 text-sm text-white/90 max-w-2xl leading-relaxed font-normal" style={{ fontFamily: 'Arial, sans-serif' }}>
             Founded in 2016 and officially incorporated in 2023, we are the heart of cricket in Chatswood. Driven by our motto, <span className="text-[var(--color-accent)] font-bold">"One Team, One Dream,"</span> we bridge the gap between competitive sport and community spirit.
           </p>
 
-          <div className="mt-12 flex flex-col sm:flex-row items-center gap-6">
+          <div className="mt-6 flex flex-col sm:flex-row items-center gap-4">
             <a
               href="/register"
-              className="inline-flex items-center gap-3 bg-[var(--color-accent)] text-[var(--color-dark)] px-12 py-6 rounded-xl shadow-2xl hover:shadow-3xl hover:scale-125 hover:-translate-y-2 transform transition-all duration-200 text-2xl font-black focus:outline-none border-2 border-white/30 relative overflow-hidden group"
-              style={{ fontFamily: 'Arial, sans-serif', minWidth: '300px', justifyContent: 'center', letterSpacing: '0.05em' }}
+              className="inline-flex items-center gap-2 bg-[var(--color-accent)] text-[var(--color-dark)] px-8 py-3 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transform transition-all duration-200 text-base font-black focus:outline-none border-2 border-white/30 relative overflow-hidden group"
+              style={{ fontFamily: 'Arial, sans-serif', minWidth: 'auto', justifyContent: 'center', letterSpacing: '0.05em' }}
             >
               {/* Animated background shine effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 translate-x-full group-hover:translate-x-0"></div>
               
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 relative z-10" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 relative z-10" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
               <span className="relative z-10">Register Now</span>
             </a>
-            <a href="#about" className="text-base text-white/80 hover:text-[var(--color-accent)] transition-colors font-medium" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <a href="#about" className="text-sm text-white/80 hover:text-[var(--color-accent)] transition-colors font-medium" style={{ fontFamily: 'Arial, sans-serif' }}>
               ↓ Learn more about us
             </a>
           </div>
         </div>
 
-        <div className="flex items-center justify-center">
-          <div className="relative w-full max-w-md md:max-w-none">
+        <div className="grid grid-cols-2 gap-4 md:col-span-1 items-center">
+          {/* Main Hero Image */}
+          <div className="relative w-full">
             {/* Glow effect behind image */}
             <div className="absolute -inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-2xl opacity-20 blur-xl"></div>
             
@@ -61,11 +66,28 @@ export default function Hero() {
               {/* Overlay gradient for realism */}
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-dark)]/20 to-transparent"></div>
             </div>
-            
-            {/* Decorative elements */}
-            <div className="absolute -top-6 -right-6 w-24 h-24 bg-[var(--color-accent)] rounded-full opacity-10 blur-2xl"></div>
-            <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-2xl"></div>
           </div>
+
+          {/* Trophies Image */}
+          <div className="relative w-full">
+            {/* Glow effect behind image */}
+            <div className="absolute -inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-2xl opacity-20 blur-xl"></div>
+            
+            {/* Trophies image container */}
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white">
+              <Image
+                src="/images/trophies.jpg"
+                alt="CPS Club Trophies"
+                width={300}
+                height={300}
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Decorative elements */}
+          <div className="absolute -top-6 -right-6 w-24 h-24 bg-[var(--color-accent)] rounded-full opacity-10 blur-2xl"></div>
+          <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-2xl"></div>
         </div>
       </div>
     </section>

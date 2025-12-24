@@ -49,19 +49,25 @@ export default function UpcomingMatches() {
   };
 
   return (
-    <section id="upcoming-matches" className="bg-white py-16">
+    <section id="upcoming-matches" className="bg-gradient-to-br from-[var(--color-primary)] via-[#003B82] to-[var(--color-primary-2)] py-16 rounded-3xl">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-block mb-3 px-4 py-2 bg-orange-100 rounded-full border border-orange-300">
-            <p className="text-sm font-semibold text-orange-700">🏏 Schedule</p>
+          <div className="inline-block mb-3 px-4 py-2 bg-[var(--color-accent)]/20 rounded-full border border-[var(--color-accent)]">
+            <p className="text-sm font-semibold text-[var(--color-accent)]">🏏 Schedule</p>
           </div>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--color-dark)] mb-3">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-3">
             Upcoming Matches
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Don't miss our exciting upcoming cricket matches
           </p>
+          <a 
+            href="/about" 
+            className="inline-block mt-6 px-6 py-2 text-[var(--color-primary)] font-bold hover:text-[var(--color-accent)] transition-colors"
+          >
+            ← Learn about our story
+          </a>
         </div>
 
         {/* Matches Grid */}

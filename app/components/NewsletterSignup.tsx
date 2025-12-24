@@ -48,7 +48,7 @@ export default function NewsletterSignup() {
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-16">
+    <section className="mx-auto max-w-7xl px-6 py-16 bg-gradient-to-br from-[var(--color-primary)] via-[#003B82] to-[var(--color-primary-2)] rounded-3xl">
       <div className="bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary)]/80 to-[var(--color-primary-2)] rounded-3xl p-12 md:p-16 text-white relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-48 -mt-48"></div>
