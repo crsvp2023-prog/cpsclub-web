@@ -2,7 +2,14 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #00215d;
+  /* Cricket Australia inspired color palette */
+  --color-primary: #00215d; /* professional navy blue */
+  --color-primary-2: #003d99; /* medium navy */
+  --color-accent: #FFD100; /* golden yellow */
+  --color-dark: #00215d; /* dark navy */
+  --color-muted: #666666; /* medium gray */
+  --font-sans: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
 }
 
 @theme inline {
@@ -19,8 +26,70 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+headline, h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 48px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-2);
+}
+
+/* Utility helpers (small set to use in components) */
+.bg-primary-gradient {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-2));
+}
+.btn-primary {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-2));
+  color: white;
+}
+.ring-primary {
+  box-shadow: 0 0 0 6px rgba(0,166,82,0.10);
+}
+.text-accent { color: var(--color-accent); }
+.text-primary { color: var(--color-primary); }
+.bg-accent { background-color: var(--color-accent); }
