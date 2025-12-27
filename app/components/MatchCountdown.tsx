@@ -93,8 +93,8 @@ export default function MatchCountdown() {
 
 const CountdownBox = ({ value, label }: { value: number; label: string }) => (
     <div className="text-center">
-      <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-md sm:rounded-lg p-2 sm:p-3 mb-1 sm:mb-2 min-w-14 sm:min-w-20">
-        <span className="text-lg sm:text-2xl md:text-3xl font-extrabold text-white">
+      <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-md sm:rounded-lg p-2 sm:p-3 mb-1 sm:mb-2 min-w-12 sm:min-w-20">
+        <span className="text-base sm:text-2xl md:text-3xl font-extrabold text-white">
           {String(value).padStart(2, '0')}
         </span>
       </div>
@@ -106,13 +106,13 @@ const CountdownBox = ({ value, label }: { value: number; label: string }) => (
 
   return (
     <section className="relative w-full h-full px-4 sm:px-0">
-      <div className="w-full h-full px-4 sm:px-6 py-6 sm:py-8 bg-gradient-to-br from-[#0052CC] via-[#0066FF] to-[#003B82] rounded-xl sm:rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
+      <div className="w-full h-full px-4 sm:px-6 py-6 sm:py-8 bg-gradient-to-br from-[#0052CC] via-[#0066FF] to-[#003B82] rounded-lg sm:rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
         {/* Title */}
         <div className="text-center mb-3 sm:mb-4">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-extrabold text-[#0d3e2a]">
+          <h2 className="text-base sm:text-lg md:text-2xl font-extrabold text-[#0d3e2a]">
             Next Match <span className="text-[var(--color-accent)]">Countdown</span>
           </h2>
-          <p className="text-xs sm:text-sm text-[#1a5640] mt-1 line-clamp-2">
+          <p className="text-xs sm:text-sm text-[#1a5640] mt-1 line-clamp-2 px-2">
             {currentMatch.opponent}
           </p>
         </div>

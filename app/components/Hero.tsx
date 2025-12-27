@@ -11,7 +11,7 @@ export default function Hero() {
       <div className="absolute -bottom-40 -left-40 w-60 sm:w-80 h-60 sm:h-80 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-3xl" />
       <div className="absolute top-1/2 left-1/3 w-40 sm:w-60 h-40 sm:h-60 bg-[var(--color-accent)] rounded-full opacity-5 blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
       
-      <div className="mx-auto max-w-7xl px-3 sm:px-6 py-6 sm:py-12 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-start relative z-10">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 py-6 sm:py-12 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 md:gap-8 items-start relative z-10">
         <div className="md:col-span-1 order-2 md:order-1">
           <div className="inline-block mb-3 sm:mb-4 px-3 py-1 bg-[var(--color-accent)]/15 rounded-full border border-[var(--color-accent)]/40">
             <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-widest">🏏 Welcome to Excellence</p>
@@ -59,7 +59,7 @@ export default function Hero() {
                 <img
                   src="/images/hero-illustration.svg"
                   alt="CPS Club Cricket Team"
-                  className="w-full h-auto max-h-64 sm:max-h-80 md:max-h-none object-cover object-center brightness-110 contrast-125 hover:brightness-125 transition-all duration-500"
+                  className="w-full h-auto max-h-48 sm:max-h-64 md:max-h-none object-cover object-center brightness-110 contrast-125 hover:brightness-125 transition-all duration-500"
                 />
               </picture>
               
@@ -80,7 +80,7 @@ export default function Hero() {
                 alt="CPS Club Trophies"
                 width={300}
                 height={300}
-                className="w-full h-auto max-h-64 sm:max-h-80 md:max-h-none object-cover"
+                className="w-full h-auto max-h-48 sm:max-h-64 md:max-h-none object-cover"
               />
             </div>
           </div>
