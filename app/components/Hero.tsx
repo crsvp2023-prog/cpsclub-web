@@ -14,11 +14,11 @@ export default function Hero() {
       <div className="mx-auto max-w-7xl px-3 sm:px-6 py-6 sm:py-12 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 md:gap-8 items-start relative z-10">
         <div className="md:col-span-1 order-2 md:order-1">
           <div className="inline-block mb-3 sm:mb-4 px-3 py-1 bg-[var(--color-accent)]/15 rounded-full border border-[var(--color-accent)]/40">
-            <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-widest">🏏 Welcome to Excellence</p>
+            <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-widest">🏏 Welcome to Chatswood Premier Sports Club</p>
           </div>
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
-            CPS<br className="hidden sm:block" />Cricket Club
+            Chatswood<br className="hidden sm:block" />Premier Sports Club
           </h1>
           
           <p className="mt-3 text-sm sm:text-base text-white/90 max-w-2xl leading-relaxed font-normal" style={{ fontFamily: 'Arial, sans-serif' }}>
