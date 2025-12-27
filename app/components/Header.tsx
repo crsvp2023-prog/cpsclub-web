@@ -88,27 +88,27 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden flex flex-col gap-1 p-2 -mr-2 touch-target"
+            className="md:hidden flex flex-col gap-1.5 p-2 -mr-2"
             style={{ color: '#FFB81C' }}
             aria-label="Toggle menu"
           >
-            <span className="w-6 h-0.5 bg-current block transition-all"></span>
-            <span className="w-6 h-0.5 bg-current block transition-all"></span>
-            <span className="w-6 h-0.5 bg-current block transition-all"></span>
+            <span className={`w-6 h-0.5 bg-current block transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
+            <span className={`w-6 h-0.5 bg-current block transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+            <span className={`w-6 h-0.5 bg-current block transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
           </button>
         </div>
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-white/20 max-h-[calc(100vh-60px)] overflow-y-auto" style={{ backgroundColor: '#003B82' }}>
-            <nav className="flex flex-col gap-0 px-3 py-2">
+          <div className="md:hidden border-t border-white/20 animate-in fade-in slide-in-from-top-2 duration-200" style={{ backgroundColor: '#003B82' }}>
+            <nav className="flex flex-col gap-0 px-0 py-0">
               {navLinks.map((link) => (
                 <a 
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`py-3 px-3 font-semibold transition-all duration-300 uppercase tracking-wider text-xs block border-l-4 ${
-                    currentPath === link.href ? 'border-l-[#FFD100]' : 'border-l-transparent'
+                  className={`py-4 px-4 font-semibold transition-all duration-300 uppercase tracking-wider text-xs block border-l-4 hover:bg-white/10 ${
+                    currentPath === link.href ? 'border-l-[#FFD100] bg-white/5' : 'border-l-transparent'
                   }`}
                   style={{ 
                     color: currentPath === link.href ? '#FFD100' : '#ffffff',
@@ -118,18 +118,20 @@ export default function Header() {
                   {link.label}
                 </a>
               ))}
-              <a
-                href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="py-3 px-3 font-semibold rounded transition-all duration-300 uppercase tracking-wider text-xs mt-2 text-center"
-                style={{ 
-                  backgroundColor: '#FFD100',
-                  color: '#00215d',
-                  fontFamily: 'Arial, sans-serif'
-                }}
-              >
-                Login
-              </a>
+              <div className="px-4 py-3 border-t border-white/20">
+                <a
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="py-3 px-4 font-semibold rounded transition-all duration-300 uppercase tracking-wider text-xs block text-center hover:shadow-lg hover:scale-105"
+                  style={{ 
+                    backgroundColor: '#FFD100',
+                    color: '#00215d',
+                    fontFamily: 'Arial, sans-serif'
+                  }}
+                >
+                  Login
+                </a>
+              </div>
             </nav>
           </div>
         )}
