@@ -193,6 +193,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
       
+      console.log("Google login successful:", {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: userCredential.user.displayName,
+        photoURL: userCredential.user.photoURL,
+      });
+      
       // Try to update user profile in database with Google data
       // Even if this fails, the user is still logged in
       try {

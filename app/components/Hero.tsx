@@ -7,29 +7,29 @@ export default function Hero() {
     <>
     <section className="bg-gradient-to-br from-[var(--color-dark)] via-[#00215d] to-[var(--color-primary)] relative overflow-hidden">
       {/* Animated accent circles background */}
-      <div className="absolute -top-40 -right-40 w-80 h-80 bg-[var(--color-accent)] rounded-full opacity-10 blur-3xl animate-pulse" />
-      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-3xl" />
-      <div className="absolute top-1/2 left-1/3 w-60 h-60 bg-[var(--color-accent)] rounded-full opacity-5 blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
+      <div className="absolute -top-40 -right-40 w-60 sm:w-80 h-60 sm:h-80 bg-[var(--color-accent)] rounded-full opacity-10 blur-3xl animate-pulse" />
+      <div className="absolute -bottom-40 -left-40 w-60 sm:w-80 h-60 sm:h-80 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-3xl" />
+      <div className="absolute top-1/2 left-1/3 w-40 sm:w-60 h-40 sm:h-60 bg-[var(--color-accent)] rounded-full opacity-5 blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
       
-      <div className="mx-auto max-w-7xl px-6 py-12 grid md:grid-cols-2 gap-8 items-start relative z-10">
-        <div className="md:col-span-1">
-          <div className="inline-block mb-4 px-3 py-1 bg-[var(--color-accent)]/15 rounded-full border border-[var(--color-accent)]/40">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-start relative z-10">
+        <div className="md:col-span-1 order-2 md:order-1">
+          <div className="inline-block mb-3 sm:mb-4 px-3 py-1 bg-[var(--color-accent)]/15 rounded-full border border-[var(--color-accent)]/40">
             <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-widest">🏏 Welcome to Excellence</p>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
-            CPS<br />Cricket Club
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
+            CPS<br className="hidden sm:block" />Cricket Club
           </h1>
           
-          <p className="mt-3 text-sm text-white/90 max-w-2xl leading-relaxed font-normal" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <p className="mt-3 text-sm sm:text-base text-white/90 max-w-2xl leading-relaxed font-normal" style={{ fontFamily: 'Arial, sans-serif' }}>
             Founded in 2016 and officially incorporated in 2023, we are the heart of cricket in Chatswood. Driven by our motto, <span className="text-[var(--color-accent)] font-bold">"One Team, One Dream,"</span> we bridge the gap between competitive sport and community spirit.
           </p>
 
-          <div className="mt-6 flex flex-col sm:flex-row items-center gap-4">
+          <div className="mt-5 sm:mt-6 flex flex-col gap-3 sm:gap-4">
             <a
               href="/register"
-              className="inline-flex items-center gap-2 bg-[var(--color-accent)] text-[var(--color-dark)] px-8 py-3 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transform transition-all duration-200 text-base font-black focus:outline-none border-2 border-white/30 relative overflow-hidden group"
-              style={{ fontFamily: 'Arial, sans-serif', minWidth: 'auto', justifyContent: 'center', letterSpacing: '0.05em' }}
+              className="inline-flex items-center justify-center gap-2 bg-[var(--color-accent)] text-[var(--color-dark)] px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transform transition-all duration-200 text-sm sm:text-base font-black focus:outline-none border-2 border-white/30 relative overflow-hidden group w-full sm:w-auto"
+              style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.05em' }}
             >
               {/* Animated background shine effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 translate-x-full group-hover:translate-x-0"></div>
@@ -39,20 +39,20 @@ export default function Hero() {
               </svg>
               <span className="relative z-10">Register Now</span>
             </a>
-            <a href="#about" className="text-sm text-white/80 hover:text-[var(--color-accent)] transition-colors font-medium" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <a href="#about" className="text-sm text-white/80 hover:text-[var(--color-accent)] transition-colors font-medium text-center sm:text-left" style={{ fontFamily: 'Arial, sans-serif' }}>
               ↓ Learn more about us
             </a>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:col-span-1 items-center">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:col-span-1 items-center order-1 md:order-2">
           {/* Main Hero Image */}
           <div className="relative w-full">
             {/* Glow effect behind image */}
-            <div className="absolute -inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-2xl opacity-20 blur-xl"></div>
+            <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-xl sm:rounded-2xl opacity-20 blur-lg sm:blur-xl"></div>
             
             {/* Main image container */}
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)]">
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)]">
               <picture>
                 <source media="(min-width:1200px)" srcSet="/images/hero-photo.jpg" />
                 <source media="(min-width:640px)" srcSet="/images/hero-photo.jpg" />
@@ -71,10 +71,10 @@ export default function Hero() {
           {/* Trophies Image */}
           <div className="relative w-full">
             {/* Glow effect behind image */}
-            <div className="absolute -inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-2xl opacity-20 blur-xl"></div>
+            <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-xl sm:rounded-2xl opacity-20 blur-lg sm:blur-xl"></div>
             
             {/* Trophies image container */}
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white">
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white">
               <Image
                 src="/images/trophies.jpg"
                 alt="CPS Club Trophies"
@@ -86,8 +86,8 @@ export default function Hero() {
           </div>
 
           {/* Decorative elements */}
-          <div className="absolute -top-6 -right-6 w-24 h-24 bg-[var(--color-accent)] rounded-full opacity-10 blur-2xl"></div>
-          <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-2xl"></div>
+          <div className="absolute -top-6 -right-6 w-16 sm:w-24 h-16 sm:h-24 bg-[var(--color-accent)] rounded-full opacity-10 blur-2xl"></div>
+          <div className="absolute -bottom-6 -left-6 w-20 sm:w-32 h-20 sm:h-32 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-2xl"></div>
         </div>
       </div>
     </section>

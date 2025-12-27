@@ -4,19 +4,12 @@
   --background: #ffffff;
   --foreground: #1a1a1a;
   /* Cricket Australia inspired color palette - Clearer & More Vibrant */
-  --color-primary: #003B82; /* Strong navy blue */
-  --color-primary-2: #0052CC; /* Vibrant blue */
+  --color-primary: #008229; /* Strong navy blue */
+  --color-primary-2: #008bcc; /* Vibrant blue */
   --color-accent: #FFB81C; /* Bright golden yellow */
   --color-dark: #001a4d; /* Very dark navy */
   --color-muted: #757575; /* Clear gray */
   --font-sans: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,8 +38,24 @@ headline, h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 48px;
+  font-size: clamp(32px, 8vw, 48px);
   font-weight: 700;
+}
+
+h2 {
+  font-size: clamp(24px, 6vw, 36px);
+  font-weight: 600;
+}
+
+h3 {
+  font-size: clamp(20px, 5vw, 28px);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
 }
 
 h2 {
