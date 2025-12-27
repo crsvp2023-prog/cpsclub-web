@@ -91,7 +91,7 @@ export default function MatchCountdown() {
   const currentMatch = UPCOMING_MATCHES[currentIndex];
   const countdown = countdowns[currentIndex];
 
-  const CountdownBox = ({ value, label }: { value: number; label: string }) => (
+const CountdownBox = ({ value, label }: { value: number; label: string }) => (
     <div className="text-center">
       <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-md sm:rounded-lg p-2 sm:p-3 mb-1 sm:mb-2 min-w-12 sm:min-w-20">
         <span className="text-base sm:text-2xl md:text-3xl font-extrabold text-white">
@@ -153,7 +153,7 @@ export default function MatchCountdown() {
         <div className="flex justify-center">
           <Link
             href="/register-interest"
-            className="px-6 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-xs uppercase tracking-wider hover:bg-[#FFC939]"
+            className="px-4 sm:px-6 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-xs uppercase tracking-wider hover:bg-[#FFC939] w-full sm:w-auto text-center"
           >
             Register Interest
           </Link>
@@ -162,10 +162,10 @@ export default function MatchCountdown() {
 
       {/* Carousel Navigation - Only show if multiple matches */}
       {UPCOMING_MATCHES.length > 1 && (
-        <div className="flex justify-center gap-4 mt-3">
+        <div className="flex justify-center gap-2 sm:gap-4 mt-3">
           <button
             onClick={goToPrevious}
-            className="w-9 h-9 rounded-full bg-[var(--color-primary)] text-white font-bold hover:shadow-lg hover:scale-110 transition-all flex items-center justify-center text-sm"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[var(--color-primary)] text-white font-bold hover:shadow-lg hover:scale-110 transition-all flex items-center justify-center text-xs sm:text-sm"
             aria-label="Previous"
           >
             ←
@@ -185,7 +185,7 @@ export default function MatchCountdown() {
           </div>
           <button
             onClick={goToNext}
-            className="w-9 h-9 rounded-full bg-[var(--color-primary)] text-white font-bold hover:shadow-lg hover:scale-110 transition-all flex items-center justify-center text-sm"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[var(--color-primary)] text-white font-bold hover:shadow-lg hover:scale-110 transition-all flex items-center justify-center text-xs sm:text-sm"
             aria-label="Next"
           >
             →
