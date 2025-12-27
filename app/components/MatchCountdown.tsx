@@ -93,32 +93,32 @@ export default function MatchCountdown() {
 
   const CountdownBox = ({ value, label }: { value: number; label: string }) => (
     <div className="text-center">
-      <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-lg p-3 mb-2 min-w-20">
-        <span className="text-2xl md:text-3xl font-extrabold text-white">
+      <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-md sm:rounded-lg p-2 sm:p-3 mb-1 sm:mb-2 min-w-12 sm:min-w-20">
+        <span className="text-base sm:text-2xl md:text-3xl font-extrabold text-white">
           {String(value).padStart(2, '0')}
         </span>
       </div>
-      <p className="text-xs md:text-sm font-semibold text-white/80 uppercase tracking-wider">
+      <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
         {label}
       </p>
     </div>
   );
 
   return (
-    <section className="relative w-full h-full">
-      <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[#0052CC] via-[#0066FF] to-[#003B82] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
+    <section className="relative w-full h-full px-4 sm:px-0">
+      <div className="w-full h-full px-4 sm:px-6 py-6 sm:py-8 bg-gradient-to-br from-[#0052CC] via-[#0066FF] to-[#003B82] rounded-lg sm:rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
         {/* Title */}
-        <div className="text-center mb-4">
-          <h2 className="text-xl md:text-2xl font-extrabold text-[#0d3e2a]">
+        <div className="text-center mb-3 sm:mb-4">
+          <h2 className="text-base sm:text-lg md:text-2xl font-extrabold text-[#0d3e2a]">
             Next Match <span className="text-[var(--color-accent)]">Countdown</span>
           </h2>
-          <p className="text-xs md:text-sm text-[#1a5640] mt-1">
+          <p className="text-xs sm:text-sm text-[#1a5640] mt-1 line-clamp-2 px-2">
             {currentMatch.opponent}
           </p>
         </div>
 
         {/* Countdown Display */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="grid grid-cols-4 gap-1 sm:gap-2 mb-3 sm:mb-4">
           <CountdownBox value={countdown.days} label="Days" />
           <CountdownBox value={countdown.hours} label="Hours" />
           <CountdownBox value={countdown.minutes} label="Minutes" />
@@ -126,8 +126,8 @@ export default function MatchCountdown() {
         </div>
 
         {/* Match Details */}
-        <div className="bg-white rounded-lg p-3 mb-4 shadow-lg flex-1">
-          <div className="grid grid-cols-3 gap-2">
+        <div className="bg-white rounded-lg p-2 sm:p-3 mb-3 sm:mb-4 shadow-lg flex-1">
+          <div className="grid grid-cols-3 gap-1 sm:gap-2">
             <div className="text-center">
               <p className="text-xs text-gray-600 mb-0.5 font-semibold">Date & Time</p>
               <p className="text-xs font-bold text-[var(--color-dark)]">

@@ -36,7 +36,7 @@ export default function Header() {
 
       {/* Main Header */}
       <div className="w-full">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+        <div className="mx-auto max-w-7xl px-3 sm:px-6 py-2 sm:py-4 flex justify-between items-center gap-2 sm:gap-4">
           {/* Logo */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <Image 
@@ -88,20 +88,20 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden flex flex-col gap-1.5 p-2"
+            className="md:hidden flex flex-col gap-1 p-2 -mr-2 touch-target"
             style={{ color: '#FFB81C' }}
             aria-label="Toggle menu"
           >
-            <span className="w-5 h-0.5 bg-current block"></span>
-            <span className="w-5 h-0.5 bg-current block"></span>
-            <span className="w-5 h-0.5 bg-current block"></span>
+            <span className="w-6 h-0.5 bg-current block transition-all"></span>
+            <span className="w-6 h-0.5 bg-current block transition-all"></span>
+            <span className="w-6 h-0.5 bg-current block transition-all"></span>
           </button>
         </div>
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-white/20" style={{ backgroundColor: '#003B82' }}>
-            <nav className="flex flex-col gap-0 px-4 py-3">
+          <div className="md:hidden border-t border-white/20 max-h-[calc(100vh-60px)] overflow-y-auto" style={{ backgroundColor: '#003B82' }}>
+            <nav className="flex flex-col gap-0 px-3 py-2">
               {navLinks.map((link) => (
                 <a 
                   key={link.href}
@@ -121,7 +121,7 @@ export default function Header() {
               <a
                 href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="py-3 px-3 font-semibold rounded transition-all duration-300 uppercase tracking-wider text-xs mt-3 text-center"
+                className="py-3 px-3 font-semibold rounded transition-all duration-300 uppercase tracking-wider text-xs mt-2 text-center"
                 style={{ 
                   backgroundColor: '#FFD100',
                   color: '#00215d',
