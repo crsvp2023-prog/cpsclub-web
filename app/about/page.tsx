@@ -60,10 +60,11 @@ export default function AboutPage() {
       `}</style>
 
       {/* Hero Section */}
-      <section className="relative py-24 px-6 bg-gradient-to-br from-[var(--color-dark)] via-[#0033A8] to-[var(--color-primary)]">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[var(--color-accent)] rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--color-primary-2)] rounded-full blur-3xl" />
+      <section className="relative py-24 px-6 bg-gradient-to-br from-[#001a4d] via-[#0052CC] to-[#003B82] overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#FFB81C] rounded-full blur-3xl animate-blob" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#0052CC] rounded-full blur-3xl animate-blob animation-delay-2000" />
+          <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-[#003B82] rounded-full blur-3xl animate-blob" style={{ animationDelay: '1s' }} />
         </div>
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="animate-slideUp">
@@ -79,7 +80,7 @@ export default function AboutPage() {
       </section>
 
       {/* Quick Stats */}
-      <section className="py-16 px-6 bg-gradient-to-r from-white to-blue-50">
+      <section className="py-16 px-6 bg-gradient-to-r from-white via-[#E8F4FF] to-[#F0F9FF]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
@@ -103,8 +104,12 @@ export default function AboutPage() {
       </section>
 
       {/* Mission Section */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-24 px-6 bg-gradient-to-br from-[#E3F2FD] via-[#BBDEFB] to-[#90CAF9] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#0052CC] rounded-full blur-3xl animate-blob" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#003B82] rounded-full blur-3xl animate-blob animation-delay-2000" />
+        </div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div className="animate-slideUp">
               <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)]">
@@ -159,8 +164,12 @@ export default function AboutPage() {
       </section>
 
       {/* Achievements Timeline */}
-      <section className="py-24 px-6 bg-gradient-to-b from-blue-50 to-white">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-24 px-6 bg-gradient-to-b from-[#E3F2FD] via-[#BBE1FA] to-[#90CAF9] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#0052CC] rounded-full blur-3xl animate-blob" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#003B82] rounded-full blur-3xl animate-blob animation-delay-2000" />
+        </div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-accent)]/10 rounded-full border border-[var(--color-accent)]">
               <p className="text-sm font-semibold text-[var(--color-accent)] uppercase tracking-wider">Milestones</p>
@@ -174,10 +183,18 @@ export default function AboutPage() {
                 className="animate-slideUp group"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:shadow-xl hover:border-[var(--color-primary)] transition-all duration-300 h-full">
-                  <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{achievement.icon}</div>
-                  <p className="text-sm text-[var(--color-primary-2)] font-bold mb-2 uppercase tracking-wider">{achievement.year}</p>
-                  <h3 className="text-lg font-bold text-gray-800">{achievement.title}</h3>
+                <div className={`${
+                  index === 0 
+                    ? 'bg-gradient-to-br from-[#D4A574] to-[#A68556]' 
+                    : index === 1 
+                    ? 'bg-gradient-to-br from-[#5B8C5A] to-[#3D6B3F]'
+                    : index === 2
+                    ? 'bg-gradient-to-br from-[#4A90E2] to-[#2E5C8A]'
+                    : 'bg-gradient-to-br from-[#C86432] to-[#9D5B2C]'
+                } border-2 border-white rounded-2xl p-8 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 h-full`}>
+                  <div className="text-5xl mb-4 group-hover:scale-125 transition-transform duration-300">{achievement.icon}</div>
+                  <p className="text-base text-white font-bold mb-3 uppercase tracking-wider">{achievement.year}</p>
+                  <h3 className="text-xl font-black text-white leading-tight">{achievement.title}</h3>
                 </div>
               </div>
             ))}
@@ -186,7 +203,7 @@ export default function AboutPage() {
       </section>
 
       {/* COVID Relief & Community Impact Section */}
-      <section className="py-24 px-6">
+      <section className="py-12 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary)]/10 rounded-full border border-[var(--color-primary)]">
@@ -247,7 +264,7 @@ export default function AboutPage() {
       </section>
 
       {/* Media Gallery Section */}
-      <section className="py-24 px-6 bg-gradient-to-b from-white to-blue-50">
+      <section className="py-24 px-6 bg-gradient-to-b from-white via-[#F0F9FF] to-[#E3F2FD]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)]">
@@ -428,9 +445,14 @@ export default function AboutPage() {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-24 px-6 bg-gradient-to-r from-[var(--color-dark)] to-[var(--color-primary)]">
+      <section className="py-24 px-6 bg-gradient-to-r from-[#001a4d] via-[#0052CC] to-[#003B82] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#FFB81C] rounded-full blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-[#0052CC] rounded-full blur-3xl" />
+        </div>
+        <div className="relative z-10">
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-5xl font-bold text-white mb-6">Join Our Community</h2>
+          <h2 className="text-5xl font-bold text-white mb-6 bg-gradient-to-r from-white to-[#FFB81C] bg-clip-text text-transparent">Join Our Community</h2>
           <p className="text-xl text-white/90 mb-8 leading-relaxed">
             Whether you're a seasoned cricketer or just starting out, there's a place for you in the CPS Cricket Club. Join us and be part of something special.
           </p>
@@ -442,6 +464,7 @@ export default function AboutPage() {
               Get in Touch
             </a>
           </div>
+        </div>
         </div>
       </section>
     </main>

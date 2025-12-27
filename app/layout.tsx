@@ -3,7 +3,11 @@ import Footer from "./components/Footer";
 import Chatbot from "./components/Chatbot";
 import { PageViewTracker } from "./components/PageViewTracker";
 import { AuthProvider } from "./context/AuthContext";
+import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" });
 
 export const metadata = {
   title: "CPS Club",
@@ -18,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         {/* Facebook SDK */}
         <script
           async
@@ -26,11 +31,11 @@ export default function RootLayout({
           src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0"
         />
       </head>
-      <body className="bg-white text-gray-900">
+      <body className={`${inter.variable} ${montserrat.variable} font-inter bg-white text-gray-900`}>
         <AuthProvider>
           <PageViewTracker />
           <Header />
-          <main className="pt-20 pb-20">{children}</main>
+          <main className="pt-16 md:pt-20 pb-12 md:pb-20">{children}</main>
           <Footer />
           <Chatbot />
         </AuthProvider>

@@ -113,17 +113,20 @@ export async function POST(request: Request) {
     };
 
     console.log("Attempting to save user data to Firestore...");
+    console.log("User data to save:", userData);
 
     // Save/update user profile in Firestore using Admin SDK
     try {
       const userRef = db.collection('users').doc(uid);
+      console.log("User ref created:", userRef.path);
       await userRef.set(userData, { merge: true });
       console.log("User profile saved successfully for:", uid);
     } catch (firestoreError) {
       const fsErrorMessage = firestoreError instanceof Error ? firestoreError.message : String(firestoreError);
+      const fsErrorCode = (firestoreError as any)?.code || "UNKNOWN";
       console.error("Firestore set failed:", {
         message: fsErrorMessage,
-        code: (firestoreError as any)?.code,
+        code: fsErrorCode,
         error: JSON.stringify(firestoreError),
       });
       throw firestoreError;
