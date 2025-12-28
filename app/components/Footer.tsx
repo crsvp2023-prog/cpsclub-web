@@ -55,6 +55,16 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Cricket Australia Support */}
+        <div className="mb-8 sm:mb-12 text-center py-6 sm:py-8">
+          <p className="text-xs sm:text-sm font-semibold text-[var(--color-accent)] mb-4 uppercase tracking-wide">Proudly supported by</p>
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/en/3/3f/Cricket_Australia.png" 
+            alt="Cricket Australia" 
+            className="h-12 sm:h-16 mx-auto hover:opacity-80 transition-opacity"
+          />
+        </div>
+
         {/* Divider */}
         <div className="h-px bg-white/10 mb-6" />
 
