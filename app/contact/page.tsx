@@ -58,7 +58,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#FF6B35] via-[#FF8C42] to-[#FFB81C]">
+    <main className="min-h-screen bg-gradient-to-br from-[#0056FF] via-[#0080FF] to-[#00B8FF]">
       {/* Header */}
       <section className="mx-auto max-w-7xl px-6 py-20 text-center">
         <div className="inline-block px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)] mb-6">
