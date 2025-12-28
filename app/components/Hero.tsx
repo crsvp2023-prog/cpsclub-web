@@ -11,7 +11,7 @@ export default function Hero() {
       <div className="absolute -bottom-40 -left-40 w-60 sm:w-80 h-60 sm:h-80 bg-[var(--color-primary-2)] rounded-full opacity-8 blur-3xl" />
       <div className="absolute top-1/2 left-1/3 w-40 sm:w-60 h-40 sm:h-60 bg-[var(--color-accent)] rounded-full opacity-5 blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
       
-      <div className="mx-auto max-w-7xl px-3 sm:px-6 py-6 sm:py-12 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 md:gap-8 items-start relative z-10">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 py-6 sm:py-12 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-center relative z-10">
         <div className="md:col-span-1 order-2 md:order-1">
           <div className="inline-block mb-3 sm:mb-4 px-3 py-1 bg-[var(--color-accent)]/15 rounded-full border border-[var(--color-accent)]/40">
             <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-widest">🏏 Welcome to Chatswood Premier Sports Club</p>
@@ -45,26 +45,26 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 md:col-span-1 order-1 md:order-2">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 md:col-span-1 order-1 md:order-2 w-full max-w-sm sm:max-w-none mx-auto sm:mx-0">
           {/* Main Hero Image */}
-          <div className="relative w-full">
+          <div className="relative w-full overflow-hidden rounded-lg sm:rounded-2xl">
             {/* Glow effect behind image */}
-            <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl"></div>
+            <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl -z-10"></div>
             
             {/* Main image container */}
             <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)]">
               <img
                 src="/images/hero-illustration.svg"
                 alt="CPS Club Cricket Team"
-                className="w-full h-auto display-block"
+                className="w-full h-auto"
               />
             </div>
           </div>
 
           {/* Trophies Image */}
-          <div className="relative w-full">
+          <div className="relative w-full overflow-hidden rounded-lg sm:rounded-2xl">
             {/* Glow effect behind image */}
-            <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl"></div>
+            <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl -z-10"></div>
             
             {/* Trophies image container */}
             <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white">
@@ -73,7 +73,7 @@ export default function Hero() {
                 alt="CPS Club Trophies"
                 width={300}
                 height={300}
-                className="w-full h-auto display-block"
+                className="w-full h-auto"
                 priority
               />
             </div>
