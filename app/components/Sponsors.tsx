@@ -20,15 +20,15 @@ export default function Sponsors() {
         </div>
 
         {/* Scrolling carousel with infinite loop */}
-        <div className="relative overflow-hidden py-8">
-          <div className="flex gap-8 animate-scroll whitespace-nowrap">
+        <div className="relative w-full overflow-hidden py-8">
+          <div className="flex gap-8 animate-scroll">
             {duplicatedSponsors.map((sponsor, idx) => (
               <a
                 key={idx}
                 href={sponsor.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative bg-white rounded-lg p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 border border-gray-200 hover:border-[var(--color-accent)] flex-shrink-0 w-56 h-48 flex flex-col items-center justify-center"
+                className="group relative bg-white rounded-lg p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 border border-gray-200 hover:border-[var(--color-accent)] flex-shrink-0 min-w-56 w-56 h-48 flex flex-col items-center justify-center"
               >
                 {/* Accent bar on top */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] rounded-t-lg opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -98,7 +98,8 @@ export default function Sponsors() {
         }
 
         .animate-scroll {
-          animation: scroll 50s linear infinite;
+          display: flex;
+          animation: scroll 60s linear infinite;
         }
 
         .animate-scroll:hover {
