@@ -9,20 +9,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  turbopack: {
-    resolveAlias: {
-      fs: false,
-      path: false,
-      crypto: false,
-      net: false,
-      tls: false,
-      http: false,
-      https: false,
-      stream: false,
-      util: false,
-      zlib: false,
-      constants: false,
-    },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.externals = {
+        ...config.externals,
+        "firebase-admin": "firebase-admin",
+      };
+    }
+    return config;
   },
 };
 
