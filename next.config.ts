@@ -9,14 +9,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.externals = {
-        ...config.externals,
-        "firebase-admin": "firebase-admin",
-      };
-    }
-    return config;
+  experimental: {
+    serverComponentsExternalPackages: ["firebase-admin"],
   },
 };
 
