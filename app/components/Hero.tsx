@@ -45,35 +45,36 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 md:col-span-1 items-stretch order-1 md:order-2">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 md:col-span-1 order-1 md:order-2">
           {/* Main Hero Image */}
-          <div className="relative w-full aspect-square sm:aspect-auto">
+          <div className="relative w-full">
             {/* Glow effect behind image */}
             <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl"></div>
             
             {/* Main image container */}
-            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)] w-full h-auto">
+            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)]">
               <img
                 src="/images/hero-illustration.svg"
                 alt="CPS Club Cricket Team"
-                className="w-full h-auto block brightness-110 contrast-125 hover:brightness-125 transition-all duration-500"
+                className="w-full h-auto display-block"
               />
             </div>
           </div>
 
           {/* Trophies Image */}
-          <div className="relative w-full aspect-square sm:aspect-auto">
+          <div className="relative w-full">
             {/* Glow effect behind image */}
             <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl"></div>
             
             {/* Trophies image container */}
-            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white w-full h-auto">
+            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white">
               <Image
                 src="/images/trophies.jpg"
                 alt="CPS Club Trophies"
                 width={300}
                 height={300}
-                className="w-full h-auto block"
+                className="w-full h-auto display-block"
+                priority
               />
             </div>
           </div>
