@@ -9,10 +9,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
+  experimental: {
+    turbopack: {
+      resolveAlias: {
         fs: false,
         path: false,
         crypto: false,
@@ -24,9 +23,8 @@ const nextConfig: NextConfig = {
         util: false,
         zlib: false,
         constants: false,
-      };
-    }
-    return config;
+      },
+    },
   },
 };
 
