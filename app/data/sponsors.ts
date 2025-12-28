@@ -23,4 +23,10 @@ export const sponsors = [
     website: "https://chatswoodrsl.com.au/",
     description: "Serving our community with pride and supporting the athletes who inspire us all.",
   },
+  {
+    name: "KRIDA",
+    logo: "/images/sponsors/KRIDA.png",
+    website: "https://krida.com.au/",
+    description: "Premium sportswear with custom team uniforms. KRIDA combines performance, style, and innovation to deliver high-quality gear for every team.",
+  },
 ];
