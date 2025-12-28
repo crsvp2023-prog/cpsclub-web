@@ -27,6 +27,6 @@ export const sponsors = [
     name: "KRIDA",
     logo: "/images/sponsors/KRIDA.png",
     website: "https://krida.com.au/",
-    description: "Supporting sporting excellence and community development. Proud partner of CPS Club.",
+    description: "Premium sportswear with custom team uniforms. KRIDA combines performance, style, and innovation to deliver high-quality gear for every team.",
   },
 ];
