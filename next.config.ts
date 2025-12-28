@@ -9,21 +9,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    turbopack: {
-      resolveAlias: {
-        fs: false,
-        path: false,
-        crypto: false,
-        net: false,
-        tls: false,
-        http: false,
-        https: false,
-        stream: false,
-        util: false,
-        zlib: false,
-        constants: false,
-      },
+  turbopack: {
+    resolveAlias: {
+      fs: false,
+      path: false,
+      crypto: false,
+      net: false,
+      tls: false,
+      http: false,
+      https: false,
+      stream: false,
+      util: false,
+      zlib: false,
+      constants: false,
     },
   },
 };
