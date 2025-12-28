@@ -45,42 +45,35 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 md:col-span-1 items-stretch order-1 md:order-2 min-h-64 sm:min-h-auto">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 md:col-span-1 items-stretch order-1 md:order-2">
           {/* Main Hero Image */}
-          <div className="relative w-full">
+          <div className="relative w-full aspect-square sm:aspect-auto">
             {/* Glow effect behind image */}
             <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl"></div>
             
             {/* Main image container */}
-            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)] h-full">
-              <picture>
-                <source media="(min-width:1200px)" srcSet="/images/hero-photo.jpg" />
-                <source media="(min-width:640px)" srcSet="/images/hero-photo.jpg" />
-                <img
-                  src="/images/hero-illustration.svg"
-                  alt="CPS Club Cricket Team"
-                  className="w-full h-full object-cover object-center brightness-110 contrast-125 hover:brightness-125 transition-all duration-500"
-                />
-              </picture>
-              
-              {/* Overlay gradient for realism */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-dark)]/20 to-transparent"></div>
+            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)] w-full h-auto">
+              <img
+                src="/images/hero-illustration.svg"
+                alt="CPS Club Cricket Team"
+                className="w-full h-auto block brightness-110 contrast-125 hover:brightness-125 transition-all duration-500"
+              />
             </div>
           </div>
 
           {/* Trophies Image */}
-          <div className="relative w-full">
+          <div className="relative w-full aspect-square sm:aspect-auto">
             {/* Glow effect behind image */}
             <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl"></div>
             
             {/* Trophies image container */}
-            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white h-full">
+            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white w-full h-auto">
               <Image
                 src="/images/trophies.jpg"
                 alt="CPS Club Trophies"
                 width={300}
                 height={300}
-                className="w-full h-full object-cover"
+                className="w-full h-auto block"
               />
             </div>
           </div>
