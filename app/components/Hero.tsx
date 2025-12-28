@@ -52,11 +52,12 @@ export default function Hero() {
             <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl -z-10"></div>
             
             {/* Main image container */}
-            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)]">
+            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-[var(--color-primary-2)] to-[var(--color-primary)] min-h-32">
               <img
                 src="/images/hero-illustration.svg"
                 alt="CPS Club Cricket Team"
                 className="w-full h-auto"
+                onError={(e) => console.error('Image failed to load:', e)}
               />
             </div>
           </div>
