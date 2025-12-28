@@ -12,7 +12,7 @@ export default function Sponsors() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--color-dark)] mb-4 animate-fadeInDown">
-            Our Trusted Partners
+            All Our Partners
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto animate-fadeInUp">
             We're proud to partner with leading organizations that share our passion for cricket and community excellence.
@@ -28,7 +28,8 @@ export default function Sponsors() {
                 href={sponsor.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative bg-white rounded-lg p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 border border-gray-200 hover:border-[var(--color-accent)] flex-shrink-0 min-w-56 w-56 h-48 flex flex-col items-center justify-center"
+                className="group relative bg-white rounded-lg p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 border border-gray-200 hover:border-[var(--color-accent)] flex-shrink-0 min-w-56 w-56 h-48 flex flex-col items-center justify-center animate-cardSlideIn"
+                style={{ animationDelay: `${(idx % sponsors.length) * 0.1}s` }}
               >
                 {/* Accent bar on top */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] rounded-t-lg opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -88,6 +89,17 @@ export default function Sponsors() {
           }
         }
 
+        @keyframes cardSlideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
         @keyframes scroll {
           0% {
             transform: translateX(0);
@@ -112,6 +124,10 @@ export default function Sponsors() {
 
         .animate-fadeInUp {
           animation: fadeInUp 0.6s ease-out 0.2s backwards;
+        }
+
+        .animate-cardSlideIn {
+          animation: cardSlideIn 0.5s ease-out forwards;
         }
       `}</style>
     </section>

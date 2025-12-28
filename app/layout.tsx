@@ -10,8 +10,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" });
 
 export const metadata = {
-  title: "CPS Club",
-  description: "CPS Cricket Club website",
+  title: "Chatswood Premier Sports Club",
+  description: "Chatswood Premier Sports Club - One Team, One Dream",
 };
 
 export default function RootLayout({
