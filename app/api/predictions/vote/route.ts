@@ -80,13 +80,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const predictionId = searchParams.get('predictionId');
 
-    if (!predictionId) {
-      return Response.json(
-        { error: 'Missing predictionId query parameter' },
-        { status: 400 }
-      );
-    }
-
     if (!db) {
       return Response.json(
         { error: 'Firebase not initialized' },
@@ -94,21 +87,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const predictionRef = db.collection('predictions').doc(predictionId);
-    const predictionSnap = await predictionRef.get();
+    // If predictionId provided, fetch single prediction
+    if (predictionId) {
+      const predictionRef = db.collection('predictions').doc(predictionId);
+      const predictionSnap = await predictionRef.get();
 
-    if (!predictionSnap.exists) {
-      return Response.json(
-        { error: 'Prediction not found' },
-        { status: 404 }
-      );
+      if (!predictionSnap.exists) {
+        return Response.json(
+          { error: 'Prediction not found' },
+          { status: 404 }
+        );
+      }
+
+      return Response.json(predictionSnap.data(), { status: 200 });
     }
 
-    return Response.json(predictionSnap.data(), { status: 200 });
+    // If no predictionId, fetch all predictions
+    const predictionsSnapshot = await db.collection('predictions').get();
+    const predictions = predictionsSnapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .sort((a, b) => parseInt(a.id) - parseInt(b.id)); // Sort by ID
+
+    return Response.json({ predictions }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching prediction:', error);
+    console.error('Error fetching predictions:', error);
     return Response.json(
-      { error: 'Failed to fetch prediction' },
+      { error: 'Failed to fetch predictions' },
       { status: 500 }
     );
   }

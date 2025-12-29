@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Prediction {
   id: string;
@@ -51,6 +51,29 @@ export default function MatchPredictions() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [predictions, setPredictions] = useState<Prediction[]>(PREDICTIONS_DATA);
   const [userVotes, setUserVotes] = useState<{ [key: string]: number }>({});
+  const [loading, setLoading] = useState(true);
+
+  // Fetch predictions from Firestore on mount
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      try {
+        const response = await fetch('/api/predictions/vote');
+        if (!response.ok) throw new Error('Failed to fetch');
+        // API returns all predictions, update state
+        const data = await response.json();
+        if (data.predictions && Array.isArray(data.predictions)) {
+          setPredictions(data.predictions);
+        }
+      } catch (error) {
+        console.error('Failed to fetch predictions:', error);
+        // Fall back to hardcoded data on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPredictions();
+  }, []);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) =>
