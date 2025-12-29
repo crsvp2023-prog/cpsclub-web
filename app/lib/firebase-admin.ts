@@ -7,9 +7,17 @@ let adminApp: admin.app.App;
 try {
   if (!admin.apps.length) {
     // Get service account from environment variable
-    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
-      : undefined;
+    let serviceAccount;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      } catch (e) {
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', e);
+        serviceAccount = undefined;
+      }
+    } else {
+      serviceAccount = undefined;
+    }
 
     if (!serviceAccount) {
       console.warn(

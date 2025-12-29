@@ -1,27 +1,20 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, updateDoc, increment, getDoc, setDoc } from 'firebase/firestore';
+import { db, admin } from '@/app/lib/firebase-admin';
+import { type NextRequest } from 'next/server';
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+export const runtime = 'nodejs';
 
-let app: any;
-let db: any;
 
-try {
-  app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-} catch (error) {
-  console.error('Firebase initialization error:', error);
-}
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const { predictionId, optionIndex, userId } = await request.json();
+
+    if (!predictionId || optionIndex === undefined) {
+      return Response.json(
+        { error: 'Missing required fields: predictionId and optionIndex' },
+        { status: 400 }
+      );
+    }
+
     if (!db) {
       return Response.json(
         { error: 'Firebase not initialized' },
@@ -29,19 +22,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const { predictionId, optionIndex, userId } = await request.json();
+    const predictionRef = db.collection('predictions').doc(predictionId);
+    const predictionSnap = await predictionRef.get();
 
-    if (!predictionId || optionIndex === undefined) {
-      return Response.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    const predictionRef = doc(db, 'predictions', predictionId);
-    const predictionSnap = await getDoc(predictionRef);
-
-    if (!predictionSnap.exists()) {
+    if (!predictionSnap.exists) {
       return Response.json(
         { error: 'Prediction not found' },
         { status: 404 }
@@ -50,23 +34,23 @@ export async function POST(request: Request) {
 
     // Update vote count for the selected option
     const voteField = `options.${optionIndex}.votes`;
-    await updateDoc(predictionRef, {
-      [voteField]: increment(1),
-      totalVotes: increment(1),
+    await predictionRef.update({
+      [voteField]: admin.firestore.FieldValue.increment(1),
+      totalVotes: admin.firestore.FieldValue.increment(1),
       lastUpdated: new Date(),
     });
 
     // Track user vote (optional)
     if (userId && userId !== 'anonymous') {
-      const userVoteRef = doc(db, 'userVotes', `${userId}_${predictionId}`);
+      const userVoteRef = db.collection('userVotes').doc(`${userId}_${predictionId}`);
       try {
-        await updateDoc(userVoteRef, {
+        await userVoteRef.update({
           optionIndex,
           votedAt: new Date(),
         });
       } catch (error) {
         // Create new document if it doesn't exist
-        await setDoc(userVoteRef, {
+        await userVoteRef.set({
           userId,
           predictionId,
           optionIndex,
@@ -85,14 +69,24 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error recording vote:', error);
     return Response.json(
-      { error: 'Failed to record vote' },
+      { error: 'Failed to record vote', details: String(error) },
       { status: 500 }
     );
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const predictionId = searchParams.get('predictionId');
+
+    if (!predictionId) {
+      return Response.json(
+        { error: 'Missing predictionId query parameter' },
+        { status: 400 }
+      );
+    }
+
     if (!db) {
       return Response.json(
         { error: 'Firebase not initialized' },
@@ -100,20 +94,10 @@ export async function GET(request: Request) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const predictionId = searchParams.get('predictionId');
+    const predictionRef = db.collection('predictions').doc(predictionId);
+    const predictionSnap = await predictionRef.get();
 
-    if (!predictionId) {
-      return Response.json(
-        { error: 'Missing predictionId' },
-        { status: 400 }
-      );
-    }
-
-    const predictionRef = doc(db, 'predictions', predictionId);
-    const predictionSnap = await getDoc(predictionRef);
-
-    if (!predictionSnap.exists()) {
+    if (!predictionSnap.exists) {
       return Response.json(
         { error: 'Prediction not found' },
         { status: 404 }

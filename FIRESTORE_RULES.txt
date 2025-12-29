@@ -36,5 +36,19 @@ service cloud.firestore {
       allow write: if request.auth == null;
       allow read: if false; // Server only, no client reads
     }
+    
+    // Predictions collection - Allow public reads and server writes
+    match /predictions/{document=**} {
+      allow read: if true; // Public can read predictions
+      allow write: if request.auth == null; // Server-side API writes only
+    }
+    
+    // User votes collection - Allow server writes only
+    match /userVotes/{document=**} {
+      allow write: if request.auth == null; // Server-side API writes only
+      allow read: if false; // No direct reads
+    }
   }
 }
+
+

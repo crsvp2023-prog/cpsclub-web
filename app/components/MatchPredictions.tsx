@@ -97,18 +97,24 @@ export default function MatchPredictions() {
     }));
 
     // Optional: Send to API for logging (fire and forget)
+    const voteData = {
+      predictionId,
+      optionIndex,
+      userId: 'anonymous',
+    };
+    console.log('Sending vote data:', voteData);
+    
     fetch('/api/predictions/vote', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        predictionId,
-        optionIndex,
-        userId: 'anonymous',
-      }),
-    }).catch(error => {
-      console.warn('Vote not saved to database (optional feature):', error);
+      body: JSON.stringify(voteData),
+    })
+    .then(res => res.json())
+    .then(data => console.log('Vote response:', data))
+    .catch(error => {
+      console.error('Vote error:', error);
     });
   };
 
