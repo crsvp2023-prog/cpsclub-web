@@ -107,17 +107,23 @@ export async function GET(request: NextRequest) {
     const predictions = predictionsSnapshot.docs
       .map(doc => {
         const data = doc.data();
+        // Ensure options is always an array
+        const options = Array.isArray(data.options) ? data.options : [];
+        
         return {
           id: doc.id,
           question: data.question || '',
-          options: data.options || [],
-          totalVotes: data.totalVotes || 0,
+          options: options.map((opt: any) => ({
+            name: opt?.name || '',
+            votes: typeof opt?.votes === 'number' ? opt.votes : 0,
+          })),
+          totalVotes: typeof data.totalVotes === 'number' ? data.totalVotes : 0,
           matchDate: data.matchDate || '',
-          lastUpdated: data.lastUpdated ? new Date(data.lastUpdated.toDate?.() || data.lastUpdated).toISOString() : null,
         };
       })
       .sort((a, b) => parseInt(a.id) - parseInt(b.id)); // Sort by ID
 
+    console.log('Returning predictions:', predictions);
     return Response.json({ predictions }, { status: 200 });
   } catch (error) {
     console.error('Error fetching predictions:', error);
