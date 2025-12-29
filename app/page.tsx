@@ -1,12 +1,11 @@
 import Hero from "./components/Hero";
 import Sponsors from "./components/Sponsors";
-import InstagramFeed from "./components/InstagramFeed";
-import FacebookFeed from "./components/FacebookFeed";
 import MatchCountdown from "./components/MatchCountdown";
 import MatchPredictions from "./components/MatchPredictions";
 import SponsorSpotlight from "./components/SponsorSpotlight";
 import NewsletterSignup from "./components/NewsletterSignup";
 import FeaturedSeries from "./components/FeaturedSeries";
+import SocialFeeds from "./components/SocialFeeds";
 import Image from "next/image";
 
 export default function HomePage() {
@@ -46,8 +45,8 @@ export default function HomePage() {
                 {/* Motto Box - Clean Design */}
                 <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white/10 rounded-lg text-white shadow-lg border border-white/20">
                   <p className="text-xs font-bold text-white/70 uppercase tracking-widest mb-2">Our Motto</p>
-                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3" style={{ color: '#FFD100' }}>One Team,<br />One Dream</h3>
-                  <p className="text-xs sm:text-sm text-white/90 font-medium">Unity. Excellence. Community.</p>
+                  <h3 className="text-4xl sm:text-5xl md:text-6xl font-black" style={{ color: '#FFD100', letterSpacing: '0.05em' }}>One Team, One Dream</h3>
+                  <p className="text-xs sm:text-sm text-white/90 font-medium mt-3">Unity. Excellence. Community.</p>
                 </div>
               </div>
 
@@ -146,18 +145,8 @@ export default function HomePage() {
           </div>
         </div>
         
-        {/* Social Feeds */}
-        <div className="py-8 sm:py-12 px-4 sm:px-6 bg-gradient-to-r from-[#0066FF] via-[#0052CC] to-[#003B82] border-t border-[var(--color-accent)]/30">
-          <div className="max-w-7xl mx-auto">
-            <InstagramFeed />
-          </div>
-        </div>
-        
-        <div className="py-8 sm:py-12 px-4 sm:px-6 bg-gradient-to-r from-[#003B82] via-[#0052CC] to-[#0066FF] border-t border-[var(--color-accent)]/30">
-          <div className="max-w-7xl mx-auto">
-            <FacebookFeed />
-          </div>
-        </div>
+        {/* Social Feeds - Side by Side Carousel */}
+        <SocialFeeds />
       </div>
     </div>
   );

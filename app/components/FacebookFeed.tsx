@@ -57,7 +57,7 @@ export default function FacebookFeed() {
             href="https://www.facebook.com/chatswood.premier.sports.club"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-blue-100 rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-blue-600"
           >
             👍 Like Us on Facebook
             <span>→</span>

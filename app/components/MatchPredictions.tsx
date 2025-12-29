@@ -49,7 +49,7 @@ const PREDICTIONS_DATA: Prediction[] = [
 
 export default function MatchPredictions() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [predictions] = useState<Prediction[]>(PREDICTIONS_DATA);
+  const [predictions, setPredictions] = useState<Prediction[]>(PREDICTIONS_DATA);
   const [userVotes, setUserVotes] = useState<{ [key: string]: number }>({});
 
   const goToPrevious = () => {
@@ -67,10 +67,49 @@ export default function MatchPredictions() {
   const currentPrediction = predictions[currentIndex];
 
   const handleVote = (predictionId: string, optionIndex: number) => {
+    // Check if user already voted for this prediction
+    if (userVotes[predictionId] !== undefined) {
+      return; // User already voted
+    }
+
+    // Update vote counts in the predictions
+    setPredictions(prev => 
+      prev.map(pred => {
+        if (pred.id === predictionId) {
+          const updatedOptions = pred.options.map((option, idx) => ({
+            ...option,
+            votes: idx === optionIndex ? option.votes + 1 : option.votes
+          }));
+          return {
+            ...pred,
+            options: updatedOptions,
+            totalVotes: pred.totalVotes + 1
+          };
+        }
+        return pred;
+      })
+    );
+
+    // Record user vote
     setUserVotes(prev => ({
       ...prev,
       [predictionId]: optionIndex,
     }));
+
+    // Optional: Send to API for logging (fire and forget)
+    fetch('/api/predictions/vote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        predictionId,
+        optionIndex,
+        userId: 'anonymous',
+      }),
+    }).catch(error => {
+      console.warn('Vote not saved to database (optional feature):', error);
+    });
   };
 
   const getPercentage = (votes: number, total: number) => {
@@ -152,8 +191,24 @@ export default function MatchPredictions() {
 
         {/* CTA Button */}
         <div className="flex justify-center">
-          <button className="px-6 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-xs uppercase tracking-wider hover:bg-[#FFC939]">
-            Vote Now
+          <button 
+            onClick={() => {
+              // Find the selected option index
+              const selectedIndex = userVotes[currentPrediction.id];
+              if (selectedIndex !== undefined) {
+                handleVote(currentPrediction.id, selectedIndex);
+              } else {
+                alert('Please select an option first!');
+              }
+            }}
+            disabled={userVotes[currentPrediction.id] !== undefined}
+            className={`px-6 py-2 font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-xs uppercase tracking-wider ${
+              userVotes[currentPrediction.id] !== undefined
+                ? 'bg-green-500 text-white cursor-not-allowed opacity-80'
+                : 'bg-[var(--color-accent)] text-[var(--color-dark)] hover:bg-[#FFC939]'
+            }`}
+          >
+            {userVotes[currentPrediction.id] !== undefined ? '✓ Voted' : 'Vote Now'}
           </button>
         </div>
       </div>
