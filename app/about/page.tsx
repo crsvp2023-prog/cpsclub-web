@@ -149,7 +149,7 @@ export default function AboutPage() {
                 <div className="absolute -top-20 -right-20 w-40 h-40 bg-[var(--color-accent)] rounded-full opacity-5 blur-3xl"></div>
                 <div className="relative z-10">
                   <div className="text-6xl mb-6 animate-float">🏏</div>
-                  <h3 className="text-5xl font-black mb-4" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.05em', color: '#FFD100' }}>One Team,<br />One Dream</h3>
+                  <h3 className="text-6xl sm:text-7xl font-black" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.05em', color: '#FFD100' }}>One Team, One Dream</h3>
                   <p className="text-lg text-white/90 mb-6 font-semibold" style={{ fontFamily: 'Arial, sans-serif' }}>
                     Our motto embodies the collective spirit and shared aspirations of every member in our community.
                   </p>
