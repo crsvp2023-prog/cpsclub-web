@@ -58,11 +58,17 @@ export default function MatchPredictions() {
     const fetchPredictions = async () => {
       try {
         const response = await fetch('/api/predictions/vote');
-        if (!response.ok) throw new Error('Failed to fetch');
-        // API returns all predictions, update state
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: Failed to fetch`);
+        }
         const data = await response.json();
-        if (data.predictions && Array.isArray(data.predictions)) {
+        console.log('Fetched predictions:', data);
+        
+        if (data.predictions && Array.isArray(data.predictions) && data.predictions.length > 0) {
           setPredictions(data.predictions);
+        } else {
+          console.warn('No predictions found in response');
+          // Keep using PREDICTIONS_DATA as fallback
         }
       } catch (error) {
         console.error('Failed to fetch predictions:', error);

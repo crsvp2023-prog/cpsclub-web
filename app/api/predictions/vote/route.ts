@@ -105,10 +105,17 @@ export async function GET(request: NextRequest) {
     // If no predictionId, fetch all predictions
     const predictionsSnapshot = await db.collection('predictions').get();
     const predictions = predictionsSnapshot.docs
-      .map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
+      .map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          question: data.question || '',
+          options: data.options || [],
+          totalVotes: data.totalVotes || 0,
+          matchDate: data.matchDate || '',
+          lastUpdated: data.lastUpdated ? new Date(data.lastUpdated.toDate?.() || data.lastUpdated).toISOString() : null,
+        };
+      })
       .sort((a, b) => parseInt(a.id) - parseInt(b.id)); // Sort by ID
 
     return Response.json({ predictions }, { status: 200 });
