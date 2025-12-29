@@ -65,9 +65,20 @@ export default function MatchPredictions() {
         console.log('Fetched predictions:', data);
         
         if (data.predictions && Array.isArray(data.predictions) && data.predictions.length > 0) {
-          setPredictions(data.predictions);
+          // Check if predictions have options, if not use fallback
+          const validPredictions = data.predictions.filter((p: any) => 
+            p.options && Array.isArray(p.options) && p.options.length > 0
+          );
+          
+          if (validPredictions.length > 0) {
+            console.log('Using fetched predictions:', validPredictions);
+            setPredictions(validPredictions);
+          } else {
+            console.warn('Fetched predictions have no options, using fallback data');
+            // Keep using PREDICTIONS_DATA as fallback
+          }
         } else {
-          console.warn('No predictions found in response');
+          console.warn('No predictions found in response, using fallback data');
           // Keep using PREDICTIONS_DATA as fallback
         }
       } catch (error) {

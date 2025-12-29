@@ -104,9 +104,13 @@ export async function GET(request: NextRequest) {
 
     // If no predictionId, fetch all predictions
     const predictionsSnapshot = await db.collection('predictions').get();
+    console.log(`Found ${predictionsSnapshot.size} predictions in Firestore`);
+    
     const predictions = predictionsSnapshot.docs
       .map(doc => {
         const data = doc.data();
+        console.log(`Prediction ${doc.id} raw data:`, data);
+        
         // Ensure options is always an array
         const options = Array.isArray(data.options) ? data.options : [];
         
@@ -123,7 +127,7 @@ export async function GET(request: NextRequest) {
       })
       .sort((a, b) => parseInt(a.id) - parseInt(b.id)); // Sort by ID
 
-    console.log('Returning predictions:', predictions);
+    console.log('Returning formatted predictions:', predictions);
     return Response.json({ predictions }, { status: 200 });
   } catch (error) {
     console.error('Error fetching predictions:', error);
