@@ -4,6 +4,7 @@ import Chatbot from "./components/Chatbot";
 import { PageViewTracker } from "./components/PageViewTracker";
 import { AuthProvider } from "./context/AuthContext";
 import { Inter, Montserrat } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -23,13 +24,6 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-        {/* Facebook SDK */}
-        <script
-          async
-          defer
-          crossOrigin="anonymous"
-          src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0"
-        />
       </head>
       <body className={`${inter.variable} ${montserrat.variable} font-inter bg-white text-gray-900`}>
         <AuthProvider>
@@ -39,6 +33,17 @@ export default function RootLayout({
           <Footer />
           <Chatbot />
         </AuthProvider>
+        {/* Facebook SDK */}
+        <Script
+          src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v19.0"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
+        {/* Instagram SDK */}
+        <Script
+          src="https://www.instagram.com/embed.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

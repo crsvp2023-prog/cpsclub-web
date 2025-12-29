@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import FacebookFeed from './FacebookFeed';
 
 export default function SocialFeeds() {
   const [mounted, setMounted] = useState(false);
@@ -8,6 +9,38 @@ export default function SocialFeeds() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    // Initialize Facebook XFBML parser with retry logic
+    let retries = 0;
+    const initFacebook = () => {
+      if ((window as any).FB) {
+        (window as any).FB.XFBML.parse();
+        console.log('✓ Facebook SDK parsed');
+      } else if (retries < 5) {
+        retries++;
+        setTimeout(initFacebook, 300);
+      }
+    };
+
+    // Initialize Instagram embeds
+    const initInstagram = () => {
+      if ((window as any).instgrm) {
+        (window as any).instgrm.Embeds.process();
+        console.log('✓ Instagram embeds processed');
+      }
+    };
+
+    // Start initialization after brief delay
+    const timer = setTimeout(() => {
+      initFacebook();
+      initInstagram();
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, [mounted]);
 
   return (
     <section className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-r from-[#0066FF] via-[#0052CC] to-[#003B82] border-t border-[var(--color-accent)]/30">
@@ -27,16 +60,26 @@ export default function SocialFeeds() {
           <div className="bg-slate-800/40 backdrop-blur rounded-2xl p-6 sm:p-8 border border-white/20 hover:border-white/40 transition-all duration-300">
             <div className="mb-6">
               <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">📱 Instagram</h3>
+              <p className="text-sm text-[#F77737] font-semibold mb-1">@chatswoodpremiersportsclub</p>
               <p className="text-gray-300 text-sm">Latest posts and stories</p>
             </div>
             {mounted && (
               <div className="mb-6 flex justify-center">
-                <iframe
-                  src="https://www.instagram.com/chatswoodpremiersportsclub/embed"
-                  width="100%"
-                  height="400"
-                  style={{ border: 'none', borderRadius: '12px', background: 'rgba(255,255,255,0.05)' }}
-                  allow="encrypted-media"
+                <blockquote 
+                  className="instagram-media" 
+                  data-instgrm-permalink="https://www.instagram.com/chatswoodpremiersportsclub/" 
+                  data-instgrm-version="14"
+                  style={{
+                    background: '#FFF',
+                    border: '0',
+                    borderRadius: '3px',
+                    boxShadow: '0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)',
+                    margin: '1px',
+                    maxWidth: '540px',
+                    minWidth: '326px',
+                    padding: '0',
+                    width: '100%',
+                  }}
                 />
               </div>
             )}
@@ -57,23 +100,12 @@ export default function SocialFeeds() {
           <div className="bg-slate-800/40 backdrop-blur rounded-2xl p-6 sm:p-8 border border-white/20 hover:border-white/40 transition-all duration-300">
             <div className="mb-6">
               <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">👍 Facebook</h3>
+              <p className="text-sm text-blue-400 font-semibold mb-1">chatswood.premier.sports.club</p>
               <p className="text-gray-300 text-sm">Community updates and events</p>
             </div>
-            {mounted && (
-              <div className="mb-6 flex justify-center">
-                <div
-                  className="fb-page"
-                  data-href="https://www.facebook.com/chatswood.premier.sports.club"
-                  data-tabs="timeline"
-                  data-width="100%"
-                  data-height="400"
-                  data-small-header="false"
-                  data-adapt-container-width="true"
-                  data-hide-cover="false"
-                  data-show-facepile="true"
-                />
-              </div>
-            )}
+            <div className="mb-6">
+              <FacebookFeed />
+            </div>
             <div className="text-center">
               <a
                 href="https://www.facebook.com/chatswood.premier.sports.club"
