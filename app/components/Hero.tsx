@@ -52,14 +52,13 @@ export default function Hero() {
             <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl -z-10"></div>
             
             {/* Main image container */}
-            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 aspect-square">
+            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 aspect-square" suppressHydrationWarning>
               <Image
                 src="/images/hero-photo.jpg"
                 alt="CPS Club Cricket Team"
                 width={400}
                 height={400}
                 className="w-full h-full object-cover"
-                priority
               />
             </div>
           </div>
@@ -70,14 +69,13 @@ export default function Hero() {
             <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-primary)] rounded-lg sm:rounded-2xl opacity-20 blur-lg sm:blur-xl -z-10"></div>
             
             {/* Trophies image container */}
-            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white aspect-square">
+            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-2 ring-[var(--color-accent)]/30 transform hover:scale-105 transition-transform duration-500 bg-white aspect-square" suppressHydrationWarning>
               <Image
                 src="/images/trophies.jpg"
                 alt="CPS Club Trophies"
                 width={400}
                 height={400}
                 className="w-full h-full object-cover"
-                priority
               />
             </div>
           </div>
