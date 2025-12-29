@@ -89,6 +89,26 @@ export default function MatchPredictions() {
 
   const currentPrediction = predictions[currentIndex];
 
+  if (loading) {
+    return (
+      <section className="relative w-full h-full">
+        <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col items-center justify-center">
+          <p className="text-white">Loading predictions...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!currentPrediction) {
+    return (
+      <section className="relative w-full h-full">
+        <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col items-center justify-center">
+          <p className="text-white">No predictions available</p>
+        </div>
+      </section>
+    );
+  }
+
   const handleVote = (predictionId: string, optionIndex: number) => {
     // Check if user already voted for this prediction
     if (userVotes[predictionId] !== undefined) {
