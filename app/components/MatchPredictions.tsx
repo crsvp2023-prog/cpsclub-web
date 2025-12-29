@@ -58,11 +58,28 @@ export default function MatchPredictions() {
     const fetchPredictions = async () => {
       try {
         const response = await fetch('/api/predictions/vote');
-        if (!response.ok) throw new Error('Failed to fetch');
-        // API returns all predictions, update state
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: Failed to fetch`);
+        }
         const data = await response.json();
-        if (data.predictions && Array.isArray(data.predictions)) {
-          setPredictions(data.predictions);
+        console.log('Fetched predictions:', data);
+        
+        if (data.predictions && Array.isArray(data.predictions) && data.predictions.length > 0) {
+          // Check if predictions have options, if not use fallback
+          const validPredictions = data.predictions.filter((p: any) => 
+            p.options && Array.isArray(p.options) && p.options.length > 0
+          );
+          
+          if (validPredictions.length > 0) {
+            console.log('Using fetched predictions:', validPredictions);
+            setPredictions(validPredictions);
+          } else {
+            console.warn('Fetched predictions have no options, using fallback data');
+            // Keep using PREDICTIONS_DATA as fallback
+          }
+        } else {
+          console.warn('No predictions found in response, using fallback data');
+          // Keep using PREDICTIONS_DATA as fallback
         }
       } catch (error) {
         console.error('Failed to fetch predictions:', error);
@@ -88,6 +105,26 @@ export default function MatchPredictions() {
   };
 
   const currentPrediction = predictions[currentIndex];
+
+  if (loading) {
+    return (
+      <section className="relative w-full h-full">
+        <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col items-center justify-center">
+          <p className="text-white">Loading predictions...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!currentPrediction) {
+    return (
+      <section className="relative w-full h-full">
+        <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col items-center justify-center">
+          <p className="text-white">No predictions available</p>
+        </div>
+      </section>
+    );
+  }
 
   const handleVote = (predictionId: string, optionIndex: number) => {
     // Check if user already voted for this prediction

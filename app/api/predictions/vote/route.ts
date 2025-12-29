@@ -104,13 +104,30 @@ export async function GET(request: NextRequest) {
 
     // If no predictionId, fetch all predictions
     const predictionsSnapshot = await db.collection('predictions').get();
+    console.log(`Found ${predictionsSnapshot.size} predictions in Firestore`);
+    
     const predictions = predictionsSnapshot.docs
-      .map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
+      .map(doc => {
+        const data = doc.data();
+        console.log(`Prediction ${doc.id} raw data:`, data);
+        
+        // Ensure options is always an array
+        const options = Array.isArray(data.options) ? data.options : [];
+        
+        return {
+          id: doc.id,
+          question: data.question || '',
+          options: options.map((opt: any) => ({
+            name: opt?.name || '',
+            votes: typeof opt?.votes === 'number' ? opt.votes : 0,
+          })),
+          totalVotes: typeof data.totalVotes === 'number' ? data.totalVotes : 0,
+          matchDate: data.matchDate || '',
+        };
+      })
       .sort((a, b) => parseInt(a.id) - parseInt(b.id)); // Sort by ID
 
+    console.log('Returning formatted predictions:', predictions);
     return Response.json({ predictions }, { status: 200 });
   } catch (error) {
     console.error('Error fetching predictions:', error);
