@@ -36,7 +36,6 @@ export default function SocialFeeds() {
                   width="100%"
                   height="400"
                   style={{ border: 'none', borderRadius: '12px', background: 'rgba(255,255,255,0.05)' }}
-                  allowtransparency="true"
                   allow="encrypted-media"
                 />
               </div>
