@@ -1,4 +1,5 @@
 {
+  "grade": "C One Day Grade",
   "standings": [
     {
       "position": 1,
@@ -55,7 +56,7 @@
       "nrr": "-0.62"
     }
   ],
-  "lastUpdated": "2025-12-29T03:22:25.821Z",
-  "source": "PlayHQ Web Scrape (Puppeteer)",
-  "recordsFound": 0
+  "lastUpdated": "2025-12-29T12:05:41.716Z",
+  "source": "Default Data (PDF extraction failed - please verify)",
+  "recordsFound": 6
 }

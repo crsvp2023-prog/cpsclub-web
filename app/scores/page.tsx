@@ -30,6 +30,7 @@ const matchesData = [
     venue: "Chatswood Premier Sports Club",
     status: "COMPLETED",
     result: "CPS Club won by 28 runs",
+    commentary: "Strong batting performance from CPS Club with Richardson's explosive 54 off 32 balls setting the tone. The middle order contributed well with Thompson's steady 48 providing crucial support. North Sydney fought back through Hayes' aggressive 45, but couldn't match the pace. A clinical victory showcasing CPS Club's batting depth.",
     team1: {
       name: "CPS Club",
       score: 168,
@@ -65,6 +66,7 @@ const matchesData = [
     venue: "Chatswood Premier Sports Club",
     status: "COMPLETED",
     result: "CPS Club won by 18 runs",
+    commentary: "An intense contest where CPS Club's balanced batting attack proved decisive. Richardson continued his fine form with 46, while Thompson's composed 39 provided stability. Eastern Suburbs' Jackson fought hard with a brisk 42, but the bowling attack held firm under pressure. A well-deserved victory for CPS Club in a closely contested match.",
     team1: {
       name: "CPS Club",
       score: 152,
@@ -98,6 +100,31 @@ export default function ScoresPage() {
   const [expandedMatch, setExpandedMatch] = useState<number | null>(0);
   const [selectedTab, setSelectedTab] = useState<'team1' | 'team2'>('team1');
   const [standings, setStandings] = useState(defaultStandings);
+  const [loading, setLoading] = useState(true);
+  const [grade, setGrade] = useState<string>('C One Day Grade');
+
+  useEffect(() => {
+    const fetchStandings = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/playhq-data.json');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.standings && data.standings.length > 0) {
+            setStandings(data.standings);
+            setGrade(data.grade || 'C One Day Grade');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch PlayHQ standings:', error);
+        // Keep default standings if fetch fails
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStandings();
+  }, []);
   const [matches, setMatches] = useState(matchesData);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('');
@@ -158,6 +185,8 @@ export default function ScoresPage() {
     }
   };
 
+
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20">
       <style jsx>{`
@@ -187,7 +216,7 @@ export default function ScoresPage() {
             </div>
           </div>
           <a
-            href="https://www.playhq.com/cricket-australia/org/chatswood-premier-sports-club/829b8e20/northern-cricket-union-summer-202526/teams/c1-chatswood-premier/c820ec75/ladder"
+            href="https://ca.playhq.com/org/829b8e20-e0d3-44a5-90c7-1666ada5c1fe/games/32b1198b-816e-4f0a-96b7-365dc7398aea?fromDate=2025-12-20&toDate=2025-12-20"
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-3 bg-white text-[var(--color-primary)] font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap"
@@ -232,9 +261,12 @@ export default function ScoresPage() {
 
       {/* Standings Section */}
       <section className="mx-auto max-w-7xl px-6 py-12">
-        <h2 className="text-4xl md:text-5xl font-black text-[var(--color-dark)] mb-8 text-center">
-          🏆 Season Standings
-        </h2>
+        <div className="text-center mb-8">
+          <h2 className="text-4xl md:text-5xl font-black text-[var(--color-dark)] mb-2">
+            🏆 Season Standings
+          </h2>
+          <p className="text-lg text-gray-600 font-semibold">{grade}</p>
+        </div>
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-gray-100">
           {/* Header with Scrape Button */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200 p-6">
@@ -247,17 +279,19 @@ export default function ScoresPage() {
                   </p>
                 )}
               </div>
-              <button
-                onClick={handleScrapePlayHQ}
-                disabled={isLoading}
-                className={`px-6 py-3 font-black rounded-lg whitespace-nowrap transition-all duration-300 ${
-                  isLoading
-                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white hover:shadow-lg hover:scale-105'
-                }`}
-              >
-                {isLoading ? '⏳ Updating...' : '🔄 Refresh from PlayHQ'}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleScrapePlayHQ}
+                  disabled={isLoading}
+                  className={`px-6 py-3 font-black rounded-lg whitespace-nowrap transition-all duration-300 ${
+                    isLoading
+                      ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white hover:shadow-lg hover:scale-105'
+                  }`}
+                >
+                  {isLoading ? '⏳ Updating...' : '🔄 Refresh from PlayHQ'}
+                </button>
+              </div>
             </div>
             {scrapeMessage && (
               <p className="text-center mt-4 text-sm font-semibold">{scrapeMessage}</p>
@@ -408,6 +442,14 @@ export default function ScoresPage() {
                       </div>
                     </div>
 
+                    {/* Match Commentary */}
+                    {match.commentary && (
+                      <div className="mb-8 pb-8 border-b-2 border-gray-300 bg-blue-50 p-6 rounded-lg">
+                        <p className="text-xs text-[var(--color-primary)] font-bold uppercase tracking-wide mb-3">📝 Match Commentary</p>
+                        <p className="text-gray-700 leading-relaxed text-base">{match.commentary}</p>
+                      </div>
+                    )}
+
                     {/* Scorecard Tabs */}
                     <div className="mb-6">
                       <div className="flex gap-4 border-b-2 border-gray-300">
@@ -479,7 +521,7 @@ export default function ScoresPage() {
                     <div className="mt-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
                       <p className="text-center text-gray-700">
                         <span className="font-bold">📱 View on PlayHQ:</span> For detailed bowling, fall of wickets, and more info visit{' '}
-                        <a href="https://www.playhq.com/cricket-australia/org/chatswood-premier-sports-club/829b8e20/northern-cricket-union-summer-202526/teams/c1-chatswood-premier/c820ec75/ladder" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline">
+                        <a href="https://ca.playhq.com/org/829b8e20-e0d3-44a5-90c7-1666ada5c1fe/seasons/7fe749e5-1e03-4a25-9f9a-cfb498fe8608/all-ladders" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline">
                           CPS Club on PlayHQ
                         </a>
                       </p>
@@ -498,7 +540,7 @@ export default function ScoresPage() {
             Track all Northern Cricket Union (NCU) Grade C matches and player statistics on PlayHQ
           </p>
           <a
-            href="https://www.playhq.com/cricket-australia/org/chatswood-premier-sports-club/829b8e20/northern-cricket-union-summer-202526/teams/c1-chatswood-premier/c820ec75/ladder"
+            href="https://ca.playhq.com/org/829b8e20-e0d3-44a5-90c7-1666ada5c1fe/seasons/7fe749e5-1e03-4a25-9f9a-cfb498fe8608/all-ladders"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block px-8 py-4 bg-white text-[var(--color-primary)] font-black rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 uppercase tracking-wide"

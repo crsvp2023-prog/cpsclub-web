@@ -74,6 +74,37 @@ export async function POST(request: Request) {
       // Don't fail the subscription if email sending fails
     }
 
+    // Forward subscriber info to admin email for production
+    try {
+      const isProduction = process.env.NODE_ENV === "production";
+      const adminEmail = "crsvp.2023@gmail.com";
+      
+      if (isProduction) {
+        await resend.emails.send({
+          from: "CPS Club <noreply@resend.dev>",
+          to: adminEmail,
+          subject: `New Newsletter Subscriber: ${email}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px;">
+              <h2 style="color: #1A5490;">New Newsletter Subscriber</h2>
+              
+              <div style="background-color: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Name:</strong> ${firstName || "Not provided"}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Subscribed At:</strong> ${new Date().toLocaleString()}</p>
+                <p><strong>Status:</strong> Active</p>
+              </div>
+              
+              <p style="color: #666; font-size: 12px;">This is an automated notification for new newsletter subscriptions.</p>
+            </div>
+          `,
+        });
+      }
+    } catch (adminEmailError) {
+      console.error("Error sending admin notification:", adminEmailError);
+      // Don't fail the subscription if admin email sending fails
+    }
+
     return Response.json(
       {
         success: true,

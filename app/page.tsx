@@ -4,9 +4,9 @@ import MatchCountdown from "./components/MatchCountdown";
 import MatchPredictions from "./components/MatchPredictions";
 import SponsorSpotlight from "./components/SponsorSpotlight";
 import NewsletterSignup from "./components/NewsletterSignup";
-import FeaturedSeries from "./components/FeaturedSeries";
 import SocialFeeds from "./components/SocialFeeds";
 import Image from "next/image";
+import CricketProgramsSection from "./components/CricketProgramsSection";
 
 export default function HomePage() {
   return (
@@ -25,7 +25,7 @@ export default function HomePage() {
                 </div>
                 
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-                  About <span className="text-[var(--color-accent)]">CPS Club</span>
+                  About <span className="text-[var(--color-accent)]">Chatswood Premier Sports Club</span>
                 </h2>
                 
                 <div className="space-y-3 sm:space-y-4 text-white/90 text-sm sm:text-base leading-relaxed">
@@ -102,31 +102,155 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Match Countdown & Predictions - Single Row with Equal Columns */}
-        <div className="py-6 sm:py-8 px-4 sm:px-6 bg-gray-50 border-b border-gray-200">
+        <CricketProgramsSection />
+
+        {/* Match Countdown and Predictions - Flash Cards with Animation */}
+        <div className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-b from-blue-50 via-indigo-50 to-blue-50 border-b border-blue-200 overflow-hidden">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-stretch">
-              <div className="space-y-3 sm:space-y-4 flex flex-col h-full">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Next Match</h2>
-                <div className="flex-1">
+            {/* Centered Header Section */}
+            <div className="text-center mb-12 sm:mb-16">
+              <div className="inline-block mb-4 px-4 py-2 bg-[var(--color-primary)]/10 rounded-full border border-[var(--color-primary)]/30">
+                <p className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider">Live Updates</p>
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">Match <span className="text-[var(--color-primary)]">Insights</span></h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">Stay tuned for the upcoming match and join our community predictions</p>
+            </div>
+            
+            <style>{`
+              @keyframes slideInUp {
+                from {
+                  opacity: 0;
+                  transform: translateY(40px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+              
+              @keyframes float {
+                0%, 100% {
+                  transform: translateY(0px);
+                }
+                50% {
+                  transform: translateY(-10px);
+                }
+              }
+              
+              @keyframes pulse-glow {
+                0%, 100% {
+                  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }
+                50% {
+                  box-shadow: 0 10px 20px rgba(0, 102, 255, 0.2);
+                }
+              }
+              
+              .flash-card {
+                animation: slideInUp 0.6s ease-out forwards;
+              }
+              
+              .flash-card:nth-child(1) {
+                animation-delay: 0.2s;
+              }
+              
+              .flash-card:nth-child(2) {
+                animation-delay: 0.4s;
+              }
+              
+              .flash-card:hover {
+                animation: float 3s ease-in-out infinite;
+              }
+              
+              .flash-card {
+                animation: float 4s ease-in-out infinite;
+              }
+              
+              .flash-card:nth-child(2) {
+                animation: float 4.5s ease-in-out infinite;
+              }
+            `}</style>
+            
+            <div className="flex justify-center">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 w-full max-w-5xl">
+              {/* Interactive Styles */}
+              <style>{`
+                .carousel-card {
+                  height: auto;
+                  position: relative;
+                  overflow: hidden;
+                }
+                
+                .carousel-card::before {
+                  content: '';
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+                  pointer-events: none;
+                  animation: shimmer 3s infinite;
+                }
+                
+                @keyframes shimmer {
+                  0% {
+                    transform: translateX(-100%);
+                  }
+                  100% {
+                    transform: translateX(100%);
+                  }
+                }
+                
+                .carousel-card.primary {
+                  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+                  border: 1px solid rgba(0, 102, 255, 0.1);
+                }
+                
+                .carousel-card.primary:hover {
+                  background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+                  border-color: rgba(0, 102, 255, 0.3);
+                }
+                
+                .carousel-card.accent {
+                  background: linear-gradient(135deg, #ffffff 0%, #fff8f0 100%);
+                  border: 1px solid rgba(255, 100, 0, 0.1);
+                }
+                
+                .carousel-card.accent:hover {
+                  background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
+                  border-color: rgba(255, 100, 0, 0.3);
+                }
+                
+                .carousel-card > * {
+                  position: relative;
+                  z-index: 1;
+                }
+              `}</style>
+              {/* Next Match Card - Flash Card */}
+              <div className="carousel-card primary flash-card rounded-lg shadow-md p-6 sm:p-8 border-t-4 border-[var(--color-primary)] flex flex-col hover:shadow-2xl transition-all duration-300">
+                <div className="inline-block mb-2 px-3 py-1 bg-[var(--color-primary)]/20 rounded-full w-fit">
+                  <p className="text-xs font-bold text-[var(--color-primary)] uppercase">🎯 Upcoming</p>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Next Match</h3>
+                <div className="flex-grow">
                   <MatchCountdown />
                 </div>
               </div>
-              <div className="space-y-3 sm:space-y-4 flex flex-col h-full">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Make Your Prediction</h2>
-                <div className="flex-1">
+              
+              {/* Predictions Card */}
+              <div className="carousel-card accent flash-card rounded-lg shadow-md p-6 sm:p-8 border-t-4 border-[var(--color-accent)] flex flex-col hover:shadow-2xl transition-all duration-300">
+                <div className="inline-block mb-2 px-3 py-1 bg-[var(--color-accent)]/20 rounded-full w-fit">
+                  <p className="text-xs font-bold text-[var(--color-accent)] uppercase">🗳️ Cast Your Vote</p>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Make Your Prediction</h3>
+                <p className="text-sm text-gray-600 mb-4">Join our community in predicting match outcomes</p>
+                <div className="flex-grow">
                   <MatchPredictions />
                 </div>
               </div>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Featured Series */}
-        <div className="py-6 sm:py-8 px-4 sm:px-6 bg-gradient-to-r from-[#0052CC] via-[#0066FF] to-[#003B82]">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Featured Series</h2>
-            <FeaturedSeries />
           </div>
         </div>
 

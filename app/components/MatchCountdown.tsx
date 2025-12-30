@@ -48,14 +48,34 @@ interface CountdownData {
 
 export default function MatchCountdown() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>(UPCOMING_MATCHES);
   const [countdowns, setCountdowns] = useState<CountdownData[]>(
     UPCOMING_MATCHES.map(() => ({ days: 0, hours: 0, minutes: 0, seconds: 0 }))
   );
 
+  // Filter out past matches on mount
+  useEffect(() => {
+    const now = new Date();
+    const futureMatches = UPCOMING_MATCHES.filter((match) => {
+      if (match.matchDate < now) {
+        console.warn(`Match ${match.opponent} on ${match.matchDate} has passed, filtering out`);
+        return false;
+      }
+      return true;
+    });
+
+    if (futureMatches.length > 0) {
+      setUpcomingMatches(futureMatches);
+      setCountdowns(futureMatches.map(() => ({ days: 0, hours: 0, minutes: 0, seconds: 0 })));
+    } else {
+      console.warn('No upcoming matches found');
+    }
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCountdowns(
-        UPCOMING_MATCHES.map((match) => {
+        upcomingMatches.map((match) => {
           const now = new Date().getTime();
           const timeLeft = match.matchDate.getTime() - now;
 
@@ -74,21 +94,21 @@ export default function MatchCountdown() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [upcomingMatches]);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? UPCOMING_MATCHES.length - 1 : prevIndex - 1
+      prevIndex === 0 ? upcomingMatches.length - 1 : prevIndex - 1
     );
   };
 
   const goToNext = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === UPCOMING_MATCHES.length - 1 ? 0 : prevIndex + 1
+      prevIndex === upcomingMatches.length - 1 ? 0 : prevIndex + 1
     );
   };
 
-  const currentMatch = UPCOMING_MATCHES[currentIndex];
+  const currentMatch = upcomingMatches[currentIndex];
   const countdown = countdowns[currentIndex];
 
 const CountdownBox = ({ value, label }: { value: number; label: string }) => (

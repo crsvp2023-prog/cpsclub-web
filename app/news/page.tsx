@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface NewsArticle {
   id: string;
@@ -15,8 +16,11 @@ interface NewsArticle {
 
 export default function NewsPage() {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [sportsNews, setSportsNews] = useState<NewsArticle[]>([]);
+  const [cpscNews, setCpscNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const categories = [
     { id: 'all', name: 'All Sports' },
@@ -24,85 +28,141 @@ export default function NewsPage() {
     { id: 'football', name: 'Football' },
     { id: 'basketball', name: 'Basketball' },
     { id: 'tennis', name: 'Tennis' },
+    { id: 'sports', name: 'CPSC News' },
   ];
 
   useEffect(() => {
-    fetchNews();
-  }, [selectedCategory]);
+    loadNews();
+    loadSportsNews();
+    loadCpscNews();
+    
+    // Auto-refresh sports news every 30 minutes
+    const interval = setInterval(() => {
+      refreshSportsNews();
+    }, 30 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
-  const fetchNews = async () => {
-    setLoading(true);
+  useEffect(() => {
+    const sportsNewsWithCategory = sportsNews.map(news => ({
+      ...news,
+      id: `sports-${news.id}`, // Make IDs unique to avoid React key conflicts
+      category: 'sports'
+    }));
+    
+    // Combine all mock news (from all categories) with CPSC News from Firebase + sports news
+    // If sportsNews is empty, use mock sports data as fallback
+    const mockSports = getMockNews('sports').map(sport => ({
+      ...sport,
+      id: `sports-${sport.id}` // Make IDs unique for mock sports too
+    }));
+    const finalSportsNews = sportsNewsWithCategory.length > 0 ? sportsNewsWithCategory : mockSports;
+    
+    // CPSC News from Firebase (use cpsc prefix to avoid conflicts with sports news)
+    const cpscNewsWithCategory = cpscNews.map(news => ({
+      ...news,
+      id: `cpsc-${news.id}`, // Use 'cpsc' prefix to distinguish from sports news
+      category: 'sports'
+    }));
+    
+    // Get all mock news and prefix category to IDs to avoid duplicates
+    const allMockNews = getMockNews('all').map(article => ({
+      ...article,
+      id: `${article.category}-${article.id}` // Prefix with category to make unique
+    }));
+    
+    // Combine: mock news + CPSC News from Firebase + sports news
+    const filtered = [...allMockNews, ...cpscNewsWithCategory, ...finalSportsNews];
+    
+    if (selectedCategory !== 'all') {
+      setArticles(filtered.filter(a => a.category === selectedCategory));
+    } else {
+      setArticles(filtered);
+    }
+  }, [selectedCategory, sportsNews, cpscNews]);
+
+  const loadNews = async () => {
     try {
-      // Use mock news data instead of API
-      // This provides instant, reliable news display
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
-      setArticles(getMockNews(selectedCategory));
+      await new Promise(resolve => setTimeout(resolve, 500));
+      // Don't set articles here - let the second useEffect handle combining and filtering
+      setLoading(false);
     } catch (error) {
       console.error('Error loading news:', error);
-      setArticles(getMockNews(selectedCategory));
-    } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSportsNews = async () => {
+    try {
+      const response = await fetch('/sports-news-data.json');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.news) {
+          setSportsNews(data.news);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading sports news:', error);
+    }
+  };
+
+  const loadCpscNews = async () => {
+    try {
+      console.log('Loading CPSC News from Firebase...');
+      const { dbTest } = await import('../lib/firebase');
+      const { collection, getDocs } = await import('firebase/firestore');
+      
+      console.log('dbTest:', dbTest);
+      const cpscNewsRef = collection(dbTest, 'cpsc-news');
+      console.log('cpscNewsRef:', cpscNewsRef);
+      
+      const snapshot = await getDocs(cpscNewsRef);
+      console.log('Snapshot size:', snapshot.size);
+      
+      const newsData: NewsArticle[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        console.log('Found CPSC article:', data);
+        newsData.push({
+          id: data.id || doc.id,
+          title: data.title || '',
+          description: data.description || '',
+          source: data.source || 'CPSC Club News',
+          category: 'sports',
+          date: data.date || '',
+          url: data.url || '#',
+          image: data.image
+        });
+      });
+      
+      console.log('Total CPSC articles loaded:', newsData.length);
+      setCpscNews(newsData);
+    } catch (error) {
+      console.error('Error loading CPSC news from Firebase:', error);
+    }
+  };
+
+  const refreshSportsNews = async () => {
+    setIsRefreshing(true);
+    try {
+      const response = await fetch('/api/fetch-sports-news');
+      const data = await response.json();
+      if (data.success) {
+        // Reload from file after fetch completes
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await loadSportsNews();
+      }
+    } catch (error) {
+      console.error('Error refreshing sports news:', error);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
   const getMockNews = (category: string): NewsArticle[] => {
     const mockData: Record<string, NewsArticle[]> = {
-      all: [
-        {
-          id: '1',
-          title: 'Cricket Australia Announces Squad for Summer Series',
-          description: 'Australia unveils their squad for the upcoming summer cricket series against India. The team includes several young talents alongside experienced players ready for the challenge.',
-          source: 'ESPN Cricket',
-          category: 'cricket',
-          date: '2025-12-24',
-          url: 'https://www.espncricinfo.com'
-        },
-        {
-          id: '2',
-          title: 'Premier League: Championship Battle Intensifies',
-          description: 'Liverpool maintains top position as Manchester City closes the gap. The title race promises to be thrilling this season with multiple contenders fighting for supremacy.',
-          source: 'Sky Sports',
-          category: 'football',
-          date: '2025-12-23',
-          url: 'https://www.skysports.com'
-        },
-        {
-          id: '3',
-          title: 'NBA Trade Deadline: Major Moves Expected',
-          description: 'NBA teams gear up for the trade deadline with several star players rumored to change teams. Expect blockbuster trades in the coming weeks as teams make final adjustments.',
-          source: 'ESPN NBA',
-          category: 'basketball',
-          date: '2025-12-22',
-          url: 'https://www.espn.com/nba'
-        },
-        {
-          id: '4',
-          title: 'Australian Open Qualifiers Begin',
-          description: 'Tennis players compete for spots in the main draw of the Australian Open. Exciting matches showcase emerging talent in the tennis world.',
-          source: 'Tennis TV',
-          category: 'tennis',
-          date: '2025-12-21',
-          url: 'https://www.tenisztv.com'
-        },
-        {
-          id: '5',
-          title: 'CPSC vs Old Ignatians: Match Preview',
-          description: 'CPS Club prepares for an exciting One Day Match against Old Ignatians at Primrose Park. Both teams are in great form and ready for competition.',
-          source: 'CPS Club News',
-          category: 'cricket',
-          date: '2025-12-24',
-          url: '#'
-        },
-        {
-          id: '6',
-          title: 'World Cup Qualifiers: Drama Unfolds',
-          description: 'International football takes center stage as teams battle for World Cup qualification spots. Historic wins and surprising upsets mark this qualification round.',
-          source: 'BBC Sport',
-          category: 'football',
-          date: '2025-12-20',
-          url: 'https://www.bbc.com/sport'
-        },
-      ],
+      all: [],  // Will be populated below
       cricket: [
         {
           id: '1',
@@ -117,10 +177,10 @@ export default function NewsPage() {
           id: '2',
           title: 'Cricket Australia Announces Squad for Summer Series',
           description: 'Australia unveils their squad for the upcoming summer cricket series. The team includes several young talents and experienced professionals.',
-          source: 'ESPN Cricket',
+          source: 'Cricket.com.au',
           category: 'cricket',
           date: '2025-12-23',
-          url: 'https://www.espncricinfo.com'
+          url: 'https://www.cricket.com.au/news'
         },
         {
           id: '3',
@@ -129,34 +189,61 @@ export default function NewsPage() {
           source: 'Cricbuzz',
           category: 'cricket',
           date: '2025-12-22',
-          url: 'https://www.cricbuzz.com'
+          url: 'https://www.cricbuzz.com/'
         },
         {
           id: '4',
           title: 'Test Cricket: West Indies Tour Announced',
           description: 'West Indies cricket team announces their tour schedule for the upcoming season. Multiple test matches against top international teams are planned.',
-          source: 'ICC Cricket',
+          source: 'Cricket.com.au',
           category: 'cricket',
           date: '2025-12-21',
-          url: 'https://www.icc-cricket.com'
+          url: 'https://www.cricket.com.au/news'
         },
         {
           id: '5',
           title: 'Women\'s Cricket: Championship Starts',
           description: 'Women\'s cricket championship kicks off with exciting matches between international teams. Rising stars showcase their talents on the global stage.',
-          source: 'Women\'s Cricket',
+          source: 'Cricbuzz',
           category: 'cricket',
           date: '2025-12-20',
-          url: 'https://www.womenscricket.com'
+          url: 'https://www.cricbuzz.com/'
         },
         {
           id: '6',
           title: 'T20 World League: Format Changes Announced',
           description: 'ICC announces significant format changes for the upcoming T20 World League. New rules aim to make the game more exciting for fans worldwide.',
-          source: 'ICC Official',
+          source: 'Cricket.com.au',
           category: 'cricket',
           date: '2025-12-19',
-          url: 'https://www.icc-cricket.com'
+          url: 'https://www.cricket.com.au/news'
+        },
+        {
+          id: '7',
+          title: 'Domestic Cricket: Sheffield Shield Highlights',
+          description: 'Latest domestic cricket action featuring intense competition between Australian states in the Sheffield Shield tournament.',
+          source: 'Cricbuzz',
+          category: 'cricket',
+          date: '2025-12-18',
+          url: 'https://www.cricbuzz.com/'
+        },
+        {
+          id: '8',
+          title: 'International Cricket: England Tour Update',
+          description: 'England cricket team provides updates on their upcoming tour with comprehensive match schedules and player statistics.',
+          source: 'Cricket.com.au',
+          category: 'cricket',
+          date: '2025-12-17',
+          url: 'https://www.cricket.com.au/news'
+        },
+        {
+          id: '9',
+          title: 'Young Cricketers: Rising Talent Showcase',
+          description: 'New generation of cricketers from the subcontinent showcase their skills in domestic leagues. Scouts closely monitoring their performances.',
+          source: 'Cricbuzz',
+          category: 'cricket',
+          date: '2025-12-16',
+          url: 'https://www.cricbuzz.com/'
         },
       ],
       football: [
@@ -326,10 +413,21 @@ export default function NewsPage() {
           date: '2025-12-16',
           url: 'https://www.rolandgarros.com'
         },
-      ]
+      ],
+      sports: []
     };
 
-    return mockData[category] || mockData['all'];
+    // If requesting 'all', combine articles from all categories
+    if (category === 'all') {
+      return [
+        ...mockData['cricket'],
+        ...mockData['football'],
+        ...mockData['basketball'],
+        ...mockData['tennis'],
+      ];
+    }
+
+    return mockData[category] || [];
   };
 
   return (
@@ -349,20 +447,30 @@ export default function NewsPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-3 justify-center mb-12">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-6 py-3 rounded-full font-bold transition-all duration-300 ${
-                selectedCategory === cat.id
-                  ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white shadow-lg scale-105'
-                  : 'bg-white text-[var(--color-dark)] border-2 border-gray-200 hover:border-[var(--color-primary)]'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-3 justify-between items-center mb-12">
+          <div className="flex flex-wrap gap-3 flex-1">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-6 py-3 rounded-full font-bold transition-all duration-300 ${
+                  selectedCategory === cat.id
+                    ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white shadow-lg scale-105'
+                    : 'bg-white text-[var(--color-dark)] border-2 border-gray-200 hover:border-[var(--color-primary)]'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={refreshSportsNews}
+            disabled={isRefreshing}
+            className="px-6 py-3 rounded-full font-bold bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+          >
+            <span>{isRefreshing ? '⟳' : '🔄'}</span>
+            {isRefreshing ? 'Updating...' : 'Refresh News'}
+          </button>
         </div>
       </section>
 
@@ -375,11 +483,9 @@ export default function NewsPage() {
         ) : articles.length > 0 ? (
           <div className="space-y-4">
             {articles.map((article) => (
-              <a
+              <Link
                 key={article.id}
-                href={article.url}
-                target={article.url === '#' ? '_self' : '_blank'}
-                rel="noopener noreferrer"
+                href={`/news/${article.id}`}
                 className="group cursor-pointer"
               >
                 <article
@@ -424,7 +530,7 @@ export default function NewsPage() {
                     </div>
                   </div>
                 </article>
-              </a>
+              </Link>
             ))}
           </div>
         ) : (
