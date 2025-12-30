@@ -13,13 +13,10 @@ export default function Hero() {
       
       <div className="mx-auto max-w-7xl px-3 sm:px-6 py-6 sm:py-12 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-center relative z-10">
         <div className="md:col-span-1 order-2 md:order-1">
-          <div className="inline-block mb-3 sm:mb-4 px-3 py-1 bg-[var(--color-accent)]/15 rounded-full border border-[var(--color-accent)]/40">
-            <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-widest">🏏 Welcome to Chatswood Premier Sports Club</p>
+          <div className="inline-block mb-3 sm:mb-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent)]/10 rounded-full border-2 border-[var(--color-accent)]/50 shadow-lg hover:shadow-2xl transition-all duration-300">
+            <p className="text-xs sm:text-sm font-bold text-[var(--color-accent)] uppercase tracking-widest" style={{ fontFamily: 'Arial, sans-serif' }}>🏏 Welcome to Chatswood Premier Sports Club</p>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
-            Chatswood<br className="hidden sm:block" />Premier Sports Club
-          </h1>
           
           <p className="mt-3 text-sm sm:text-base text-white/90 max-w-2xl leading-relaxed font-normal" style={{ fontFamily: 'Arial, sans-serif' }}>
             Founded in 2016 and officially incorporated in 2023, we are the heart of cricket in Chatswood. Driven by our motto, <span className="text-[var(--color-accent)] font-bold">"One Team, One Dream,"</span> we bridge the gap between competitive sport and community spirit.

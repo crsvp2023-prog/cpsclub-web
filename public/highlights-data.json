@@ -1,0 +1,17 @@
+{
+  "highlights": [
+    {
+      "id": "highlight-1",
+      "title": "Cricket Tournament Highlights",
+      "description": "Best moments from our cricket tournaments and match-winning performances",
+      "youtubeId": "jZ3JNcJqifA",
+      "category": "highlights",
+      "date": "2025-12-29",
+      "source": "Default"
+    }
+  ],
+  "lastUpdated": "2025-12-29T12:12:24.228Z",
+  "source": "PlayHQ (Fallback)",
+  "recordsFound": 1,
+  "error": "page.waitForTimeout is not a function"
+}

@@ -24,27 +24,6 @@ const PREDICTIONS_DATA: Prediction[] = [
     totalVotes: 390,
     matchDate: 'Jan 10, 2026',
   },
-  {
-    id: '2',
-    question: 'Highest Run Scorer?',
-    options: [
-      { name: 'Player A', votes: 145 },
-      { name: 'Player B', votes: 98 },
-      { name: 'Player C', votes: 112 },
-    ],
-    totalVotes: 355,
-    matchDate: 'Jan 10, 2026',
-  },
-  {
-    id: '3',
-    question: 'Will we see a century?',
-    options: [
-      { name: 'Yes', votes: 187 },
-      { name: 'No', votes: 142 },
-    ],
-    totalVotes: 329,
-    matchDate: 'Jan 15, 2026',
-  },
 ];
 
 export default function MatchPredictions() {
@@ -64,26 +43,45 @@ export default function MatchPredictions() {
         const data = await response.json();
         console.log('Fetched predictions:', data);
         
+        const now = new Date();
+        
         if (data.predictions && Array.isArray(data.predictions) && data.predictions.length > 0) {
-          // Check if predictions have options, if not use fallback
-          const validPredictions = data.predictions.filter((p: any) => 
-            p.options && Array.isArray(p.options) && p.options.length > 0
-          );
+          // Check if predictions have options, not in the past, and match the question filter
+          const validPredictions = data.predictions.filter((p: any) => {
+            if (!p.options || !Array.isArray(p.options) || p.options.length === 0) {
+              return false;
+            }
+            if (p.question !== 'Who will win: CPSC vs Old Ignatians?') {
+              return false;
+            }
+            // Check if match date has passed
+            try {
+              const matchDate = new Date(p.matchDate);
+              if (matchDate < now) {
+                console.warn(`Match date ${p.matchDate} has passed, filtering out`);
+                return false;
+              }
+            } catch (e) {
+              console.warn(`Could not parse match date: ${p.matchDate}`);
+            }
+            return true;
+          });
           
           if (validPredictions.length > 0) {
             console.log('Using fetched predictions:', validPredictions);
             setPredictions(validPredictions);
           } else {
-            console.warn('Fetched predictions have no options, using fallback data');
-            // Keep using PREDICTIONS_DATA as fallback
+            console.warn('No valid predictions found, using fallback data');
+            setPredictions(PREDICTIONS_DATA);
           }
         } else {
           console.warn('No predictions found in response, using fallback data');
-          // Keep using PREDICTIONS_DATA as fallback
+          setPredictions(PREDICTIONS_DATA);
         }
       } catch (error) {
         console.error('Failed to fetch predictions:', error);
         // Fall back to hardcoded data on error
+        setPredictions(PREDICTIONS_DATA);
       } finally {
         setLoading(false);
       }
@@ -183,8 +181,8 @@ export default function MatchPredictions() {
   };
 
   return (
-    <section className="relative w-full h-full">
-      <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
+    <section className="relative w-full min-h-fit">
+      <div className="w-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
         {/* Title */}
         <div className="text-center mb-4">
           <h2 className="text-xl md:text-2xl font-extrabold text-white">

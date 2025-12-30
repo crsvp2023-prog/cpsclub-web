@@ -14,6 +14,7 @@ interface Series {
     upcoming: number;
   };
   description: string;
+  link?: string;
 }
 
 const FEATURED_SERIES: Series[] = [
@@ -41,7 +42,8 @@ const FEATURED_SERIES: Series[] = [
       teams: 14,
       upcoming: 5
     },
-    description: 'Premier SMCA competition'
+    description: 'Premier SMCA competition',
+    link: 'https://cpsclub.com.au/?page_id=547'
   },
   {
     id: 'ncu-juniors',
@@ -131,16 +133,13 @@ export default function FeaturedSeries() {
                   </div>
 
                   {/* Bottom Section - Title & Info */}
-                  <div>
+                  <div className="relative z-10">
                     <h3 className="text-lg md:text-xl font-black text-white mb-2 leading-tight">
                       {series.name}
                     </h3>
                     <p className="text-white/80 text-xs md:text-sm font-semibold mb-3">
                       {series.stats.matches} Matches • {series.stats.teams} Teams
                     </p>
-                    <button className="w-full px-3 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg text-xs md:text-sm uppercase tracking-wider hover:bg-[#FFC939] transition-all duration-300 group-hover:shadow-lg">
-                      View →
-                    </button>
                   </div>
                 </div>
 

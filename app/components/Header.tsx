@@ -26,6 +26,7 @@ export default function Header() {
     { href: '/gallery', label: 'Gallery' },
     { href: '/events', label: 'Events' },
     { href: '/scores', label: 'Scores' },
+    { href: '/news', label: 'Blogs' },
     { href: '/contact', label: 'Contact' },
   ];
 
@@ -36,24 +37,24 @@ export default function Header() {
 
       {/* Main Header */}
       <div className="w-full">
-        <div className="mx-auto max-w-7xl px-3 sm:px-6 py-2 sm:py-4 flex justify-between items-center gap-2 sm:gap-4">
+        <div className="mx-auto max-w-7xl px-2 sm:px-6 py-1.5 sm:py-3 flex justify-between items-center gap-1 sm:gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 min-w-fit">
             <Image 
               src="/images/cpsclub-logo.png" 
               alt="CPS Club Logo" 
               width={40} 
               height={40} 
-              className="rounded-sm object-contain w-8 h-8 sm:w-[50px] sm:h-[50px]"
+              className="rounded-sm object-contain w-7 h-7 sm:w-[45px] sm:h-[45px]"
             />
-            <div className="flex flex-col">
-              <h1 className="text-sm sm:text-lg font-semibold text-white" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.5px' }}>CPS CLUB</h1>
-              <p className="text-xs text-[#FFB81C] font-bold" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.3px' }}>ONE TEAM, ONE DREAM</p>
+            <div className="flex flex-col justify-center">
+              <h1 className="text-sm sm:text-base font-bold text-white leading-tight" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.4px' }}>CPSC</h1>
+              <p className="text-[9px] sm:text-xs text-[#FFB81C] font-bold leading-tight" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.2px' }}>ONE TEAM, ONE DREAM</p>
             </div>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-xs lg:text-sm flex-1 justify-center">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-xs lg:text-sm flex-1 justify-center">
             {navLinks.map((link) => (
               <a 
                 key={link.href}
