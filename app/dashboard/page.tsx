@@ -503,62 +503,71 @@ export default function DashboardPage() {
             <h3 className="text-2xl font-bold text-[var(--color-dark)] mb-6">Register for Match</h3>
             <div className="space-y-4">
               {availableMatches.map((match) => (
-                <div key={match.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-bold text-lg">vs {match.opponent}</p>
-                      <p className="text-gray-600">{match.date}</p>
-                      <p className="text-sm text-gray-500">Venue: {match.venue}</p>
-                      <p className="text-sm text-orange-600">Registration Deadline: {match.deadline}</p>
+                    <div key={match.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-bold text-lg">vs {match.opponent}</p>
+                          <p className="text-gray-600">{match.date}</p>
+                          <p className="text-sm text-gray-500">Venue: {match.venue}</p>
+                          <p className="text-sm text-orange-600">Registration Deadline: {match.deadline}</p>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            console.log('Registering for match:', match);
+                            console.log('User data:', { email: user?.email, name: user?.name });
+
+                            if (!user?.email || !user?.name) {
+                              alert('User information is missing. Please try logging out and logging back in.');
+                              return;
+                            }
+
+                            try {
+                              const response = await fetch('/api/match-registration', {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                  matchId: match.id,
+                                  matchDetails: {
+                                    opponent: match.opponent,
+                                    date: match.date,
+                                    venue: match.venue,
+                                    deadline: match.deadline
+                                  },
+                                  userEmail: user.email,
+                                  userName: user.name
+                                }),
+                              });
+
+                              const result = await response.json();
+
+                              if (response.ok) {
+                                alert(`Successfully registered for match vs ${match.opponent.split(' vs ')[1]}!`);
+                                setActiveModal(null);
+                              } else {
+                                alert(`Registration failed: ${result.error}`);
+                              }
+                            } catch (error) {
+                              console.error('Registration error:', error);
+                              alert('Failed to register for match. Please try again.');
+                            }
+                          }}
+                          className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg font-bold hover:bg-blue-600 transition-colors"
+                        >
+                          {(() => {
+                            // Remove first 'vs' if present
+                            let label = match.opponent;
+                            if (label.startsWith('CPSC vs ')) {
+                              label = label.replace('CPSC vs ', '');
+                            } else if (label.startsWith('vs ')) {
+                              label = label.replace('vs ', '');
+                            }
+                            return `Register for match: CPSC vs ${label}`;
+                          })()}
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={async () => {
-                        console.log('Registering for match:', match);
-                        console.log('User data:', { email: user?.email, name: user?.name });
-
-                        if (!user?.email || !user?.name) {
-                          alert('User information is missing. Please try logging out and logging back in.');
-                          return;
-                        }
-
-                        try {
-                          const response = await fetch('/api/match-registration', {
-                            method: 'POST',
-                            headers: {
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                              matchId: match.id,
-                              matchDetails: {
-                                opponent: match.opponent,
-                                date: match.date,
-                                venue: match.venue,
-                                deadline: match.deadline
-                              },
-                              userEmail: user.email,
-                              userName: user.name
-                            }),
-                          });
-
-                          const result = await response.json();
-
-                          if (response.ok) {
-                            alert(`Successfully registered for match vs ${match.opponent.split(' vs ')[1]}!`);
-                            setActiveModal(null);
-                          } else {
-                            alert(`Registration failed: ${result.error}`);
-                          }
-                        } catch (error) {
-                          console.error('Registration error:', error);
-                          alert('Failed to register for match. Please try again.');
-                        }
-                      }}
-                      className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg font-bold hover:bg-blue-600 transition-colors"
-                    >
-                      Register
-                    </button>
-                  </div>
-                </div>
               ))}
             </div>
             <div className="mt-6 text-center">
