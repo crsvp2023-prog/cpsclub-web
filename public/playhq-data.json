@@ -3,60 +3,60 @@
   "standings": [
     {
       "position": 1,
-      "team": "CPS Club",
-      "played": 8,
-      "wins": 7,
-      "losses": 1,
-      "points": 14,
-      "nrr": "+0.85"
+      "team": "C1 West Pymble (Floppy's)",
+      "played": 11,
+      "wins": 10,
+      "losses": 0,
+      "points": 64,
+      "nrr": "2.537"
     },
     {
       "position": 2,
-      "team": "Eastern Suburbs",
-      "played": 8,
-      "wins": 6,
-      "losses": 2,
-      "points": 12,
-      "nrr": "+0.52"
+      "team": "\tC1 Hornsby",
+      "played": 11,
+      "wins": 7,
+      "losses": 4,
+      "points": 47,
+      "nrr": "0.957"
     },
     {
       "position": 3,
-      "team": "North Sydney",
-      "played": 8,
-      "wins": 5,
-      "losses": 3,
-      "points": 10,
-      "nrr": "-0.18"
+      "team": "\tC1 Old Ignatians (Taronga)",
+      "played": 11,
+      "wins": 6,
+      "losses": 4,
+      "points": 44,
+      "nrr": "1.557"
     },
     {
       "position": 4,
-      "team": "Parramatta",
-      "played": 8,
+      "team": "\tC1 Chatswood Premier",
+      "played": 11,
       "wins": 4,
-      "losses": 4,
-      "points": 8,
-      "nrr": "+0.22"
+      "losses": 6,
+      "points": 33,
+      "nrr": "0.812"
     },
     {
       "position": 5,
-      "team": "Strathfield",
-      "played": 8,
-      "wins": 3,
-      "losses": 5,
-      "points": 6,
-      "nrr": "-0.45"
+      "team": "C1 West Epping",
+      "played": 11,
+      "wins": 4,
+      "losses": 6,
+      "points": 32,
+      "nrr": "1.010"
     },
     {
       "position": 6,
-      "team": "Cronulla-Sutherland",
-      "played": 8,
-      "wins": 2,
-      "losses": 6,
-      "points": 4,
-      "nrr": "-0.62"
+      "team": "C1 Northbridge",
+      "played": 11,
+      "wins": 0,
+      "losses": 11,
+      "points": 13,
+      "nrr": "0.365"
     }
   ],
-  "lastUpdated": "2025-12-29T12:05:41.716Z",
-  "source": "Default Data (PDF extraction failed - please verify)",
+  "lastUpdated": "2025-12-31T02:18:20.101Z",
+  "source": "Admin Manual Update",
   "recordsFound": 6
 }

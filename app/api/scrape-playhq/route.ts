@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
     await page.setViewport({ width: 1366, height: 768 });
     
     // Block unnecessary resources
+    await page.setRequestInterception(true);
     await page.on('request', (req: any) => {
       if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
         req.abort();
@@ -149,30 +150,69 @@ export async function GET(request: NextRequest) {
 
     console.log(`Extracted ${standings.length} teams`);
 
-    if (standings.length === 0) {
-      console.log('No standings extracted, using defaults');
+    // Prepare response data
+    let responseData;
+    let shouldSaveToFile = false;
+
+    if (standings.length > 0) {
+      // Scraping succeeded, use scraped data
+      responseData = {
+        grade: foundGrade || 'C One Day Grade',
+        standings: standings,
+        lastUpdated: new Date().toISOString(),
+        source: 'PlayHQ Web Scrape (Puppeteer)',
+        recordsFound: standings.length
+      };
+      shouldSaveToFile = true;
+    } else {
+      // Scraping failed, try to return existing data without overwriting
+      try {
+        const dataDir = path.join(process.cwd(), 'public');
+        const filePath = path.join(dataDir, 'playhq-data.json');
+        if (fs.existsSync(filePath)) {
+          const existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+          responseData = {
+            ...existingData,
+            note: 'Could not extract live data from PlayHQ. To update manually, use /api/update-standings'
+          };
+          console.log('Returning existing data from file');
+        } else {
+          // No existing file, use defaults but don't save
+          responseData = {
+            grade: 'C One Day Grade',
+            standings: getDefaultStandings(),
+            lastUpdated: new Date().toISOString(),
+            source: 'Default Fallback',
+            recordsFound: 0,
+            note: 'Could not extract live data from PlayHQ. To update manually, use /api/update-standings'
+          };
+          console.log('No existing data file, using defaults');
+        }
+      } catch (error) {
+        console.error('Error reading existing data:', error);
+        responseData = {
+          grade: 'C One Day Grade',
+          standings: getDefaultStandings(),
+          lastUpdated: new Date().toISOString(),
+          source: 'Default Fallback',
+          recordsFound: 0,
+          note: 'Could not extract live data from PlayHQ. To update manually, use /api/update-standings'
+        };
+      }
     }
 
-    // Save to public JSON file
-    const dataDir = path.join(process.cwd(), 'public');
-    const filePath = path.join(dataDir, 'playhq-data.json');
+    // Only save to file if we successfully scraped data
+    if (shouldSaveToFile) {
+      const dataDir = path.join(process.cwd(), 'public');
+      const filePath = path.join(dataDir, 'playhq-data.json');
 
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+
+      fs.writeFileSync(filePath, JSON.stringify(responseData, null, 2));
+      console.log(`Saved ${standings.length} teams to file`);
     }
-
-    const scrapedData = {
-      grade: foundGrade || 'C One Day Grade',
-      standings: standings.length > 0 ? standings : getDefaultStandings(),
-      lastUpdated: new Date().toISOString(),
-      source: standings.length > 0 ? 'PlayHQ Web Scrape (Puppeteer)' : 'Default Fallback',
-      recordsFound: standings.length,
-      note: standings.length === 0 ? 'Could not extract live data from PlayHQ. To update manually, use /api/update-standings' : undefined
-    };
-
-    fs.writeFileSync(filePath, JSON.stringify(scrapedData, null, 2));
-    
-    console.log(`Scrape completed: ${standings.length} teams extracted, using ${standings.length > 0 ? 'live' : 'fallback'} data`);
 
     const elapsedTime = Date.now() - startTime;
     console.log(`Total scrape time: ${elapsedTime}ms`);
@@ -186,9 +226,9 @@ export async function GET(request: NextRequest) {
       success: true,
       message: standings.length > 0 
         ? `PlayHQ data scraped successfully! Found ${standings.length} teams`
-        : 'Could not extract live data. Using fallback standings. Try /api/update-standings for manual update.',
-      data: scrapedData,
-      standingsCount: scrapedData.standings.length,
+        : 'Could not extract live data. Returning existing data. Try /api/update-standings for manual update.',
+      data: responseData,
+      standingsCount: responseData.standings.length,
       duration: `${elapsedTime}ms`
     });
 

@@ -2,50 +2,113 @@
   "matches": [
     {
       "id": 1,
-      "matchName": "CPS Club vs Hornsby",
+      "matchName": "C1 Chatswood Premier vs C1 West Pymble (Floppy's)",
       "category": "Northern Cricket Union - Grade C",
-      "date": "December 20, 2025",
-      "venue": "Chatswood Premier Sports Club",
-      "status": "COMPLETED",
-      "result": "CPS Club won by 32 runs",
-      "team1": {
-        "name": "CPS Club",
-        "score": 156,
-        "wickets": 7,
-        "overs": "20.0",
-        "batting": [
-          {"player": "John Smith", "runs": 45, "balls": 32, "fours": 6, "sixes": 1},
-          {"player": "Mike Johnson", "runs": 38, "balls": 28, "fours": 4, "sixes": 2}
-        ]
-      },
-      "team2": {
-        "name": "Hornsby",
-        "score": 124,
-        "wickets": 8,
-        "overs": "20.0",
-        "batting": [
-          {"player": "David Wilson", "runs": 32, "balls": 25, "fours": 3, "sixes": 1},
-          {"player": "Chris Brown", "runs": 28, "balls": 22, "fours": 2, "sixes": 1}
-        ]
-      }
-    },
-    {
-      "id": 2,
-      "matchName": "CPS Club vs North Sydney",
-      "category": "Northern Cricket Union - Grade C",
-      "date": "December 27, 2025",
+      "date": "January 4, 2026",
       "venue": "Chatswood Premier Sports Club",
       "status": "UPCOMING",
       "result": "",
       "team1": {
-        "name": "CPS Club",
+        "name": "C1 Chatswood Premier",
         "score": 0,
         "wickets": 0,
         "overs": "0.0",
         "batting": []
       },
       "team2": {
-        "name": "North Sydney",
+        "name": "C1 West Pymble (Floppy's)",
+        "score": 0,
+        "wickets": 0,
+        "overs": "0.0",
+        "batting": []
+      }
+    },
+    {
+      "id": 2,
+      "matchName": "C1 Hornsby vs C1 Old Ignatians (Taronga)",
+      "category": "Northern Cricket Union - Grade C",
+      "date": "January 11, 2026",
+      "venue": "Hornsby District Cricket Club",
+      "status": "UPCOMING",
+      "result": "",
+      "team1": {
+        "name": "C1 Hornsby",
+        "score": 0,
+        "wickets": 0,
+        "overs": "0.0",
+        "batting": []
+      },
+      "team2": {
+        "name": "C1 Old Ignatians (Taronga)",
+        "score": 0,
+        "wickets": 0,
+        "overs": "0.0",
+        "batting": []
+      }
+    },
+    {
+      "id": 3,
+      "matchName": "C1 West Epping vs C1 Northbridge",
+      "category": "Northern Cricket Union - Grade C",
+      "date": "January 18, 2026",
+      "venue": "West Epping Cricket Club",
+      "status": "UPCOMING",
+      "result": "",
+      "team1": {
+        "name": "C1 West Epping",
+        "score": 0,
+        "wickets": 0,
+        "overs": "0.0",
+        "batting": []
+      },
+      "team2": {
+        "name": "C1 Northbridge",
+        "score": 0,
+        "wickets": 0,
+        "overs": "0.0",
+        "batting": []
+      }
+    },
+    {
+      "id": 4,
+      "matchName": "C1 Chatswood Premier vs C1 Hornsby",
+      "category": "Northern Cricket Union - Grade C",
+      "date": "January 25, 2026",
+      "venue": "Chatswood Premier Sports Club",
+      "status": "UPCOMING",
+      "result": "",
+      "team1": {
+        "name": "C1 Chatswood Premier",
+        "score": 0,
+        "wickets": 0,
+        "overs": "0.0",
+        "batting": []
+      },
+      "team2": {
+        "name": "C1 Hornsby",
+        "score": 0,
+        "wickets": 0,
+        "overs": "0.0",
+        "batting": []
+      }
+    },
+    {
+      "id": 5,
+      "matchName": "C1 West Pymble (Floppy's) vs C1 Old Ignatians (Taronga)",
+      "category": "Northern Cricket Union - Grade C",
+      "date": "February 1, 2026",
+      "venue": "West Pymble Sports Club",
+      "status": "UPCOMING",
+      "result": "",
+      "team1": {
+        "name": "C1 West Pymble (Floppy's)",
+        "score": 0,
+        "wickets": 0,
+        "overs": "0.0",
+        "batting": []
+      },
+      "team2": {
+        "name": "C1 Old Ignatians (Taronga)",
         "score": 0,
         "wickets": 0,
         "overs": "0.0",
@@ -53,7 +116,7 @@
       }
     }
   ],
-  "lastUpdated": "2025-01-15T10:00:00.000Z",
-  "source": "PlayHQ Game Centre",
-  "recordsFound": 2
+  "lastUpdated": "2025-12-31T13:30:00.000Z",
+  "source": "Manual Update",
+  "totalMatches": 5
 }

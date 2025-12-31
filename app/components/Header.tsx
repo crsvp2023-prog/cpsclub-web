@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [currentPath, setCurrentPath] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
 
   useEffect(() => {
     setCurrentPath(window.location.pathname);
@@ -73,18 +75,45 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Login Button - Desktop */}
-          <a
-            href="/login"
-            className="hidden sm:inline-flex px-4 sm:px-7 py-2 sm:py-2.5 font-semibold rounded hover:shadow-lg hover:scale-105 transition-all duration-300 whitespace-nowrap flex-shrink-0 text-xs uppercase tracking-wider"
-            style={{ 
-              backgroundColor: '#FFD100',
-              color: '#00215d',
-              fontFamily: 'Arial, sans-serif'
-            }}
-          >
-            Login
-          </a>
+          {/* Auth Buttons - Desktop */}
+          {isAuthenticated ? (
+            <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+              <a
+                href="/dashboard"
+                className="px-4 py-2 font-semibold rounded hover:shadow-lg hover:scale-105 transition-all duration-300 whitespace-nowrap text-xs uppercase tracking-wider"
+                style={{ 
+                  backgroundColor: '#FFD100',
+                  color: '#00215d',
+                  fontFamily: 'Arial, sans-serif'
+                }}
+              >
+                Dashboard
+              </a>
+              <button
+                onClick={logout}
+                className="px-4 py-2 font-semibold rounded hover:shadow-lg hover:scale-105 transition-all duration-300 whitespace-nowrap text-xs uppercase tracking-wider"
+                style={{ 
+                  backgroundColor: '#ffffff',
+                  color: '#00215d',
+                  fontFamily: 'Arial, sans-serif'
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <a
+              href="/login"
+              className="hidden sm:inline-flex px-4 sm:px-7 py-2 sm:py-2.5 font-semibold rounded hover:shadow-lg hover:scale-105 transition-all duration-300 whitespace-nowrap flex-shrink-0 text-xs uppercase tracking-wider"
+              style={{ 
+                backgroundColor: '#FFD100',
+                color: '#00215d',
+                fontFamily: 'Arial, sans-serif'
+              }}
+            >
+              Login
+            </a>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -120,18 +149,49 @@ export default function Header() {
                 </a>
               ))}
               <div className="px-4 py-3 border-t border-white/20">
-                <a
-                  href="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="py-3 px-4 font-semibold rounded transition-all duration-300 uppercase tracking-wider text-xs block text-center hover:shadow-lg hover:scale-105"
-                  style={{ 
-                    backgroundColor: '#FFD100',
-                    color: '#00215d',
-                    fontFamily: 'Arial, sans-serif'
-                  }}
-                >
-                  Login
-                </a>
+                {isAuthenticated ? (
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="py-3 px-4 font-semibold rounded transition-all duration-300 uppercase tracking-wider text-xs text-center hover:shadow-lg hover:scale-105"
+                      style={{ 
+                        backgroundColor: '#FFD100',
+                        color: '#00215d',
+                        fontFamily: 'Arial, sans-serif'
+                      }}
+                    >
+                      Dashboard
+                    </a>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="py-3 px-4 font-semibold rounded transition-all duration-300 uppercase tracking-wider text-xs text-center hover:shadow-lg hover:scale-105"
+                      style={{ 
+                        backgroundColor: '#ffffff',
+                        color: '#00215d',
+                        fontFamily: 'Arial, sans-serif'
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <a
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-3 px-4 font-semibold rounded transition-all duration-300 uppercase tracking-wider text-xs block text-center hover:shadow-lg hover:scale-105"
+                    style={{ 
+                      backgroundColor: '#FFD100',
+                      color: '#00215d',
+                      fontFamily: 'Arial, sans-serif'
+                    }}
+                  >
+                    Login
+                  </a>
+                )}
               </div>
             </nav>
           </div>

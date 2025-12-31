@@ -153,7 +153,7 @@ export default function AnalyticsDashboardPage() {
           </button>
           <Link
             href="/dashboard"
-            className="px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg font-bold hover:bg-blue-50 transition-all duration-300"
+            className="px-6 py-3 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 text-[var(--color-dark)] rounded-lg font-bold hover:shadow-lg transition-shadow border-2 border-[var(--color-primary)]"
           >
             ← Back to Dashboard
           </Link>
