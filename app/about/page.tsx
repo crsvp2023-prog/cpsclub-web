@@ -29,35 +29,6 @@ export default function AboutPage() {
   return (
     <>
     <main className="min-h-screen bg-white pt-20">
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slideUp {
-          animation: slideUp 0.6s ease-out;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.8s ease-out;
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
 
       {/* Hero Section */}
       <section className="relative py-24 px-6 bg-gradient-to-br from-[#001a4d] via-[#0052CC] to-[#003B82] overflow-hidden">
@@ -83,22 +54,53 @@ export default function AboutPage() {
       <section className="py-16 px-6 bg-gradient-to-r from-white via-[#E8F4FF] to-[#F0F9FF]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <p className="text-4xl font-bold text-[var(--color-primary)] mb-2">2016</p>
-              <p className="text-gray-700 font-semibold">Founded</p>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow animate-float" style={{ animationDelay: '0s' }}>
+              <p className="text-6xl md:text-7xl font-extrabold mb-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-transparent bg-clip-text drop-shadow-2xl">2016</p>
+              <p className="text-gray-700 font-semibold text-lg md:text-xl tracking-wide">Founded</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <p className="text-4xl font-bold text-[var(--color-primary-2)] mb-2">100+</p>
-              <p className="text-gray-700 font-semibold">Members</p>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow animate-float" style={{ animationDelay: '0.5s' }}>
+              <p className="text-6xl md:text-7xl font-extrabold mb-2 bg-gradient-to-r from-[var(--color-primary-2)] to-[var(--color-accent)] text-transparent bg-clip-text drop-shadow-2xl">100+</p>
+              <p className="text-gray-700 font-semibold text-lg md:text-xl tracking-wide">Members</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <p className="text-4xl font-bold text-[var(--color-accent)] mb-2">2023</p>
-              <p className="text-gray-700 font-semibold">Incorporated</p>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow animate-float" style={{ animationDelay: '1s' }}>
+              <p className="text-6xl md:text-7xl font-extrabold mb-2 bg-gradient-to-r from-[var(--color-accent)] to-[#00a652] text-transparent bg-clip-text drop-shadow-2xl">2023</p>
+              <p className="text-gray-700 font-semibold text-lg md:text-xl tracking-wide">Incorporated</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <p className="text-4xl font-bold text-[#00a652] mb-2">$8K+</p>
-              <p className="text-gray-700 font-semibold">Donated</p>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow animate-float" style={{ animationDelay: '1.5s' }}>
+              <p className="text-6xl md:text-7xl font-extrabold mb-2 bg-gradient-to-r from-[#00a652] to-[var(--color-primary)] text-transparent bg-clip-text drop-shadow-2xl">$8K+</p>
+              <p className="text-gray-700 font-semibold text-lg md:text-xl tracking-wide">Donated</p>
             </div>
+                {/* ...existing code... */}
+              {/* ...existing code... */}
+              <style jsx>{`
+                @keyframes slideUp {
+                  from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateY(0);
+                  }
+                }
+                .animate-slideUp {
+                  animation: slideUp 0.6s ease-out;
+                }
+                @keyframes fadeIn {
+                  from { opacity: 0; }
+                  to { opacity: 1; }
+                }
+                .animate-fadeIn {
+                  animation: fadeIn 0.8s ease-out;
+                }
+                @keyframes float {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-18px); }
+                }
+                .animate-float {
+                  animation: float 3.5s ease-in-out infinite;
+                }
+              `}</style>
           </div>
         </div>
       </section>
