@@ -21,6 +21,7 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentBanner, setCurrentBanner] = useState(0);
 
   const categories = [
     { id: 'all', name: 'All Sports' },
@@ -43,6 +44,185 @@ export default function NewsPage() {
     
     return () => clearInterval(interval);
   }, []);
+
+  // Banner rotation effect
+  useEffect(() => {
+    const bannerInterval = setInterval(() => {
+      setCurrentBanner(prev => (prev + 1) % 3); // Rotate between 0, 1, and 2
+    }, 5000); // 5 second delay
+
+    return () => clearInterval(bannerInterval);
+  }, []);
+
+  // Render current banner
+  const renderBanner = () => {
+    if (currentBanner === 0) {
+      // JICS Migration Banner
+      return (
+        <a
+          href="https://jics.com.au/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full max-w-4xl animate-fade-in-up"
+          aria-label="JICS Ad Banner"
+        >
+          <div className="w-full h-24 md:h-28 flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-blue-900 via-blue-700 to-yellow-500 rounded-xl shadow-lg border-2 border-blue-900 px-4 md:px-12 hover:shadow-2xl transition-all duration-300 font-sans relative overflow-hidden animate-gradient-shift">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer"></div>
+
+            {/* Left section - Sponsor info */}
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 w-full md:w-auto relative z-10">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                fontWeight: 600,
+                animation: 'slideInLeft 0.8s ease-out 0.2s both'
+              }} className="text-white text-sm md:text-2xl font-semibold italic tracking-wide drop-shadow-sm text-center md:text-left">Proudly Sponsored by</span>
+              <span style={{
+                fontFamily: 'Oswald, Arial, sans-serif',
+                letterSpacing: '0.15em',
+                animation: 'slideInUp 1s ease-out 0.4s both, pulse-glow 3s ease-in-out 1.5s infinite'
+              }} className="text-yellow-300 text-xl md:text-5xl font-black uppercase drop-shadow-lg hover:scale-105 transition-transform duration-300 text-center">JICS Migration</span>
+            </div>
+
+            {/* Center section - Description (visible on all screens) */}
+            <div className="flex flex-col text-white text-xs md:text-base font-medium opacity-90 max-w-full md:max-w-xl justify-center text-center md:text-left relative z-10 mt-1 md:mt-0">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '0.08em',
+                textShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                color: '#fff',
+                WebkitTextStroke: '0.5px #1e293b',
+                animation: 'slideInRight 0.8s ease-out 0.6s both'
+              }} className="leading-tight">
+                Transform Your Future: Expert Migration & Career Solutions
+              </span>
+            </div>
+
+            {/* Right section - CTA Button */}
+            <div className="relative z-10 mt-2 md:mt-0">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                animation: 'bounceIn 0.6s ease-out 0.8s both'
+              }} className="inline-block bg-yellow-500 text-blue-900 font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow hover:bg-yellow-400 hover:scale-110 transition-all duration-300 text-xs md:text-base hover:shadow-lg">Visit jics.com.au →</span>
+            </div>
+          </div>
+        </a>
+      );
+    } else if (currentBanner === 1) {
+      // Reach Property Group Banner
+      return (
+        <a
+          href="https://reachpropertygroup.com.au/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full max-w-4xl animate-fade-in-up"
+          aria-label="Reach Property Group Ad Banner"
+        >
+          <div className="w-full h-24 md:h-28 flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-emerald-800 via-teal-700 to-blue-800 rounded-xl shadow-lg border-2 border-emerald-800 px-4 md:px-12 hover:shadow-2xl transition-all duration-300 font-sans relative overflow-hidden animate-gradient-shift">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer"></div>
+
+            {/* Left section - Sponsor info */}
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 w-full md:w-auto relative z-10">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                fontWeight: 600,
+                animation: 'slideInLeft 0.8s ease-out 0.2s both'
+              }} className="text-white text-sm md:text-2xl font-semibold italic tracking-wide drop-shadow-sm text-center md:text-left">Proudly Sponsored by</span>
+              <span style={{
+                fontFamily: 'Oswald, Arial, sans-serif',
+                letterSpacing: '0.15em',
+                animation: 'slideInUp 1s ease-out 0.4s both, pulse-glow 3s ease-in-out 1.5s infinite'
+              }} className="text-amber-400 text-xl md:text-5xl font-black uppercase drop-shadow-lg hover:scale-105 transition-transform duration-300 text-center">Reach Property</span>
+            </div>
+
+            {/* Center section - Description (visible on all screens) */}
+            <div className="flex flex-col text-white text-xs md:text-base font-medium opacity-90 max-w-full md:max-w-xl justify-center text-center md:text-left relative z-10 mt-1 md:mt-0">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '0.08em',
+                textShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                color: '#fff',
+                WebkitTextStroke: '0.5px #1e293b',
+                animation: 'slideInRight 0.8s ease-out 0.6s both'
+              }} className="leading-tight">
+                Your Property Journey Starts Here: Expert Real Estate Solutions
+              </span>
+            </div>
+
+            {/* Right section - CTA Button */}
+            <div className="relative z-10 mt-2 md:mt-0">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                animation: 'bounceIn 0.6s ease-out 0.8s both'
+              }} className="inline-block bg-amber-400 text-emerald-900 font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow hover:bg-amber-300 hover:scale-110 transition-all duration-300 text-xs md:text-base hover:shadow-lg">Visit reachpropertygroup.com.au →</span>
+            </div>
+          </div>
+        </a>
+      );
+    } else {
+      // Chatswood RSL Banner
+      return (
+        <a
+          href="https://chatswoodrsl.com.au/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full max-w-4xl animate-fade-in-up"
+          aria-label="Chatswood RSL Ad Banner"
+        >
+          <div className="w-full h-24 md:h-28 flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-blue-900 via-blue-800 to-red-700 rounded-xl shadow-lg border-2 border-blue-900 px-4 md:px-12 hover:shadow-2xl transition-all duration-300 font-sans relative overflow-hidden animate-gradient-shift">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer"></div>
+
+            {/* Left section - Sponsor info */}
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 w-full md:w-auto relative z-10">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                fontWeight: 600,
+                animation: 'slideInLeft 0.8s ease-out 0.2s both'
+              }} className="text-white text-sm md:text-2xl font-semibold italic tracking-wide drop-shadow-sm text-center md:text-left">Proudly Sponsored by</span>
+              <span style={{
+                fontFamily: 'Oswald, Arial, sans-serif',
+                letterSpacing: '0.15em',
+                animation: 'slideInUp 1s ease-out 0.4s both, pulse-glow 3s ease-in-out 1.5s infinite'
+              }} className="text-yellow-400 text-xl md:text-5xl font-black uppercase drop-shadow-lg hover:scale-105 transition-transform duration-300 text-center">Chatswood RSL</span>
+            </div>
+
+            {/* Center section - Description (visible on all screens) */}
+            <div className="flex flex-col text-white text-xs md:text-base font-medium opacity-90 max-w-full md:max-w-xl justify-center text-center md:text-left relative z-10 mt-1 md:mt-0">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '0.08em',
+                textShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                color: '#fff',
+                WebkitTextStroke: '0.5px #1e293b',
+                animation: 'slideInRight 0.8s ease-out 0.6s both'
+              }} className="leading-tight">
+                Community Hub: Events, Dining & Veterans Support Services
+              </span>
+            </div>
+
+            {/* Right section - CTA Button */}
+            <div className="relative z-10 mt-2 md:mt-0">
+              <span style={{
+                fontFamily: 'Poppins, Arial, sans-serif',
+                animation: 'bounceIn 0.6s ease-out 0.8s both'
+              }} className="inline-block bg-yellow-400 text-blue-900 font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow hover:bg-yellow-300 hover:scale-110 transition-all duration-300 text-xs md:text-base hover:shadow-lg">Visit chatswoodrsl.com.au →</span>
+            </div>
+          </div>
+        </a>
+      );
+    }
+  };
 
   useEffect(() => {
     const sportsNewsWithCategory = sportsNews.map(news => ({
@@ -432,59 +612,9 @@ export default function NewsPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-50 pt-32 pb-20">
-      {/* JICS Ad Banner (animated) */}
+      {/* Rotating Sponsor Banners */}
       <div className="w-full flex justify-center mb-4 mt-0">
-        <a
-          href="https://jics.com.au/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full max-w-4xl animate-fade-in-up"
-          aria-label="JICS Ad Banner"
-        >
-          <div className="w-full h-24 md:h-28 flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-blue-900 via-blue-700 to-yellow-500 rounded-xl shadow-lg border-2 border-blue-900 px-4 md:px-12 hover:shadow-2xl transition-all duration-300 font-sans relative overflow-hidden animate-gradient-shift">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer"></div>
-
-            {/* Left section - Sponsor info */}
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 w-full md:w-auto relative z-10">
-              <span style={{
-                fontFamily: 'Poppins, Arial, sans-serif',
-                fontWeight: 600,
-                animation: 'slideInLeft 0.8s ease-out 0.2s both'
-              }} className="text-white text-sm md:text-2xl font-semibold italic tracking-wide drop-shadow-sm text-center md:text-left">Proudly Sponsored by</span>
-              <span style={{
-                fontFamily: 'Oswald, Arial, sans-serif',
-                letterSpacing: '0.15em',
-                animation: 'slideInUp 1s ease-out 0.4s both, pulse-glow 3s ease-in-out 1.5s infinite'
-              }} className="text-yellow-300 text-xl md:text-5xl font-black uppercase drop-shadow-lg hover:scale-105 transition-transform duration-300 text-center">JICS Migration</span>
-            </div>
-
-            {/* Center section - Description (visible on all screens) */}
-            <div className="flex flex-col text-white text-xs md:text-base font-medium opacity-90 max-w-full md:max-w-xl justify-center text-center md:text-left relative z-10 mt-1 md:mt-0">
-              <span style={{
-                fontFamily: 'Poppins, Arial, sans-serif',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                fontSize: '0.75rem',
-                letterSpacing: '0.08em',
-                textShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                color: '#fff',
-                WebkitTextStroke: '0.5px #1e293b',
-                animation: 'slideInRight 0.8s ease-out 0.6s both'
-              }} className="leading-tight">
-                Transform Your Future: Expert Migration & Career Solutions
-              </span>
-            </div>
-
-            {/* Right section - CTA Button */}
-            <div className="relative z-10 mt-2 md:mt-0">
-              <span style={{
-                fontFamily: 'Poppins, Arial, sans-serif',
-                animation: 'bounceIn 0.6s ease-out 0.8s both'
-              }} className="inline-block bg-yellow-500 text-blue-900 font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow hover:bg-yellow-400 hover:scale-110 transition-all duration-300 text-xs md:text-base hover:shadow-lg">Visit jics.com.au →</span>
-            </div>
-          </div>
-        </a>
+        {renderBanner()}
       </div>
 
       {/* News Grid */}
