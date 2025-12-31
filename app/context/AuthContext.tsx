@@ -21,6 +21,7 @@ interface UserProfile {
   phone?: string;
   role?: string;
   experience?: string;
+  photoURL?: string;
 }
 
 interface AuthContextType {
