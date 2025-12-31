@@ -1,6 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/context/AuthContext';
+
+// Admin email configuration
+const ADMIN_EMAIL = 'crsvp.2023@gmail.com'; // Change this to the actual admin email
+// For testing: set to true to allow any authenticated user to see admin link
+const ALLOW_ANY_AUTH_USER = false;
 
 const seasonInfo = {
   season: "Summer 2025/26",
@@ -97,6 +103,9 @@ const matchesData = [
 ];
 
 export default function ScoresPage() {
+  const { user, isAuthenticated } = useAuth();
+  const isAdmin = ALLOW_ANY_AUTH_USER ? isAuthenticated : (isAuthenticated && user?.email === ADMIN_EMAIL);
+  
   const [expandedMatch, setExpandedMatch] = useState<number | null>(0);
   const [selectedTab, setSelectedTab] = useState<'team1' | 'team2'>('team1');
   const [standings, setStandings] = useState(defaultStandings);
@@ -107,12 +116,13 @@ export default function ScoresPage() {
     const fetchStandings = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/playhq-data.json');
+        const response = await fetch('/api/scrape-playhq');
         if (response.ok) {
-          const data = await response.json();
-          if (data.standings && data.standings.length > 0) {
-            setStandings(data.standings);
-            setGrade(data.grade || 'C One Day Grade');
+          const apiResponse = await response.json();
+          if (apiResponse.success && apiResponse.data) {
+            setStandings(apiResponse.data.standings);
+            setGrade(apiResponse.data.grade || 'C One Day Grade');
+            setLastUpdated(apiResponse.data.lastUpdated || new Date().toISOString());
           }
         }
       } catch (error) {
@@ -127,6 +137,7 @@ export default function ScoresPage() {
   }, []);
   const [matches, setMatches] = useState(matchesData);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingStandings, setIsLoadingStandings] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [scrapeMessage, setScrapeMessage] = useState('');
 
@@ -138,10 +149,27 @@ export default function ScoresPage() {
 
   const loadMatches = async () => {
     try {
+      console.log('Loading matches from JSON file...');
+
+      // Try to load matches from the JSON file
       const response = await fetch('/matches-data.json');
+      console.log('Matches file response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
-        setMatches(data.matches || matchesData);
+        console.log('Loaded matches data:', data);
+
+        if (data.matches && data.matches.length > 0) {
+          setMatches(data.matches);
+          console.log('✅ Matches loaded successfully from file');
+        } else {
+          console.error('No matches data in file, using defaults');
+          setMatches(matchesData);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('Matches file request failed with status:', response.status, 'Response:', errorText);
+        setMatches(matchesData);
       }
     } catch (error) {
       console.error('Error loading matches:', error);
@@ -150,16 +178,72 @@ export default function ScoresPage() {
   };
 
   const loadStandings = async () => {
+    console.log('Loading standings from API...');
+    setIsLoadingStandings(true);
+
     try {
-      const response = await fetch('/playhq-data.json');
+      // Load standings from the API endpoint with timeout
+      const controller = new AbortController();
+
+      // Create a timeout promise that rejects after 30 seconds
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          controller.abort();
+          reject(new Error('Request timeout after 30 seconds'));
+        }, 30000);
+      });
+
+      // Race the fetch against the timeout
+      const response = await Promise.race([
+        fetch('/api/scrape-playhq', {
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }),
+        timeoutPromise
+      ]) as Response;
+
+      console.log('API Response status:', response.status);
+
       if (response.ok) {
-        const data = await response.json();
-        setStandings(data.standings || defaultStandings);
-        setLastUpdated(data.lastUpdated || '');
+        const apiData = await response.json();
+        console.log('API Response:', apiData);
+
+        // Extract the data from the API response
+        const data = apiData.data || apiData;
+        console.log('Extracted standings data:', data.standings);
+
+        if (data.standings && data.standings.length > 0) {
+          setStandings(data.standings);
+          setGrade(data.grade || 'C One Day Grade');
+          setLastUpdated(data.lastUpdated || '');
+          console.log('✅ Standings loaded successfully from API');
+        } else {
+          console.error('No standings data in API response, using defaults');
+          setStandings(defaultStandings);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('API request failed with status:', response.status, 'Response:', errorText);
+        setStandings(defaultStandings);
       }
     } catch (error) {
       console.error('Error loading standings:', error);
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        console.error('Request was aborted');
+      } else if (error instanceof Error) {
+        if (error.message === 'Request timeout after 30 seconds') {
+          console.error('Request timed out after 30 seconds');
+        } else if (error.name === 'AbortError') {
+          console.error('Request was aborted');
+        } else {
+          console.error('Other error:', error.message);
+        }
+      }
       setStandings(defaultStandings);
+    } finally {
+      setIsLoadingStandings(false);
     }
   };
 
@@ -167,18 +251,12 @@ export default function ScoresPage() {
     setIsLoading(true);
     setScrapeMessage('');
     try {
-      const response = await fetch('/api/scrape-playhq');
-      const data = await response.json();
-      
-      if (response.ok) {
-        setScrapeMessage('✅ Data updated from PlayHQ successfully!');
-        await loadStandings();
-      } else {
-        setScrapeMessage(`⚠️ ${data.error || 'Failed to fetch data'}`);
-      }
+      // Since we removed PlayHQ scraping, this just refreshes from cached data
+      await loadStandings();
+      setScrapeMessage('✅ Standings refreshed from cached data!');
     } catch (error) {
-      setScrapeMessage('❌ Error: Could not reach PlayHQ. Check console for details.');
-      console.error('Scrape error:', error);
+      setScrapeMessage('❌ Error: Could not refresh standings.');
+      console.error('Refresh error:', error);
     } finally {
       setIsLoading(false);
       setTimeout(() => setScrapeMessage(''), 5000);
@@ -216,7 +294,7 @@ export default function ScoresPage() {
             </div>
           </div>
           <a
-            href="https://ca.playhq.com/org/829b8e20-e0d3-44a5-90c7-1666ada5c1fe/games/32b1198b-816e-4f0a-96b7-365dc7398aea?fromDate=2025-12-20&toDate=2025-12-20"
+            href="https://www.playhq.com/cricket-australia/org/chatswood-premier-sports-club/829b8e20/northern-cricket-union-summer-202526/teams/c1-chatswood-premier/c820ec75"
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-3 bg-white text-[var(--color-primary)] font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap"
@@ -272,14 +350,25 @@ export default function ScoresPage() {
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200 p-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div>
-                <p className="text-gray-700 font-semibold">📊 Live data from PlayHQ</p>
-                {lastUpdated && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    Last updated: {new Date(lastUpdated).toLocaleDateString()} {new Date(lastUpdated).toLocaleTimeString()}
-                  </p>
-                )}
+                <p className="text-gray-700 font-semibold">📊 Cricket standings data</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
+                {isAdmin && (
+                  <>
+                    <a
+                      href="/admin/standings"
+                      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 font-semibold text-sm text-center"
+                    >
+                      ⚙️ Update Standings
+                    </a>
+                    <a
+                      href="/admin/matches"
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 font-semibold text-sm text-center"
+                    >
+                      ⚙️ Update Matches
+                    </a>
+                  </>
+                )}
                 <button
                   onClick={handleScrapePlayHQ}
                   disabled={isLoading}
@@ -289,7 +378,7 @@ export default function ScoresPage() {
                       : 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white hover:shadow-lg hover:scale-105'
                   }`}
                 >
-                  {isLoading ? '⏳ Updating...' : '🔄 Refresh from PlayHQ'}
+                  {isLoading ? '⏳ Refreshing...' : '🔄 Refresh Standings'}
                 </button>
               </div>
             </div>
@@ -300,47 +389,67 @@ export default function ScoresPage() {
 
           {/* Standings Table */}
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white">
-                  <th className="px-4 py-4 text-left font-black">Position</th>
-                  <th className="px-4 py-4 text-left font-black">Team</th>
-                  <th className="px-4 py-4 text-center font-black">Played</th>
-                  <th className="px-4 py-4 text-center font-black">Wins</th>
-                  <th className="px-4 py-4 text-center font-black">Losses</th>
-                  <th className="px-4 py-4 text-center font-black">Points</th>
-                  <th className="px-4 py-4 text-center font-black">NRR</th>
-                </tr>
-              </thead>
-              <tbody>
-                {standings.map((team, idx) => (
-                  <tr
-                    key={idx}
-                    className={`border-b border-gray-200 ${
-                      idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                    } hover:bg-blue-100 transition-colors`}
-                  >
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white font-black text-lg">
-                        {team.position === 1 ? '🥇' : team.position === 2 ? '🥈' : team.position === 3 ? '🥉' : team.position}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 font-bold text-gray-800">
-                      {team.team === 'CPS Club' ? (
-                        <span className="text-[var(--color-primary-2)] font-black">{team.team}</span>
-                      ) : (
-                        team.team
-                      )}
-                    </td>
-                    <td className="px-4 py-4 text-center font-semibold text-gray-700">{team.played}</td>
-                    <td className="px-4 py-4 text-center font-semibold text-green-600">{team.wins}</td>
-                    <td className="px-4 py-4 text-center font-semibold text-red-600">{team.losses}</td>
-                    <td className="px-4 py-4 text-center font-black text-lg text-[var(--color-primary-2)]">{team.points}</td>
-                    <td className="px-4 py-4 text-center font-semibold text-gray-700">{team.nrr}</td>
+            {isLoadingStandings ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-accent)] mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading standings...</p>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white">
+                    <th className="px-4 py-4 text-left font-black">Position</th>
+                    <th className="px-4 py-4 text-left font-black">Team</th>
+                    <th className="px-4 py-4 text-center font-black">Played</th>
+                    <th className="px-4 py-4 text-center font-black">Wins</th>
+                    <th className="px-4 py-4 text-center font-black">Losses</th>
+                    <th className="px-4 py-4 text-center font-black">Points</th>
+                    <th className="px-4 py-4 text-center font-black">NRR</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {standings.map((team, idx) => (
+                    <tr
+                      key={idx}
+                      className={`border-b border-gray-200 ${
+                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                      } hover:bg-blue-100 transition-colors`}
+                    >
+                      <td className="px-4 py-4">
+                        <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white font-black text-lg">
+                          {team.position === 1 ? '🥇' : team.position === 2 ? '🥈' : team.position === 3 ? '🥉' : team.position}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 font-bold text-gray-800">
+                        {team.team === 'CPS Club' ? (
+                          <span className="text-[var(--color-primary-2)] font-black">{team.team}</span>
+                        ) : (
+                          team.team
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-center font-semibold text-gray-700">{team.played}</td>
+                      <td className="px-4 py-4 text-center font-semibold text-green-600">{team.wins}</td>
+                      <td className="px-4 py-4 text-center font-semibold text-red-600">{team.losses}</td>
+                      <td className="px-4 py-4 text-center font-black text-lg text-[var(--color-primary-2)]">{team.points}</td>
+                      <td className="px-4 py-4 text-center font-semibold text-gray-700">{team.nrr}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+        
+        {/* Data Update Notice */}
+        <div className="mt-6 bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">ℹ️</span>
+            <div>
+              <p className="text-sm text-gray-700">
+                <strong>Note:</strong> Standings are updated manually by club administrators. 
+                For the most current ladder information, please check the official PlayHQ link above.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -368,170 +477,175 @@ export default function ScoresPage() {
           </div>
         </div>
 
-        <h2 className="text-4xl md:text-5xl font-black text-[var(--color-dark)] mb-8 text-center">
-          📋 Match Highlights
-        </h2>
-        <div className="space-y-8">
-          {matches.map((match, idx) => {
-            const isExpanded = expandedMatch === match.id;
-            const activeTeam = selectedTab === 'team1' ? match.team1 : match.team2;
+        {/* Match Highlights Section - Hidden */}
+        {false && (
+          <>
+            <h2 className="text-4xl md:text-5xl font-black text-[var(--color-dark)] mb-8 text-center">
+              📋 Match Highlights
+            </h2>
+            <div className="space-y-8">
+              {matches.map((match, idx) => {
+                const isExpanded = expandedMatch === match.id;
+                const activeTeam = selectedTab === 'team1' ? match.team1 : match.team2;
 
-            return (
-              <div
-                key={match.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100 hover:border-[var(--color-accent)] transition-all duration-300"
-              >
-                {/* Match Header */}
-                <div
-                  onClick={() => setExpandedMatch(isExpanded ? null : match.id)}
-                  className="bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-2)] to-[var(--color-accent)] p-8 cursor-pointer hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="grid md:grid-cols-3 gap-6 text-white">
-                    {/* Match Info */}
-                    <div>
-                      <p className="text-sm opacity-90 uppercase font-bold tracking-wide">Match</p>
-                      <h3 className="text-2xl font-black">{match.matchName}</h3>
-                      <p className="text-sm opacity-75 mt-1">{match.category}</p>
-                    </div>
-
-                    {/* Scores */}
-                    <div className="flex items-center justify-center gap-6">
-                      <div className="text-center">
-                        <p className="text-sm opacity-90 font-bold uppercase tracking-wide">CPS Club</p>
-                        <p className="text-5xl font-black">{match.team1.score}</p>
-                        <p className="text-sm opacity-75">{match.team1.wickets}/{match.team1.overs}</p>
-                      </div>
-                      <div className="text-2xl font-black opacity-75">vs</div>
-                      <div className="text-center">
-                        <p className="text-sm opacity-90 font-bold uppercase tracking-wide">{match.team2.name}</p>
-                        <p className="text-5xl font-black">{match.team2.score}</p>
-                        <p className="text-sm opacity-75">{match.team2.wickets}/{match.team2.overs}</p>
-                      </div>
-                    </div>
-
-                    {/* Match Details */}
-                    <div className="text-right">
-                      <p className="text-sm opacity-90 uppercase font-bold tracking-wide">Result</p>
-                      <p className="text-xl font-black mt-1">{match.result}</p>
-                      <div className="flex gap-2 justify-end mt-3">
-                        <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold">{match.status}</span>
-                        <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold">📍 {match.venue.split(' ')[0]}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expanded Details */}
-                {isExpanded && (
-                  <div className="p-8 bg-gray-50 border-t-2 border-gray-200">
-                    {/* Match Info */}
-                    <div className="mb-8 pb-8 border-b-2 border-gray-300">
-                      <div className="grid md:grid-cols-3 gap-6">
+                return (
+                  <div
+                    key={match.id}
+                    className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100 hover:border-[var(--color-accent)] transition-all duration-300"
+                  >
+                    {/* Match Header */}
+                    <div
+                      onClick={() => setExpandedMatch(isExpanded ? null : match.id)}
+                      className="bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-2)] to-[var(--color-accent)] p-8 cursor-pointer hover:shadow-lg transition-all duration-300"
+                    >
+                      <div className="grid md:grid-cols-3 gap-6 text-white">
+                        {/* Match Info */}
                         <div>
-                          <p className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1">Venue</p>
-                          <p className="text-lg font-bold text-gray-800">{match.venue}</p>
+                          <p className="text-sm opacity-90 uppercase font-bold tracking-wide">Match</p>
+                          <h3 className="text-2xl font-black">{match.matchName}</h3>
+                          <p className="text-sm opacity-75 mt-1">{match.category}</p>
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1">Date</p>
-                          <p className="text-lg font-bold text-gray-800">{match.date}</p>
+
+                        {/* Scores */}
+                        <div className="flex items-center justify-center gap-6">
+                          <div className="text-center">
+                            <p className="text-sm opacity-90 font-bold uppercase tracking-wide">CPS Club</p>
+                            <p className="text-5xl font-black">{match.team1.score}</p>
+                            <p className="text-sm opacity-75">{match.team1.wickets}/{match.team1.overs}</p>
+                          </div>
+                          <div className="text-2xl font-black opacity-75">vs</div>
+                          <div className="text-center">
+                            <p className="text-sm opacity-90 font-bold uppercase tracking-wide">{match.team2.name}</p>
+                            <p className="text-5xl font-black">{match.team2.score}</p>
+                            <p className="text-sm opacity-75">{match.team2.wickets}/{match.team2.overs}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1">Category</p>
-                          <p className="text-lg font-bold text-gray-800">{match.category}</p>
+
+                        {/* Match Details */}
+                        <div className="text-right">
+                          <p className="text-sm opacity-90 uppercase font-bold tracking-wide">Result</p>
+                          <p className="text-xl font-black mt-1">{match.result}</p>
+                          <div className="flex gap-2 justify-end mt-3">
+                            <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold">{match.status}</span>
+                            <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold">📍 {match.venue.split(' ')[0]}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Match Commentary */}
-                    {match.commentary && (
-                      <div className="mb-8 pb-8 border-b-2 border-gray-300 bg-blue-50 p-6 rounded-lg">
-                        <p className="text-xs text-[var(--color-primary)] font-bold uppercase tracking-wide mb-3">📝 Match Commentary</p>
-                        <p className="text-gray-700 leading-relaxed text-base">{match.commentary}</p>
+                    {/* Expanded Details */}
+                    {isExpanded && (
+                      <div className="p-8 bg-gray-50 border-t-2 border-gray-200">
+                        {/* Match Info */}
+                        <div className="mb-8 pb-8 border-b-2 border-gray-300">
+                          <div className="grid md:grid-cols-3 gap-6">
+                            <div>
+                              <p className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1">Venue</p>
+                              <p className="text-lg font-bold text-gray-800">{match.venue}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1">Date</p>
+                              <p className="text-lg font-bold text-gray-800">{match.date}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1">Category</p>
+                              <p className="text-lg font-bold text-gray-800">{match.category}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Match Commentary */}
+                        {match.commentary && (
+                          <div className="mb-8 pb-8 border-b-2 border-gray-300 bg-blue-50 p-6 rounded-lg">
+                            <p className="text-xs text-[var(--color-primary)] font-bold uppercase tracking-wide mb-3">📝 Match Commentary</p>
+                            <p className="text-gray-700 leading-relaxed text-base">{match.commentary}</p>
+                          </div>
+                        )}
+
+                        {/* Scorecard Tabs */}
+                        <div className="mb-6">
+                          <div className="flex gap-4 border-b-2 border-gray-300">
+                            <button
+                              onClick={() => setSelectedTab('team1')}
+                              className={`px-6 py-3 font-black uppercase tracking-wide transition-all duration-300 border-b-4 ${
+                                selectedTab === 'team1'
+                                  ? 'border-[var(--color-primary-2)] text-[var(--color-primary-2)]'
+                                  : 'border-transparent text-gray-600 hover:text-gray-800'
+                              }`}
+                            >
+                              🏏 {match.team1.name} Batting
+                            </button>
+                            <button
+                              onClick={() => setSelectedTab('team2')}
+                              className={`px-6 py-3 font-black uppercase tracking-wide transition-all duration-300 border-b-4 ${
+                                selectedTab === 'team2'
+                                  ? 'border-[var(--color-primary-2)] text-[var(--color-primary-2)]'
+                                  : 'border-transparent text-gray-600 hover:text-gray-800'
+                              }`}
+                            >
+                              🏏 {match.team2.name} Batting
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Batting Details Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white">
+                                <th className="px-4 py-3 text-left font-black">Player</th>
+                                <th className="px-4 py-3 text-center font-black">Runs</th>
+                                <th className="px-4 py-3 text-center font-black">Balls</th>
+                                <th className="px-4 py-3 text-center font-black">4s</th>
+                                <th className="px-4 py-3 text-center font-black">6s</th>
+                                <th className="px-4 py-3 text-center font-black">S/R</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {activeTeam.batting.map((player, pidx) => {
+                                const strikeRate = ((player.runs / player.balls) * 100).toFixed(1);
+                                return (
+                                  <tr
+                                    key={pidx}
+                                    className={`border-b border-gray-200 ${pidx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                                  >
+                                    <td className="px-4 py-4 font-semibold text-gray-800">{player.name}</td>
+                                    <td className="px-4 py-4 text-center font-black text-lg text-[var(--color-primary-2)]">{player.runs}</td>
+                                    <td className="px-4 py-4 text-center text-gray-700">{player.balls}</td>
+                                    <td className="px-4 py-4 text-center font-semibold text-gray-700">{player.fours}</td>
+                                    <td className="px-4 py-4 text-center font-semibold text-[var(--color-accent)]">{player.sixes}</td>
+                                    <td className="px-4 py-4 text-center font-bold text-gray-700">{strikeRate}%</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Total Summary */}
+                        <div className="mt-6 p-4 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-primary-2)]/10 rounded-lg border-2 border-[var(--color-primary-2)]/30">
+                          <p className="text-center font-black text-lg text-[var(--color-dark)]">
+                            Total: <span className="text-[var(--color-primary-2)]">{activeTeam.score}</span> runs from <span className="text-[var(--color-primary-2)]">{activeTeam.overs}</span> overs | <span className="text-[var(--color-accent)]">{activeTeam.wickets}</span> wickets
+                          </p>
+                        </div>
+
+                        {/* PlayHQ Link */}
+                        <div className="mt-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                          <p className="text-center text-gray-700">
+                            <span className="font-bold">📱 View on PlayHQ:</span> For detailed bowling, fall of wickets, and more info visit{' '}
+                            <a href="https://ca.playhq.com/org/829b8e20-e0d3-44a5-90c7-1666ada5c1fe/seasons/7fe749e5-1e03-4a25-9f9a-cfb498fe8608/all-ladders" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline">
+                              CPS Club on PlayHQ
+                            </a>
+                          </p>
+                        </div>
                       </div>
                     )}
-
-                    {/* Scorecard Tabs */}
-                    <div className="mb-6">
-                      <div className="flex gap-4 border-b-2 border-gray-300">
-                        <button
-                          onClick={() => setSelectedTab('team1')}
-                          className={`px-6 py-3 font-black uppercase tracking-wide transition-all duration-300 border-b-4 ${
-                            selectedTab === 'team1'
-                              ? 'border-[var(--color-primary-2)] text-[var(--color-primary-2)]'
-                              : 'border-transparent text-gray-600 hover:text-gray-800'
-                          }`}
-                        >
-                          🏏 {match.team1.name} Batting
-                        </button>
-                        <button
-                          onClick={() => setSelectedTab('team2')}
-                          className={`px-6 py-3 font-black uppercase tracking-wide transition-all duration-300 border-b-4 ${
-                            selectedTab === 'team2'
-                              ? 'border-[var(--color-primary-2)] text-[var(--color-primary-2)]'
-                              : 'border-transparent text-gray-600 hover:text-gray-800'
-                          }`}
-                        >
-                          🏏 {match.team2.name} Batting
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Batting Details Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white">
-                            <th className="px-4 py-3 text-left font-black">Player</th>
-                            <th className="px-4 py-3 text-center font-black">Runs</th>
-                            <th className="px-4 py-3 text-center font-black">Balls</th>
-                            <th className="px-4 py-3 text-center font-black">4s</th>
-                            <th className="px-4 py-3 text-center font-black">6s</th>
-                            <th className="px-4 py-3 text-center font-black">S/R</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {activeTeam.batting.map((player, pidx) => {
-                            const strikeRate = ((player.runs / player.balls) * 100).toFixed(1);
-                            return (
-                              <tr
-                                key={pidx}
-                                className={`border-b border-gray-200 ${pidx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
-                              >
-                                <td className="px-4 py-4 font-semibold text-gray-800">{player.name}</td>
-                                <td className="px-4 py-4 text-center font-black text-lg text-[var(--color-primary-2)]">{player.runs}</td>
-                                <td className="px-4 py-4 text-center text-gray-700">{player.balls}</td>
-                                <td className="px-4 py-4 text-center font-semibold text-gray-700">{player.fours}</td>
-                                <td className="px-4 py-4 text-center font-semibold text-[var(--color-accent)]">{player.sixes}</td>
-                                <td className="px-4 py-4 text-center font-bold text-gray-700">{strikeRate}%</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Total Summary */}
-                    <div className="mt-6 p-4 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-primary-2)]/10 rounded-lg border-2 border-[var(--color-primary-2)]/30">
-                      <p className="text-center font-black text-lg text-[var(--color-dark)]">
-                        Total: <span className="text-[var(--color-primary-2)]">{activeTeam.score}</span> runs from <span className="text-[var(--color-primary-2)]">{activeTeam.overs}</span> overs | <span className="text-[var(--color-accent)]">{activeTeam.wickets}</span> wickets
-                      </p>
-                    </div>
-
-                    {/* PlayHQ Link */}
-                    <div className="mt-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <p className="text-center text-gray-700">
-                        <span className="font-bold">📱 View on PlayHQ:</span> For detailed bowling, fall of wickets, and more info visit{' '}
-                        <a href="https://ca.playhq.com/org/829b8e20-e0d3-44a5-90c7-1666ada5c1fe/seasons/7fe749e5-1e03-4a25-9f9a-cfb498fe8608/all-ladders" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline">
-                          CPS Club on PlayHQ
-                        </a>
-                      </p>
-                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {/* CTA Section */}
         <div className="mt-16 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-2)] to-[var(--color-accent)] rounded-2xl p-12 text-white text-center">

@@ -2,6 +2,7 @@ import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
+import { getStorage } from "firebase/storage";
 
 // Production Firebase config
 const firebaseConfig = {
@@ -43,6 +44,9 @@ export const auth = getAuth(app);
 // Initialize Cloud Firestore for both projects
 export const db = getFirestore(app);
 export const dbTest = getFirestore(testApp);
+
+// Initialize Firebase Storage
+export const storage = getStorage(app);
 
 // Initialize Analytics (only on client side)
 let analytics;

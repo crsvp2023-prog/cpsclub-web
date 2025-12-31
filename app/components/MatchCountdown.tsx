@@ -2,42 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-
-interface Match {
-  id: number;
-  opponent: string;
-  date: string;
-  time: string;
-  venue: string;
-  matchDate: Date;
-}
-
-const UPCOMING_MATCHES: Match[] = [
-  {
-    id: 1,
-    opponent: 'CPSC vs Old Ignatians (Taronga)',
-    date: '10 Jan',
-    time: '1:00 PM',
-    venue: 'Primrose Oval',
-    matchDate: new Date('2026-01-10T13:00:00'),
-  },
-  {
-    id: 2,
-    opponent: 'CPSC vs Strathfield',
-    date: '17 Jan',
-    time: '1:00 PM',
-    venue: 'Chatswood Oval',
-    matchDate: new Date('2026-01-17T13:00:00'),
-  },
-  {
-    id: 3,
-    opponent: 'CPSC vs Mosman',
-    date: '24 Jan',
-    time: '1:00 PM',
-    venue: 'Mosman Oval',
-    matchDate: new Date('2026-01-24T13:00:00'),
-  },
-];
+import { UPCOMING_MATCHES, type Match } from '../data/upcoming-matches';
 
 interface CountdownData {
   days: number;
