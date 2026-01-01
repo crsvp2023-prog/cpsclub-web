@@ -1,10 +1,42 @@
 'use client';
 
 import { useState } from 'react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { meetupDb } from '@/app/lib/firebase';
 
 export default function AboutPage() {
   const [activeTab, setActiveTab] = useState('mission');
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
+  const [showMeetupModal, setShowMeetupModal] = useState(false);
+  const [interestName, setInterestName] = useState('');
+  const [interestEmail, setInterestEmail] = useState('');
+  const [interestContact, setInterestContact] = useState('');
+  const [interestLoading, setInterestLoading] = useState(false);
+  const [interestSubmitted, setInterestSubmitted] = useState(false);
+  const [interestError, setInterestError] = useState('');
+
+  async function handleInterestSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setInterestLoading(true);
+    setInterestError('');
+    try {
+      await addDoc(collection(meetupDb, 'meetup_interests'), {
+        name: interestName,
+        email: interestEmail,
+        contact: interestContact,
+        createdAt: serverTimestamp(),
+      });
+      setInterestSubmitted(true);
+      setInterestName('');
+      setInterestEmail('');
+      setInterestContact('');
+    } catch (err) {
+      console.error('Error saving meetup interest from About page:', err);
+      setInterestError('Something went wrong. Please try again.');
+    } finally {
+      setInterestLoading(false);
+    }
+  }
 
   const achievements = [
     { year: '2020', title: '2 Cricket Tournaments Organized', icon: '🏏' },
@@ -378,7 +410,7 @@ export default function AboutPage() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid md:grid-cols-3 gap-8">
                   <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200">
                     <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] h-56 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                       <div className="text-7xl">🏏</div>
@@ -400,6 +432,21 @@ export default function AboutPage() {
                       <p className="text-gray-600 mb-4">Unprecedented community mobilization showcasing elite sportsmanship and unity</p>
                       <button className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-4 py-2 rounded-lg font-bold hover:shadow-lg transition-all duration-300">
                         View Photos
+                      </button>
+                    </div>
+                  </div>
+                  <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200">
+                    <div className="bg-gradient-to-br from-green-500 to-green-600 h-56 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <div className="text-7xl">🤝</div>
+                    </div>
+                    <div className="p-8">
+                      <h4 className="text-xl font-bold text-gray-800 mb-2">Community Meet Up</h4>
+                      <p className="text-gray-600 mb-4">Venue to be decided. Join us for an exciting community gathering and networking event!</p>
+                      <button 
+                        onClick={() => setShowMeetupModal(true)}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg font-bold hover:shadow-lg transition-all duration-300"
+                      >
+                        Join
                       </button>
                     </div>
                   </div>
@@ -497,18 +544,96 @@ export default function AboutPage() {
                 className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-8 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300"
               >
                 Download PDF
-              </a>
-              <button
-                onClick={() => setSelectedPdf(null)}
-                className="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg font-bold hover:bg-gray-300 transition-all duration-300"
-              >
-                Close
-              </button>
+                </a>
+                <button
+                  onClick={() => setSelectedPdf(null)}
+                  className="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg font-bold hover:bg-gray-300 transition-all duration-300"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    )}
-    </>
-  );
-}
+      )}
+      
+      {/* Meetup Interest Modal */}
+      {showMeetupModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-white">Join Community Meet Up</h3>
+              <button
+                onClick={() => setShowMeetupModal(false)}
+                className="text-white text-3xl font-bold hover:opacity-70 transition-opacity"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              {interestSubmitted ? (
+                <div className="text-center">
+                  <div className="text-6xl mb-4">✅</div>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">Thank You!</h4>
+                  <p className="text-gray-600 mb-6">We'll keep you updated on the venue and details.</p>
+                  <button
+                    onClick={() => setShowMeetupModal(false)}
+                    className="bg-green-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition-all duration-300"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleInterestSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={interestName}
+                      onChange={(e) => setInterestName(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={interestEmail}
+                      onChange={(e) => setInterestEmail(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="your.email@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
+                    <input
+                      type="tel"
+                      value={interestContact}
+                      onChange={(e) => setInterestContact(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Your phone number"
+                    />
+                  </div>
+                  {interestError && (
+                    <p className="text-red-600 text-sm">{interestError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={interestLoading}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                  >
+                    {interestLoading ? 'Submitting...' : 'Submit Interest'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      </>
+    );
+  }
