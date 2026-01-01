@@ -45,6 +45,11 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const dbTest = getFirestore(testApp);
 
+// Helper: choose Firestore for features you want to test
+// If NEXT_PUBLIC_USE_TEST_FIREBASE === 'true', use test Firestore; otherwise use production
+export const meetupDb =
+  process.env.NEXT_PUBLIC_USE_TEST_FIREBASE === 'true' ? dbTest : db;
+
 // Initialize Firebase Storage
 export const storage = getStorage(app);
 
