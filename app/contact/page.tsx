@@ -61,8 +61,16 @@ export default function ContactPage() {
     <main className="min-h-screen bg-gradient-to-br from-[#0056FF] via-[#0080FF] to-[#00B8FF]">
       {/* Header */}
       <section className="mx-auto max-w-7xl px-6 py-20 text-center">
-        <div className="inline-block px-4 py-2 bg-[var(--color-primary-2)]/10 rounded-full border border-[var(--color-primary-2)] mb-6">
-          <p className="text-sm font-semibold text-[var(--color-primary-2)]">Get In Touch</p>
+        <div className="inline-flex flex-col items-center gap-3 mb-6">
+          <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/90 shadow-lg shadow-blue-500/30 border border-white/60">
+            <span className="text-lg">📩</span>
+            <p className="text-xs sm:text-sm font-bold tracking-[0.18em] uppercase text-[var(--color-primary)]">
+              Get in touch
+            </p>
+          </div>
+          <p className="text-xs sm:text-sm text-white/90 max-w-md">
+            Tell us how we can help — membership, events, coaching or anything else.
+          </p>
         </div>
         <h1 className="text-5xl md:text-6xl font-extrabold text-[var(--color-dark)] mb-6 leading-tight">
           Contact <span className="text-[var(--color-primary)]">CPS Club</span>
@@ -73,33 +81,43 @@ export default function ContactPage() {
       </section>
 
       {/* Main Content */}
-      <section className="mx-auto max-w-6xl px-6 pb-20">
+      <section className="mx-auto max-w-6xl px-6 pb-20 bg-white/95 rounded-3xl shadow-2xl border border-white/40 backdrop-blur-sm">
         {/* Contact Info Cards */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {[
             {
               title: 'Location',
               content: contactConfig.location.name,
-              subtext: `${contactConfig.location.city}, ${contactConfig.location.state} ${contactConfig.location.postcode}`
+              subtext: `${contactConfig.location.city}, ${contactConfig.location.state} ${contactConfig.location.postcode}`,
+              icon: 'location'
             },
             {
               title: 'Phone',
               content: contactConfig.phone.main,
-              subtext: contactConfig.phone.hours
+              subtext: contactConfig.phone.hours,
+              icon: 'phone'
             },
             {
               title: 'Email',
               content: contactConfig.emails.info,
-              subtext: contactConfig.responseTime
+              subtext: contactConfig.responseTime,
+              icon: 'email'
             }
           ].map((item, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300"
+              className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300 flex flex-col"
             >
-              <h3 className="text-xl font-bold text-[var(--color-dark)] mb-4">
-                {item.title}
-              </h3>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-[var(--color-primary)]/10 flex items-center justify-center text-2xl">
+                  {item.icon === 'location' && <span>📍</span>}
+                  {item.icon === 'phone' && <span>📞</span>}
+                  {item.icon === 'email' && <span>✉️</span>}
+                </div>
+                <h3 className="text-xl font-bold text-[var(--color-dark)]">
+                  {item.title}
+                </h3>
+              </div>
               <p className="text-lg font-semibold text-[var(--color-primary)] mb-2">
                 {item.content}
               </p>
@@ -115,7 +133,12 @@ export default function ContactPage() {
           {/* Form */}
           <div className="md:col-span-2">
             <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-              <h2 className="text-3xl font-bold text-[var(--color-dark)] mb-8">Send us a Message</h2>
+              <h2 className="text-3xl font-bold text-[var(--color-dark)] mb-3">Send us a Message</h2>
+
+              <p className="text-sm text-gray-600 mb-6">
+                Share a few details and we&apos;ll direct your enquiry to the right team. We usually respond within{' '}
+                <span className="font-semibold">{contactConfig.responseTime}</span>.
+              </p>
 
               {submitted && (
                 <div className="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
@@ -244,9 +267,24 @@ export default function ContactPage() {
             <div className="mt-8 pt-8 border-t border-white/30">
               <p className="text-sm font-bold mb-4">Follow Us</p>
               <div className="flex gap-3">
-                <a href="#" className="w-12 h-12 bg-white/20 hover:bg-white/40 rounded-lg flex items-center justify-center font-bold transition-all hover:scale-110">f</a>
-                <a href="#" className="w-12 h-12 bg-white/20 hover:bg-white/40 rounded-lg flex items-center justify-center font-bold transition-all hover:scale-110">📷</a>
-                <a href="#" className="w-12 h-12 bg-white/20 hover:bg-white/40 rounded-lg flex items-center justify-center font-bold transition-all hover:scale-110">𝕏</a>
+                <a
+                  href={contactConfig.social.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="w-12 h-12 bg-white/20 hover:bg-white/40 rounded-lg flex items-center justify-center font-bold text-blue-700 transition-all hover:scale-110"
+                >
+                  f
+                </a>
+                <a
+                  href={contactConfig.social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-12 h-12 bg-white/20 hover:bg-white/40 rounded-lg flex items-center justify-center transition-all hover:scale-110"
+                >
+                  <span className="text-lg">📷</span>
+                </a>
               </div>
             </div>
           </div>
