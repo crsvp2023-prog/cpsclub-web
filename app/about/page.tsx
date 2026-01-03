@@ -506,10 +506,16 @@ export default function AboutPage() {
             Whether you're a seasoned cricketer or just starting out, there's a place for you in the CPS Cricket Club. Join us and be part of something special.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/register-interest" className="bg-[var(--color-accent)] text-[var(--color-dark)] px-10 py-4 rounded-full font-black hover:shadow-lg hover:scale-105 transform transition-all duration-200 text-lg uppercase tracking-wider hover:bg-[#FFC939]">
+            <a
+              href="/register-interest"
+              className="bg-[var(--color-accent)] text-[var(--color-dark)] px-10 py-4 rounded-full font-black hover:shadow-lg hover:scale-105 transform transition-all duration-200 text-lg uppercase tracking-wider hover:bg-[#FFC939]"
+           >
               Register Now
             </a>
-            <a href="/contact" className="border-2 border-white text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-[var(--color-dark)] transition-all duration-200 text-lg">
+            <a
+              href="/contact"
+              className="px-10 py-4 rounded-full font-black text-lg uppercase tracking-wider bg-gradient-to-r from-white via-[#FFB81C] to-white text-[var(--color-dark)] shadow-lg hover:shadow-2xl hover:-translate-y-0.5 transform transition-all duration-200 border border-white/40"
+            >
               Get in Touch
             </a>
           </div>

@@ -333,8 +333,11 @@ export default function SponsorshipPage() {
           <h3 className="text-2xl font-bold mb-4">Have Questions?</h3>
           <p className="mb-2">Email: crsvp.2023@gmail.com</p>
           <p className="mb-6">We'd love to discuss how we can grow together</p>
-          <Link href="/contact" className="text-green-400 hover:text-green-300 font-semibold">
-            Get in Touch →
+          <Link
+            href="/contact"
+            className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 text-gray-900 font-bold shadow-lg hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200"
+          >
+            Get in Touch 
           </Link>
         </div>
       </section>

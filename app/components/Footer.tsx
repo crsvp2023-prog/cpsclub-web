@@ -28,7 +28,7 @@ export default function Footer() {
               </p>
               <p className="flex items-center gap-2">
                 <span className="text-[var(--color-accent)] font-semibold text-lg flex-shrink-0">✉️</span>
-                <a href="mailto:info@cpsclub.com.au" className="hover:text-[var(--color-accent)] transition-colors break-all">
+                <a href="mailto:crsvp.2023@gmail.com" className="hover:text-[var(--color-accent)] transition-colors break-all">
                   info@cpsclub.com.au
                 </a>
               </p>
