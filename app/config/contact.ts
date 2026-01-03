@@ -13,7 +13,7 @@ export const contactConfig = {
 
   // Phone numbers
   phone: {
-    main: "+61 2 XXXX XXXX",
+	main: "+61 2 XXXX XXXX",
     hours: "9:00 AM - 6:00 PM",
   },
 
