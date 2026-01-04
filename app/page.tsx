@@ -1,5 +1,4 @@
 import Hero from "./components/Hero";
-import Sponsors from "./components/Sponsors";
 import MatchCountdown from "./components/MatchCountdown";
 import MatchPredictions from "./components/MatchPredictions";
 import SponsorSpotlight from "./components/SponsorSpotlight";

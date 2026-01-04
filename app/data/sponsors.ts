@@ -1,32 +1,42 @@
 export const sponsors = [
   {
-    name: "Cricket Mantra",
-    logo: "/images/sponsors/Cricket mantra.png",
-    website: "https://www.facebook.com/cricketmantraau/",
-    description: "Fueling the passion for cricket with expert guidance and premium coaching. Together, we're building champions!",
-  },
-  {
     name: "Reach Property",
     logo: "/images/sponsors/Reach.png",
     website: "https://reachpropertygroup.com.au/",
     description: "Building dreams and strong communities. Proud supporters of CPS Club's vision for excellence.",
+    tier: "primary",
+    role: "Primary Sponsor",
   },
   {
     name: "JICS",
     logo: "/images/sponsors/JICS.svg",
     website: "https://jics.com.au/",
     description: "Committed to nurturing talent and fostering unity through sport. Your partner in success!",
+    tier: "primary",
+    role: "Primary Sponsor",
   },
   {
     name: "Chatswood RSL",
     logo: "/images/sponsors/Chatswood-RSL.png",
     website: "https://chatswoodrsl.com.au/",
     description: "Serving our community with pride and supporting the athletes who inspire us all.",
+    tier: "primary",
+    role: "Primary Sponsor",
+  },
+  {
+    name: "Cricket Mantra",
+    logo: "/images/sponsors/Cricket mantra.png",
+    website: "https://www.facebook.com/cricketmantraau/",
+    description: "Fueling the passion for cricket with expert guidance and premium coaching. Together, we're building champions!",
+    tier: "partner",
+    role: "Official Training Partner",
   },
   {
     name: "KRIDA",
     logo: "/images/sponsors/KRIDA.png",
     website: "https://krida.com.au/",
     description: "Premium sportswear with custom team uniforms. KRIDA combines performance, style, and innovation to deliver high-quality gear for every team.",
+    tier: "partner",
+    role: "Official Apparel Partner",
   },
 ];
