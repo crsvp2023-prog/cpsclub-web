@@ -147,34 +147,94 @@ export default function SponsorSpotlight() {
       </div>
 
       {/* Sponsor Grid - Show All */}
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-white mb-8">
+      <div className="text-center mb-4">
+        <h3 className="text-2xl font-bold text-white mb-2">
           All Our Partners
         </h3>
+        <p className="text-sm text-white/80 max-w-2xl mx-auto">
+          Thank you to our primary sponsors and official partners who power the vision of{' '}
+          <span className="font-semibold text-[var(--color-accent)]">Chatswood Premier Sports Club</span>.
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {sponsors.map((sponsor, index) => (
-          <a
-            key={index}
-            href={sponsor.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white rounded-xl p-6 shadow-md border border-gray-200 hover:shadow-lg hover:scale-105 hover:border-[var(--color-primary)] transition-all duration-300 flex flex-col items-center justify-center min-h-32 group cursor-pointer"
-          >
-            <img 
-              src={sponsor.logo} 
-              alt={sponsor.name}
-              className="h-20 w-auto object-contain mb-3 group-hover:scale-110 transition-transform duration-300"
-            />
-            <p className="text-sm font-semibold text-center text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
-              {sponsor.name}
-            </p>
-            <p className="text-xs text-[var(--color-primary)] font-semibold opacity-0 group-hover:opacity-100 transition-opacity mt-2">
-              Visit →
-            </p>
-          </a>
-        ))}
+      {/* Two moving rows of sponsors */}
+      <div className="space-y-6">
+        {/* Row 1: Primary sponsors */}
+        <div className="relative overflow-hidden">
+          <div className="flex gap-6 justify-center animate-sponsor-row-left">
+            {sponsors.filter(s => s.tier === 'primary').map((sponsor, index) => (
+              <a
+                key={`${sponsor.name}-primary-${index}`}
+                href={sponsor.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative bg-white/95 rounded-2xl p-6 shadow-md border border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/60 flex flex-col items-center justify-between min-h-40 w-56 group cursor-pointer overflow-hidden hover:shadow-xl hover:scale-105 transition-transform duration-300"
+              >
+                <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-primary)]/5 via-transparent to-[var(--color-accent)]/5" />
+
+                <span className="relative mb-2 inline-flex items-center rounded-full bg-amber-100 text-amber-800 text-[0.7rem] font-semibold px-3 py-1 uppercase tracking-wide">
+                  Primary Sponsor
+                </span>
+
+                <img
+                  src={sponsor.logo}
+                  alt={sponsor.name}
+                  className="relative h-20 w-auto object-contain mb-3 group-hover:scale-110 transition-transform duration-300"
+                />
+                <p className="relative text-sm font-semibold text-center text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
+                  {sponsor.name}
+                </p>
+                {sponsor.role && (
+                  <p className="relative mt-1 text-[0.7rem] font-semibold uppercase tracking-wide text-amber-600">
+                    {sponsor.role}
+                  </p>
+                )}
+                <button
+                  className="relative mt-3 inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[var(--color-primary)] text-white text-xs font-semibold tracking-wide uppercase shadow-sm group-hover:bg-[var(--color-accent)] group-hover:text-[var(--color-dark)] transition-colors"
+                >
+                  Visit Website →
+                </button>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Row 2: Training / clothing partners */}
+        <div className="relative overflow-hidden">
+          <div className="flex gap-6 justify-center animate-sponsor-row-right">
+            {sponsors.filter(s => s.tier !== 'primary').map((sponsor, index) => (
+              <a
+                key={`${sponsor.name}-partner-${index}`}
+                href={sponsor.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative bg-white/90 rounded-2xl p-6 shadow-md border border-gray-200 flex flex-col items-center justify-between min-h-40 w-56 group cursor-pointer overflow-hidden hover:border-[var(--color-primary)] hover:shadow-lg hover:scale-105 transition-transform duration-300 opacity-95"
+              >
+                <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-primary)]/5 via-transparent to-[var(--color-accent)]/5" />
+
+                {sponsor.role && (
+                  <span className="relative mb-2 inline-flex items-center rounded-full bg-gray-100 text-gray-700 text-[0.7rem] font-semibold px-3 py-1 uppercase tracking-wide">
+                    {sponsor.role}
+                  </span>
+                )}
+
+                <img
+                  src={sponsor.logo}
+                  alt={sponsor.name}
+                  className="relative h-20 w-auto object-contain mb-3 group-hover:scale-110 transition-transform duration-300 grayscale-[25%] group-hover:grayscale-0"
+                />
+                <p className="relative text-sm font-semibold text-center text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
+                  {sponsor.name}
+                </p>
+                <button
+                  className="relative mt-3 inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-white text-[var(--color-primary)] text-xs font-semibold tracking-wide uppercase shadow-sm group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors"
+                >
+                  Visit Website →
+                </button>
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Become a Sponsor CTA */}
@@ -193,6 +253,45 @@ export default function SponsorSpotlight() {
           Explore Sponsorship Opportunities
         </a>
       </div>
+
+      <style jsx>{`
+        @keyframes sponsor-row-left {
+          0% {
+            transform: translateX(0);
+          }
+          50% {
+            transform: translateX(-12px);
+          }
+          100% {
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes sponsor-row-right {
+          0% {
+            transform: translateX(0);
+          }
+          50% {
+            transform: translateX(12px);
+          }
+          100% {
+            transform: translateX(0);
+          }
+        }
+
+        .animate-sponsor-row-left {
+          animation: sponsor-row-left 8s ease-in-out infinite;
+        }
+
+        .animate-sponsor-row-right {
+          animation: sponsor-row-right 8s ease-in-out infinite;
+        }
+
+        .animate-sponsor-row-left:hover,
+        .animate-sponsor-row-right:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   );
 }

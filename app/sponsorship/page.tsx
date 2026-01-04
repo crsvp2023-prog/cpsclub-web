@@ -79,6 +79,16 @@ export default function SponsorshipPage() {
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  const handleChoosePlan = (tierName: string) => {
+    setFormData(prev => ({ ...prev, tierInterest: tierName }));
+
+    // Smooth scroll to the inquiry form
+    const formSection = document.getElementById('sponsorship-form');
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -183,11 +193,15 @@ export default function SponsorshipPage() {
                     ))}
                   </ul>
 
-                  <button className={`w-full py-3 rounded-lg font-semibold transition ${
-                    tier.highlighted
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}>
+                  <button
+                    type="button"
+                    onClick={() => handleChoosePlan(tier.name)}
+                    className={`w-full py-3 rounded-lg font-semibold transition ${
+                      tier.highlighted
+                        ? 'bg-green-500 text-white hover:bg-green-600'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
                     Choose Plan
                   </button>
                 </div>
@@ -225,7 +239,7 @@ export default function SponsorshipPage() {
       </section>
 
       {/* Sponsorship Inquiry Form */}
-      <section className="py-16">
+      <section className="py-16" id="sponsorship-form">
         <div className="container mx-auto px-4 max-w-2xl">
           <h2 className="text-4xl font-bold text-center mb-2">Ready to Partner With Us?</h2>
           <p className="text-center text-gray-600 mb-8">
