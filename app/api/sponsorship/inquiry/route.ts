@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { db, admin } from '@/app/lib/firebase-admin';
+
+export const runtime = 'nodejs';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -16,6 +19,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Save inquiry to Firestore
+    const docRef = await db.collection('sponsorship_inquiries').add({
+      companyName,
+      contactName,
+      email,
+      phone: phone || null,
+      tierInterest,
+      message,
+      status: 'new',
+      submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const safeMessage = typeof message === 'string' ? message : '';
+
     // Send email to CPS Club
     await resend.emails.send({
       from: 'noreply@resend.dev',
@@ -29,7 +46,7 @@ export async function POST(request: NextRequest) {
         <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
         <p><strong>Tier Interest:</strong> ${tierInterest}</p>
         <h3>Message:</h3>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${safeMessage.replace(/\n/g, '<br>')}</p>
       `,
     });
 
@@ -48,7 +65,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true, message: 'Inquiry submitted successfully' },
+      { success: true, message: 'Inquiry submitted successfully', id: docRef.id },
       { status: 200 }
     );
   } catch (error) {
