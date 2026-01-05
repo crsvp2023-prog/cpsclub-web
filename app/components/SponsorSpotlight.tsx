@@ -172,8 +172,9 @@ export default function SponsorSpotlight() {
               >
                 <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-primary)]/5 via-transparent to-[var(--color-accent)]/5" />
 
-                <span className="relative mb-2 inline-flex items-center rounded-full bg-amber-100 text-amber-800 text-[0.7rem] font-semibold px-3 py-1 uppercase tracking-wide">
-                  Primary Sponsor
+                <span className="relative mb-2 inline-flex items-center gap-1 rounded-full bg-amber-100/90 text-amber-900 text-[0.7rem] font-extrabold px-3 py-1 uppercase tracking-widest shadow-sm">
+                  <span className="text-[0.8rem]">⭐</span>
+                  <span>Sponsored By</span>
                 </span>
 
                 <img
@@ -184,11 +185,6 @@ export default function SponsorSpotlight() {
                 <p className="relative text-sm font-semibold text-center text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
                   {sponsor.name}
                 </p>
-                {sponsor.role && (
-                  <p className="relative mt-1 text-[0.7rem] font-semibold uppercase tracking-wide text-amber-600">
-                    {sponsor.role}
-                  </p>
-                )}
                 <button
                   className="relative mt-3 inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[var(--color-primary)] text-white text-xs font-semibold tracking-wide uppercase shadow-sm group-hover:bg-[var(--color-accent)] group-hover:text-[var(--color-dark)] transition-colors"
                 >
