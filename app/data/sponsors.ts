@@ -5,7 +5,7 @@ export const sponsors = [
     website: "https://reachpropertygroup.com.au/",
     description: "Building dreams and strong communities. Proud supporters of CPS Club's vision for excellence.",
     tier: "primary",
-    role: "Primary Sponsor",
+    role: "Sponsored By",
   },
   {
     name: "JICS",
@@ -13,7 +13,7 @@ export const sponsors = [
     website: "https://jics.com.au/",
     description: "Committed to nurturing talent and fostering unity through sport. Your partner in success!",
     tier: "primary",
-    role: "Primary Sponsor",
+    role: "Sponsored By",
   },
   {
     name: "Chatswood RSL",
@@ -21,7 +21,7 @@ export const sponsors = [
     website: "https://chatswoodrsl.com.au/",
     description: "Serving our community with pride and supporting the athletes who inspire us all.",
     tier: "primary",
-    role: "Primary Sponsor",
+    role: "Sponsored By",
   },
   {
     name: "Cricket Mantra",
