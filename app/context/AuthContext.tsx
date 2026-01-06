@@ -10,6 +10,8 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   updateProfile
 } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
@@ -170,6 +172,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Complete OAuth redirect flows (used as a fallback when popups are blocked)
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (!isMounted || !result?.user) return;
+
+        try {
+          await updateUserProfile(
+            result.user.uid,
+            result.user.email || "",
+            result.user.displayName || undefined,
+            result.user.photoURL || undefined
+          );
+        } catch (profileError) {
+          console.warn("Profile update failed after redirect login:", profileError);
+        }
+      } catch (error) {
+        // Don't throw here; redirect errors shouldn't break app render
+        console.error("OAuth redirect result error:", error);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [updateUserProfile]);
+
   const signup = useCallback(async (
     email: string, 
     name: string,
@@ -249,7 +281,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
+      provider.setCustomParameters({ prompt: "select_account" });
+
+      let userCredential;
+      try {
+        userCredential = await signInWithPopup(auth, provider);
+      } catch (error: any) {
+        // If popups are blocked (common in production/Safari/mobile), fall back to redirect.
+        if (
+          error?.code === "auth/popup-blocked" ||
+          error?.code === "auth/operation-not-supported-in-this-environment"
+        ) {
+          await signInWithRedirect(auth, provider);
+          return;
+        }
+        throw error;
+      }
       
       console.log("Google login successful:", {
         uid: userCredential.user.uid,
@@ -291,7 +338,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const provider = new FacebookAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
+
+      let userCredential;
+      try {
+        userCredential = await signInWithPopup(auth, provider);
+      } catch (error: any) {
+        if (
+          error?.code === "auth/popup-blocked" ||
+          error?.code === "auth/operation-not-supported-in-this-environment"
+        ) {
+          await signInWithRedirect(auth, provider);
+          return;
+        }
+        throw error;
+      }
       
       // Try to update user profile in database with Facebook data
       // Even if this fails, the user is still logged in

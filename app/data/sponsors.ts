@@ -3,7 +3,7 @@ export const sponsors = [
     name: "Reach Property",
     logo: "/images/sponsors/Reach.png",
     website: "https://reachpropertygroup.com.au/",
-    description: "Building dreams and strong communities. Proud supporters of CPS Club's vision for excellence.",
+    description: "Building dreams and strong communities. Proud supporters of Chatswood Premier Sports Club's vision for excellence.",
     tier: "primary",
     role: "Sponsored By",
   },
