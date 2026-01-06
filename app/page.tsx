@@ -254,9 +254,8 @@ export default function HomePage() {
         </div>
 
         {/* Sponsor Spotlight */}
-        <div className="py-8 sm:py-12 px-4 sm:px-6 bg-gradient-to-r from-[#0038A8] via-[#0052CC] to-[#0066FF]">
+        <div className="py-8 sm:py-12 px-4 sm:px-6 bg-[var(--color-primary)]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8">Featured Sponsor</h2>
             <SponsorSpotlight />
           </div>
         </div>

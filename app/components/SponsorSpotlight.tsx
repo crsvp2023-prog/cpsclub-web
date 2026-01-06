@@ -39,8 +39,11 @@ export default function SponsorSpotlight() {
 
   const currentSponsor = featuredSponsors[currentIndex];
 
+  const primarySponsors = sponsors.filter(s => s.tier === 'primary');
+  const partnerSponsors = sponsors.filter(s => s.tier !== 'primary');
+
   return (
-    <section className="mx-auto max-w-7xl px-6 py-12 bg-gradient-to-br from-[var(--color-primary)] via-[#0052CC] to-[var(--color-primary-2)] rounded-3xl">
+    <section className="mx-auto max-w-7xl px-6 py-12 bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-primary-2)] to-[var(--color-primary)] rounded-3xl">
       <div className="text-center mb-8">
         <div className="inline-block px-4 py-2 bg-[var(--color-accent)]/20 rounded-full border border-[var(--color-accent)]/50 mb-4">
           <p className="text-sm font-semibold text-white">Featured Partner</p>
@@ -48,7 +51,7 @@ export default function SponsorSpotlight() {
         <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
           Sponsor <span className="text-[var(--color-accent)]">Spotlight</span>
         </h2>
-        <p className="text-base text-white/80">Proudly supported by our amazing partners</p>
+        <p className="text-base text-white/80">Proudly supported by our partners</p>
       </div>
 
       {/* Main Carousel */}
@@ -75,8 +78,8 @@ export default function SponsorSpotlight() {
                 {currentSponsor.name}
               </h3>
               
-              <div className="bg-blue-50/50 rounded-lg p-4 mb-4 border border-[var(--color-primary)]/20">
-                <p className="text-[#0d3e2a] leading-relaxed text-base font-bold">
+              <div className="bg-[var(--color-primary)]/5 rounded-lg p-4 mb-4 border border-[var(--color-primary)]/20">
+                <p className="text-[var(--color-dark)] leading-relaxed text-base font-semibold">
                   "{currentSponsor.description}"
                 </p>
               </div>
@@ -101,7 +104,7 @@ export default function SponsorSpotlight() {
                   href={currentSponsor.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-6 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 text-center text-sm uppercase tracking-wider hover:bg-[#FFC939]"
+                  className="flex-1 px-6 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 text-center text-sm uppercase tracking-wider"
                 >
                   Visit Website
                 </a>
@@ -147,90 +150,128 @@ export default function SponsorSpotlight() {
       </div>
 
       {/* Sponsor Grid - Show All */}
-      <div className="text-center mb-4">
-        <h3 className="text-2xl font-bold text-white mb-2">
-          All Our Partners
-        </h3>
-        <p className="text-sm text-white/80 max-w-2xl mx-auto">
-          Thank you to our primary sponsors and official partners who power the vision of{' '}
+      <div className="mx-auto mt-12 max-w-2xl text-center">
+        <p className="text-base font-semibold leading-7 text-[var(--color-accent)]">Our partners</p>
+        <h3 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">All Our Partners</h3>
+        <p className="mt-4 text-base sm:text-lg leading-8 text-white/80">
+          Thank you to our sponsors and official partners who power the vision of{' '}
           <span className="font-semibold text-[var(--color-accent)]">Chatswood Premier Sports Club</span>.
         </p>
       </div>
 
-      {/* Two moving rows of sponsors */}
-      <div className="space-y-6">
-        {/* Row 1: Primary sponsors */}
-        <div className="relative overflow-hidden">
-          <div className="flex gap-6 justify-center animate-sponsor-row-left">
-            {sponsors.filter(s => s.tier === 'primary').map((sponsor, index) => (
-              <a
-                key={`${sponsor.name}-primary-${index}`}
-                href={sponsor.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative bg-white/95 rounded-2xl p-6 shadow-md border border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/60 flex flex-col items-center justify-between min-h-40 w-56 group cursor-pointer overflow-hidden hover:shadow-xl hover:scale-105 transition-transform duration-300"
-              >
-                <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-primary)]/5 via-transparent to-[var(--color-accent)]/5" />
+      {/* Sponsors Grid */}
+      <div className="mt-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/20 p-5 sm:p-6 md:p-8 space-y-10">
+        {/* Primary sponsors (emphasized) */}
+        {primarySponsors.length > 0 && (
+          <div>
+            <div className="mb-5 flex items-center justify-center gap-4">
+              <div className="h-px w-10 sm:w-16 bg-white/15" />
+              <span className="relative inline-flex items-center overflow-hidden rounded-full bg-[var(--color-accent)]/25 px-4 py-1.5 text-xs font-extrabold uppercase tracking-widest text-white shadow-sm ring-1 ring-inset ring-white/25 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/25 before:to-white/0 before:opacity-70 before:skew-x-12 before:-translate-x-[30%]">
+                Proudly Powered By
+              </span>
+              <div className="h-px w-10 sm:w-16 bg-white/15" />
+            </div>
 
-                <span className="relative mb-2 inline-flex items-center gap-1 rounded-full bg-amber-100/90 text-amber-900 text-[0.7rem] font-extrabold px-3 py-1 uppercase tracking-widest shadow-sm">
-                  <span className="text-[0.8rem]">⭐</span>
-                  <span>Sponsored By</span>
-                </span>
-
-                <img
-                  src={sponsor.logo}
-                  alt={sponsor.name}
-                  className="relative h-20 w-auto object-contain mb-3 group-hover:scale-110 transition-transform duration-300"
-                />
-                <p className="relative text-sm font-semibold text-center text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
-                  {sponsor.name}
-                </p>
-                <button
-                  className="relative mt-3 inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[var(--color-primary)] text-white text-xs font-semibold tracking-wide uppercase shadow-sm group-hover:bg-[var(--color-accent)] group-hover:text-[var(--color-dark)] transition-colors"
+            <div className="flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory md:overflow-visible md:snap-none md:pb-0 md:grid md:grid-cols-3 md:gap-6">
+              {primarySponsors.map((sponsor, index) => (
+                <a
+                  key={`${sponsor.name}-primary-${index}`}
+                  href={sponsor.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                  className="partner-card group relative bg-white/95 rounded-2xl p-4 sm:p-6 shadow-md border border-white/30 overflow-hidden hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 shrink-0 w-72 sm:w-80 md:w-auto snap-start md:snap-align-none flex flex-col"
                 >
-                  Visit Website →
-                </button>
-              </a>
-            ))}
+                  <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-[var(--color-accent)]/10" />
+                  <div className="partner-sheen pointer-events-none absolute -inset-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  <div className="relative flex items-center justify-between mb-4">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)]/25 border border-[var(--color-accent)]/50 px-3 py-1 text-[0.7rem] font-extrabold uppercase tracking-widest text-[var(--color-dark)]">
+                      <span aria-hidden>★</span>
+                      {sponsor.role || 'Premier Sponsor'}
+                    </span>
+                    <span className="text-xs font-semibold text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                      Visit →
+                    </span>
+                  </div>
+
+                  <div className="relative flex items-center justify-center bg-gradient-to-br from-white to-gray-50 rounded-xl p-4 sm:p-5 min-h-24 sm:min-h-28">
+                    <img
+                      src={sponsor.logo}
+                      alt={sponsor.name}
+                      className="h-14 sm:h-16 md:h-24 w-auto object-contain"
+                    />
+                  </div>
+
+                  <div className="relative mt-3 sm:mt-4">
+                    <p className="text-base font-bold text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
+                      {sponsor.name}
+                    </p>
+                    {sponsor.description && (
+                      <p className="mt-1 hidden sm:block text-sm text-gray-600 line-clamp-2">
+                        {sponsor.description}
+                      </p>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Row 2: Training / clothing partners */}
-        <div className="relative overflow-hidden">
-          <div className="flex gap-6 justify-center animate-sponsor-row-right">
-            {sponsors.filter(s => s.tier !== 'primary').map((sponsor, index) => (
-              <a
-                key={`${sponsor.name}-partner-${index}`}
-                href={sponsor.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative bg-white/90 rounded-2xl p-6 shadow-md border border-gray-200 flex flex-col items-center justify-between min-h-40 w-56 group cursor-pointer overflow-hidden hover:border-[var(--color-primary)] hover:shadow-lg hover:scale-105 transition-transform duration-300 opacity-95"
-              >
-                <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-primary)]/5 via-transparent to-[var(--color-accent)]/5" />
+        {/* Partners */}
+        {partnerSponsors.length > 0 && (
+          <div>
+            <div className="mb-8 mt-2 h-px w-full bg-white/15" />
+            <div className="mb-5 flex items-center justify-center gap-4">
+              <div className="h-px w-10 sm:w-16 bg-white/15" />
+              <span className="relative inline-flex items-center overflow-hidden rounded-full bg-[var(--color-accent)]/25 px-4 py-1.5 text-xs font-extrabold uppercase tracking-widest text-white shadow-sm ring-1 ring-inset ring-white/25 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/25 before:to-white/0 before:opacity-70 before:skew-x-12 before:-translate-x-[30%]">
+                Partners
+              </span>
+              <div className="h-px w-10 sm:w-16 bg-white/15" />
+            </div>
 
-                {sponsor.role && (
-                  <span className="relative mb-2 inline-flex items-center rounded-full bg-gray-100 text-gray-700 text-[0.7rem] font-semibold px-3 py-1 uppercase tracking-wide">
-                    {sponsor.role}
-                  </span>
-                )}
-
-                <img
-                  src={sponsor.logo}
-                  alt={sponsor.name}
-                  className="relative h-20 w-auto object-contain mb-3 group-hover:scale-110 transition-transform duration-300 grayscale-[25%] group-hover:grayscale-0"
-                />
-                <p className="relative text-sm font-semibold text-center text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
-                  {sponsor.name}
-                </p>
-                <button
-                  className="relative mt-3 inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-white text-[var(--color-primary)] text-xs font-semibold tracking-wide uppercase shadow-sm group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors"
+            <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+              {partnerSponsors.map((sponsor, index) => (
+                <a
+                  key={`${sponsor.name}-partner-${index}`}
+                  href={sponsor.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ animationDelay: `${(primarySponsors.length + index) * 70}ms` }}
+                  className="partner-card group relative bg-white/90 rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col"
                 >
-                  Visit Website →
-                </button>
-              </a>
-            ))}
+                  <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-[var(--color-accent)]/10" />
+                  <div className="partner-sheen pointer-events-none absolute -inset-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  <div className="relative flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
+                        {sponsor.name}
+                      </p>
+                      {sponsor.role && (
+                        <span className="mt-2 inline-flex items-center rounded-full bg-gray-100/90 text-gray-700 text-[0.7rem] font-semibold px-3 py-1 uppercase tracking-wide">
+                          {sponsor.role}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs font-semibold text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                      Visit →
+                    </span>
+                  </div>
+
+                  <div className="relative mt-4 flex items-center justify-center bg-gradient-to-br from-white to-gray-50 rounded-xl p-5 min-h-24 flex-1">
+                    <img
+                      src={sponsor.logo}
+                      alt={sponsor.name}
+                      className="h-12 sm:h-14 w-auto object-contain grayscale-[15%] group-hover:grayscale-0 transition"
+                    />
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Become a Sponsor CTA */}
@@ -244,48 +285,57 @@ export default function SponsorSpotlight() {
         </p>
         <a 
           href="/sponsorship"
-          className="inline-block px-10 py-4 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 uppercase tracking-wider hover:bg-[#FFC939]"
+          className="inline-block px-10 py-4 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 uppercase tracking-wider"
         >
           Explore Sponsorship Opportunities
         </a>
       </div>
 
       <style jsx>{`
-        @keyframes sponsor-row-left {
-          0% {
-            transform: translateX(0);
-          }
-          50% {
-            transform: translateX(-12px);
-          }
-          100% {
-            transform: translateX(0);
+        @media (prefers-reduced-motion: reduce) {
+          .partner-card {
+            animation: none !important;
+            transform: none !important;
           }
         }
 
-        @keyframes sponsor-row-right {
-          0% {
-            transform: translateX(0);
+        .partner-card {
+          will-change: transform, opacity;
+          animation: partner-fade-up 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        @keyframes partner-fade-up {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
           }
-          50% {
-            transform: translateX(12px);
-          }
-          100% {
-            transform: translateX(0);
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
 
-        .animate-sponsor-row-left {
-          animation: sponsor-row-left 8s ease-in-out infinite;
+        .partner-sheen {
+          background: linear-gradient(
+            110deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.55) 35%,
+            transparent 70%
+          );
+          transform: translateX(-60%);
         }
 
-        .animate-sponsor-row-right {
-          animation: sponsor-row-right 8s ease-in-out infinite;
+        .partner-card:hover .partner-sheen {
+          animation: partner-sheen 900ms ease-out both;
         }
 
-        .animate-sponsor-row-left:hover,
-        .animate-sponsor-row-right:hover {
-          animation-play-state: paused;
+        @keyframes partner-sheen {
+          from {
+            transform: translateX(-60%);
+          }
+          to {
+            transform: translateX(60%);
+          }
         }
       `}</style>
     </section>
