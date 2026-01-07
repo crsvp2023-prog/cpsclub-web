@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const effectiveEmail = (user?.email || firebaseUser?.email || "").trim().toLowerCase();
   const emailIsAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
   const [serverIsAdmin, setServerIsAdmin] = useState<boolean | null>(null);
-  const isAdmin = serverIsAdmin === true || (serverIsAdmin === null && emailIsAdmin);
+  const isAdmin = emailIsAdmin || serverIsAdmin === true;
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
