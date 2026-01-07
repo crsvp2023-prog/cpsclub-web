@@ -20,7 +20,7 @@ interface Registration {
 }
 
 export default function AdminRegisterInterestPage() {
-  const { isAuthenticated, firebaseUser } = useAuth();
+  const { isAuthenticated, firebaseUser, isLoading: authLoading } = useAuth();
   const { serverIsAdmin, checking: adminChecking } = useServerAdmin(isAuthenticated, firebaseUser);
   const router = useRouter();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -31,19 +31,19 @@ export default function AdminRegisterInterestPage() {
   const isAdmin = serverIsAdmin === true;
 
   useEffect(() => {
-    // Check if user is authenticated and is admin
+    // Redirect to login if not authenticated.
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
 
-    if (!isAdmin) {
-      router.push('/');
-      return;
-    }
-
+    // Only load data once admin is confirmed.
+    if (adminChecking || serverIsAdmin == null) return;
+    if (!isAdmin) return;
     fetchRegistrations();
-  }, [isAuthenticated, isAdmin, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, isAuthenticated, isAdmin, adminChecking, serverIsAdmin, router]);
 
   if (adminChecking || (isAuthenticated && serverIsAdmin === null)) {
     return (

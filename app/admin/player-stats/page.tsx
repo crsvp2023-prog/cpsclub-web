@@ -52,16 +52,10 @@ export default function AdminPlayerStatsPage() {
 
   useEffect(() => {
     if (authLoading) return;
-
     if (!isAuthenticated) {
       router.push('/login');
-      return;
     }
-
-    if (!isAdmin) {
-      router.push('/');
-    }
-  }, [authLoading, isAuthenticated, isAdmin, router]);
+  }, [authLoading, isAuthenticated, router]);
 
   if (authLoading || adminChecking || (isAuthenticated && serverIsAdmin === null)) {
     return (

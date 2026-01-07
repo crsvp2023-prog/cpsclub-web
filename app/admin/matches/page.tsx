@@ -40,19 +40,49 @@ export default function MatchesAdmin() {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  const loadCurrentMatches = async () => {
+    try {
+      setIsLoading(true);
+      // Load matches directly from the cached JSON file
+      const response = await fetch('/matches-data.json');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.matches) {
+          setMatches(data.matches);
+          setMessage('✅ Data loaded from cache');
+          setTimeout(() => setMessage(''), 3000);
+        } else {
+          setMessage('⚠️ Could not load current data, using defaults');
+          setTimeout(() => setMessage(''), 3000);
+        }
+      } else {
+        setMessage('⚠️ Could not load current data, using defaults');
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to load current matches:', error);
+      setMessage('⚠️ Could not load current data, using defaults');
+      setTimeout(() => setMessage(''), 3000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Check authentication and redirect if not admin
   useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        router.push('/login');
-        return;
-      }
-      if (!isAdmin) {
-        router.push('/');
-        return;
-      }
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      router.push('/login');
     }
-  }, [isAuthenticated, isAdmin, authLoading, router]);
+  }, [isAuthenticated, authLoading, router]);
+
+  // Load current matches once permissions are resolved and the user is admin.
+  useEffect(() => {
+    if (authLoading || adminChecking) return;
+    if (!isAuthenticated || !isAdmin) return;
+    loadCurrentMatches();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, adminChecking, isAuthenticated, isAdmin]);
 
   // Show loading while checking authentication/admin
   if (authLoading || adminChecking || (isAuthenticated && serverIsAdmin === null)) {
@@ -85,39 +115,6 @@ export default function MatchesAdmin() {
       </main>
     );
   }
-
-  // Load current matches on component mount
-  useEffect(() => {
-    loadCurrentMatches();
-  }, []);
-
-  const loadCurrentMatches = async () => {
-    try {
-      setIsLoading(true);
-      // Load matches directly from the cached JSON file
-      const response = await fetch('/matches-data.json');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.matches) {
-          setMatches(data.matches);
-          setMessage('✅ Data loaded from cache');
-          setTimeout(() => setMessage(''), 3000);
-        } else {
-          setMessage('⚠️ Could not load current data, using defaults');
-          setTimeout(() => setMessage(''), 3000);
-        }
-      } else {
-        setMessage('⚠️ Could not load current data, using defaults');
-        setTimeout(() => setMessage(''), 3000);
-      }
-    } catch (error) {
-      console.error('Failed to load current matches:', error);
-      setMessage('⚠️ Could not load current data, using defaults');
-      setTimeout(() => setMessage(''), 3000);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const updateMatch = (index: number, field: string, value: string | number) => {
     const newMatches = [...matches];
