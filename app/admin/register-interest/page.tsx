@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
-import { useContext } from 'react';
-import { AuthContext } from '@/app/context/AuthContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useServerAdmin } from '@/app/lib/useServerAdmin';
 
 interface Registration {
   id: string;
@@ -20,19 +20,19 @@ interface Registration {
 }
 
 export default function AdminRegisterInterestPage() {
-  const context = useContext(AuthContext);
+  const { isAuthenticated, firebaseUser } = useAuth();
+  const { serverIsAdmin, checking: adminChecking } = useServerAdmin(isAuthenticated, firebaseUser);
   const router = useRouter();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const ADMIN_EMAIL = 'crsvp.2023@gmail.com';
-  const isAdmin = (context?.user?.email || '').trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
+  const isAdmin = serverIsAdmin === true;
 
   useEffect(() => {
     // Check if user is authenticated and is admin
-    if (!context?.isAuthenticated) {
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
@@ -43,9 +43,20 @@ export default function AdminRegisterInterestPage() {
     }
 
     fetchRegistrations();
-  }, [context?.isAuthenticated, isAdmin, router]);
+  }, [isAuthenticated, isAdmin, router]);
 
-  if (!context?.isAuthenticated) {
+  if (adminChecking || (isAuthenticated && serverIsAdmin === null)) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+          <p className="mt-4 text-gray-600">Checking permissions...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -151,7 +162,7 @@ export default function AdminRegisterInterestPage() {
     }
   };
 
-  if (!context?.isAuthenticated) {
+  if (!isAuthenticated) {
     return null;
   }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
+import { useServerAdmin } from '@/app/lib/useServerAdmin';
 
 interface Standing {
   position: number;
@@ -14,17 +15,11 @@ interface Standing {
   nrr: string;
 }
 
-// Admin email configuration
-const ADMIN_EMAIL = 'crsvp.2023@gmail.com'; // Change this to the actual admin email
-// For testing: set to true to allow any authenticated user to access admin page
-const ALLOW_ANY_AUTH_USER = false;
-
 export default function StandingsAdmin() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, firebaseUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const isAdmin = ALLOW_ANY_AUTH_USER
-    ? isAuthenticated
-    : (isAuthenticated && (user?.email || '').trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase());
+  const { serverIsAdmin, checking: adminChecking } = useServerAdmin(isAuthenticated, firebaseUser);
+  const isAdmin = serverIsAdmin === true;
   
   const [standings, setStandings] = useState<Standing[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -45,8 +40,8 @@ export default function StandingsAdmin() {
     }
   }, [isAuthenticated, isAdmin, authLoading, router]);
 
-  // Show loading while checking authentication
-  if (authLoading) {
+  // Show loading while checking authentication/admin
+  if (authLoading || adminChecking || (isAuthenticated && serverIsAdmin === null)) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
         <div className="text-center">

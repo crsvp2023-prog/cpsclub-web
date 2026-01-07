@@ -2,11 +2,26 @@ import { admin, db } from "@/app/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
-const ADMIN_EMAIL = "crsvp.2023@gmail.com";
+const DEFAULT_ADMIN_EMAIL = "crsvp.2023@gmail.com";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
+
+function parseCsvEnv(value: string | undefined) {
+  return (value || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+const ADMIN_EMAILS = new Set(
+  (parseCsvEnv(process.env.ADMIN_EMAILS).length ? parseCsvEnv(process.env.ADMIN_EMAILS) : [DEFAULT_ADMIN_EMAIL]).map(
+    normalizeEmail
+  )
+);
+
+const ADMIN_UIDS = new Set(parseCsvEnv(process.env.ADMIN_UIDS));
 
 async function requireAdmin(request: Request) {
   const authHeader = request.headers.get("authorization") || request.headers.get("Authorization");
@@ -18,6 +33,10 @@ async function requireAdmin(request: Request) {
 
   try {
     const decoded = await admin.auth().verifyIdToken(token);
+
+    if (ADMIN_UIDS.has(decoded.uid)) {
+      return { ok: true as const, email: null as any };
+    }
 
     let email = typeof (decoded as any)?.email === "string" ? (decoded as any).email : undefined;
     if (!email) {
@@ -35,7 +54,7 @@ async function requireAdmin(request: Request) {
       return { ok: false as const, status: 403, error: "Token missing email" };
     }
 
-    if (normalized !== normalizeEmail(ADMIN_EMAIL)) {
+    if (normalized && !ADMIN_EMAILS.has(normalized)) {
       return { ok: false as const, status: 403, error: "Admin access required" };
     }
 
