@@ -4,7 +4,7 @@ import Chatbot from "./components/Chatbot";
 import { PageViewTracker } from "./components/PageViewTracker";
 import { AuthProvider } from "./context/AuthContext";
 import { Inter, Montserrat } from "next/font/google";
-import Script from "next/script";
+import SocialEmbedScripts from "./components/SocialEmbedScripts";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -33,17 +33,7 @@ export default function RootLayout({
           <Footer />
           <Chatbot />
         </AuthProvider>
-        {/* Facebook SDK */}
-        <Script
-          src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v19.0"
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-        />
-        {/* Instagram SDK */}
-        <Script
-          src="https://www.instagram.com/embed.js"
-          strategy="afterInteractive"
-        />
+        <SocialEmbedScripts />
       </body>
     </html>
   );
