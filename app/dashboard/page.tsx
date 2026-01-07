@@ -10,11 +10,12 @@ import { logAnalyticsEvent } from "@/app/lib/analytics";
 import { UPCOMING_MATCHES } from "../data/upcoming-matches";
 
 export default function DashboardPage() {
-  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const { user, firebaseUser, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const ADMIN_EMAIL = "crsvp.2023@gmail.com";
-  const isAdmin = (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
+  const effectiveEmail = (user?.email || firebaseUser?.email || "").trim().toLowerCase();
+  const isAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
