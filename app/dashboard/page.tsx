@@ -14,10 +14,13 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const ADMIN_EMAIL = "crsvp.2023@gmail.com";
-  const effectiveEmail = (user?.email || firebaseUser?.email || "").trim().toLowerCase();
+  const rawEmail = (user?.email || firebaseUser?.email || "").trim();
+  const effectiveEmail = rawEmail.toLowerCase();
   const emailIsAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
   const [serverIsAdmin, setServerIsAdmin] = useState<boolean | null>(null);
   const isAdmin = emailIsAdmin || serverIsAdmin === true;
+  const [debugAdmin, setDebugAdmin] = useState(false);
+  const displayName = user?.name || firebaseUser?.displayName || "User";
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -59,6 +62,17 @@ export default function DashboardPage() {
       router.push("/login");
     }
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    // Opt-in debug for production troubleshooting: /dashboard?debugAdmin=1
+    // Shows computed admin flags and emails to the logged-in user only.
+    try {
+      const params = new URLSearchParams(window.location.search);
+      setDebugAdmin(params.get("debugAdmin") === "1");
+    } catch {
+      setDebugAdmin(false);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,14 +190,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const loadEmailStats = async () => {
-      if (!isAuthenticated || !user?.email) {
+      if (!isAuthenticated || !rawEmail) {
         setEmailStatsRecord(null);
         return;
       }
 
       setEmailStatsLoading(true);
       try {
-        const email = user.email.trim().toLowerCase();
+        const email = rawEmail.toLowerCase();
         const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}`, { cache: "no-store" });
         if (!res.ok) {
           setEmailStatsRecord(null);
@@ -209,7 +223,7 @@ export default function DashboardPage() {
     };
 
     loadEmailStats();
-  }, [isAuthenticated, user?.email]);
+  }, [isAuthenticated, rawEmail]);
 
   if (isLoading) {
     return (
@@ -324,11 +338,22 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-green-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {debugAdmin && (
+          <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700">
+            <div className="font-bold text-gray-900 mb-2">Admin Debug</div>
+            <div>profile user.email: <span className="font-mono">{String(user?.email || "")}</span></div>
+            <div>firebaseUser.email: <span className="font-mono">{String(firebaseUser?.email || "")}</span></div>
+            <div>effectiveEmail: <span className="font-mono">{String(effectiveEmail || "")}</span></div>
+            <div>emailIsAdmin: <span className="font-mono">{String(emailIsAdmin)}</span></div>
+            <div>serverIsAdmin: <span className="font-mono">{String(serverIsAdmin)}</span></div>
+            <div>isAdmin: <span className="font-mono">{String(isAdmin)}</span></div>
+          </div>
+        )}
         {/* Header */}
         <div className="flex justify-between items-start mb-12">
           <div>
             <h1 className="text-4xl font-extrabold text-[var(--color-dark)] mb-2">
-              Welcome, {user?.name}! 🎉
+              Welcome, {displayName}! 🎉
             </h1>
             <p className="text-lg text-gray-600">
               Manage your profile and cricket activities
@@ -343,7 +368,7 @@ export default function DashboardPage() {
               />
             ) : (
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-full flex items-center justify-center text-white text-xl font-bold">
-                {user?.name?.charAt(0).toUpperCase()}
+                {displayName.charAt(0).toUpperCase()}
               </div>
             )}
             <form
@@ -386,12 +411,12 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-full flex items-center justify-center text-white text-xl font-bold">
-                {user?.name?.charAt(0).toUpperCase()}
+                {displayName.charAt(0).toUpperCase()}
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Account Name</p>
                 <p className="text-lg font-bold text-[var(--color-dark)]">
-                  {user?.name}
+                  {displayName}
                 </p>
               </div>
             </div>
@@ -405,7 +430,7 @@ export default function DashboardPage() {
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Email</p>
                 <p className="text-lg font-bold text-[var(--color-dark)] truncate">
-                  {user?.email}
+                  {rawEmail || "—"}
                 </p>
               </div>
             </div>
@@ -613,7 +638,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
-                No stats record found for <span className="font-bold">{user?.email}</span>.
+                No stats record found for <span className="font-bold">{rawEmail || "your account"}</span>.
                 <div className="mt-1 text-sm text-amber-800">
                   Add a Firestore doc in <span className="font-semibold">playerStats</span> with doc id = your email.
                 </div>
