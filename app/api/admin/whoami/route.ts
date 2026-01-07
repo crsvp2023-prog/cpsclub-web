@@ -2,11 +2,26 @@ import { admin } from "@/app/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
-const ADMIN_EMAIL = "crsvp.2023@gmail.com";
+const DEFAULT_ADMIN_EMAIL = "crsvp.2023@gmail.com";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
+
+function parseCsvEnv(value: string | undefined) {
+  return (value || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+const ADMIN_EMAILS = new Set(
+  (parseCsvEnv(process.env.ADMIN_EMAILS).length ? parseCsvEnv(process.env.ADMIN_EMAILS) : [DEFAULT_ADMIN_EMAIL]).map(
+    normalizeEmail
+  )
+);
+
+const ADMIN_UIDS = new Set(parseCsvEnv(process.env.ADMIN_UIDS));
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization") || request.headers.get("Authorization");
@@ -30,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     const normalized = normalizeEmail(email || "");
-    const isAdmin = normalized === normalizeEmail(ADMIN_EMAIL);
+    const isAdmin = ADMIN_UIDS.has(decoded.uid) || (normalized ? ADMIN_EMAILS.has(normalized) : false);
 
     return Response.json(
       {

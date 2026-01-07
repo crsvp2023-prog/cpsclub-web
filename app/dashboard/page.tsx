@@ -14,10 +14,13 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const ADMIN_EMAIL = "crsvp.2023@gmail.com";
-  const rawEmail = (user?.email || firebaseUser?.email || "").trim();
+  const providerEmail =
+    (firebaseUser?.providerData || []).find((p) => typeof p?.email === "string" && p.email.trim())?.email || "";
+  const rawEmail = (user?.email || firebaseUser?.email || providerEmail || "").trim();
   const effectiveEmail = rawEmail.toLowerCase();
   const emailIsAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
   const [serverIsAdmin, setServerIsAdmin] = useState<boolean | null>(null);
+  const [serverWhoami, setServerWhoami] = useState<any>(null);
   const isAdmin = emailIsAdmin || serverIsAdmin === true;
   const [debugAdmin, setDebugAdmin] = useState(false);
   const displayName = user?.name || firebaseUser?.displayName || "User";
@@ -94,9 +97,11 @@ export default function DashboardPage() {
 
         const data = await res.json().catch(() => null);
         if (cancelled) return;
+        setServerWhoami(data);
         setServerIsAdmin(!!data?.isAdmin);
       } catch {
         if (cancelled) return;
+        setServerWhoami(null);
         setServerIsAdmin(null);
       }
     };
@@ -343,10 +348,25 @@ export default function DashboardPage() {
             <div className="font-bold text-gray-900 mb-2">Admin Debug</div>
             <div>profile user.email: <span className="font-mono">{String(user?.email || "")}</span></div>
             <div>firebaseUser.email: <span className="font-mono">{String(firebaseUser?.email || "")}</span></div>
+            <div>providerData.email: <span className="font-mono">{String(providerEmail || "")}</span></div>
             <div>effectiveEmail: <span className="font-mono">{String(effectiveEmail || "")}</span></div>
             <div>emailIsAdmin: <span className="font-mono">{String(emailIsAdmin)}</span></div>
             <div>serverIsAdmin: <span className="font-mono">{String(serverIsAdmin)}</span></div>
             <div>isAdmin: <span className="font-mono">{String(isAdmin)}</span></div>
+            <div className="mt-2">
+              whoami.uid: <span className="font-mono">{String(serverWhoami?.uid || "")}</span>
+            </div>
+            <div>
+              whoami.email: <span className="font-mono">{String(serverWhoami?.email || "")}</span>
+            </div>
+            <div>
+              whoami.authenticated: <span className="font-mono">{String(serverWhoami?.authenticated ?? "")}</span>
+            </div>
+            {serverWhoami?.error && (
+              <div>
+                whoami.error: <span className="font-mono">{String(serverWhoami?.error || "")}</span>
+              </div>
+            )}
           </div>
         )}
         {/* Header */}
