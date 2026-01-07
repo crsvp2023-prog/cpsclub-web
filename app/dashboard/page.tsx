@@ -12,6 +12,9 @@ import { UPCOMING_MATCHES } from "../data/upcoming-matches";
 export default function DashboardPage() {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+
+  const ADMIN_EMAIL = "crsvp.2023@gmail.com";
+  const isAdmin = (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -25,11 +28,152 @@ export default function DashboardPage() {
   const [registeredMatches, setRegisteredMatches] = useState<any[]>([]);
   const [availableMatches, setAvailableMatches] = useState<any[]>([]);
 
+  const [emailStatsLoading, setEmailStatsLoading] = useState(false);
+  const [emailStatsRecord, setEmailStatsRecord] = useState<null | {
+    playCricketUrl?: string;
+    stats?: {
+      matchesPlayed?: number;
+      runsScored?: number;
+      wickets?: number;
+      battingAverage?: number;
+      strikeRate?: number;
+    };
+  }>(null);
+
+  const [myStatsLoading, setMyStatsLoading] = useState(false);
+  const [myBattingStats, setMyBattingStats] = useState<null | {
+    matches: number;
+    innings: number;
+    runs: number;
+    balls: number;
+    fours: number;
+    sixes: number;
+    highest: number;
+  }>(null);
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/login");
     }
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
+
+    const loadMyPlayerStats = async () => {
+      if (!isAuthenticated || !user?.name) return;
+
+      setMyStatsLoading(true);
+
+      try {
+        const response = await fetch("/matches-data.json", { cache: "no-store" });
+        if (!response.ok) {
+          setMyBattingStats(null);
+          return;
+        }
+
+        const data = await response.json();
+        const matches = Array.isArray(data?.matches) ? data.matches : [];
+        const target = normalizeName(user.name);
+
+        let matchesCount = 0;
+        let innings = 0;
+        let runs = 0;
+        let balls = 0;
+        let fours = 0;
+        let sixes = 0;
+        let highest = 0;
+
+        for (const match of matches) {
+          const allBatting: any[] = [
+            ...(match?.team1?.batting || []),
+            ...(match?.team2?.batting || []),
+          ];
+
+          let matchedThisMatch = false;
+
+          for (const entry of allBatting) {
+            const entryName = typeof entry?.name === "string" ? normalizeName(entry.name) : "";
+            if (!entryName || entryName !== target) continue;
+
+            matchedThisMatch = true;
+            innings += 1;
+            const entryRuns = Number(entry?.runs) || 0;
+            const entryBalls = Number(entry?.balls) || 0;
+            const entryFours = Number(entry?.fours) || 0;
+            const entrySixes = Number(entry?.sixes) || 0;
+
+            runs += entryRuns;
+            balls += entryBalls;
+            fours += entryFours;
+            sixes += entrySixes;
+            if (entryRuns > highest) highest = entryRuns;
+          }
+
+          if (matchedThisMatch) matchesCount += 1;
+        }
+
+        if (innings === 0) {
+          setMyBattingStats(null);
+          return;
+        }
+
+        setMyBattingStats({
+          matches: matchesCount,
+          innings,
+          runs,
+          balls,
+          fours,
+          sixes,
+          highest,
+        });
+      } catch (error) {
+        console.warn("Failed to load player stats:", error);
+        setMyBattingStats(null);
+      } finally {
+        setMyStatsLoading(false);
+      }
+    };
+
+    loadMyPlayerStats();
+  }, [isAuthenticated, user?.name]);
+
+  useEffect(() => {
+    const loadEmailStats = async () => {
+      if (!isAuthenticated || !user?.email) {
+        setEmailStatsRecord(null);
+        return;
+      }
+
+      setEmailStatsLoading(true);
+      try {
+        const email = user.email.trim().toLowerCase();
+        const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}`, { cache: "no-store" });
+        if (!res.ok) {
+          setEmailStatsRecord(null);
+          return;
+        }
+
+        const data = await res.json();
+        if (!data?.exists) {
+          setEmailStatsRecord(null);
+          return;
+        }
+
+        setEmailStatsRecord({
+          playCricketUrl: typeof data?.playCricketUrl === "string" ? data.playCricketUrl : undefined,
+          stats: typeof data?.stats === "object" && data.stats ? data.stats : undefined,
+        });
+      } catch (e) {
+        console.warn("Failed to load email-based stats:", e);
+        setEmailStatsRecord(null);
+      } finally {
+        setEmailStatsLoading(false);
+      }
+    };
+
+    loadEmailStats();
+  }, [isAuthenticated, user?.email]);
 
   if (isLoading) {
     return (
@@ -79,28 +223,52 @@ export default function DashboardPage() {
   };
 
   const handleViewRegisteredMatches = async () => {
-    try {
-      const response = await fetch(`/api/match-registration?userEmail=${encodeURIComponent(user?.email || '')}`);
-      const result = await response.json();
+    const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
 
-      if (response.ok) {
-        // Transform the data for display
-        const registeredMatches = result.registrations.map((reg: any) => ({
-          id: reg.matchId,
-          date: reg.matchDetails.date,
-          opponent: reg.matchDetails.opponent,
-          venue: reg.matchDetails.venue,
-          status: 'Confirmed',
-          registeredAt: new Date(reg.registeredAt).toLocaleDateString()
-        }));
-        setRegisteredMatches(registeredMatches);
-        setActiveModal('registeredMatches');
-      } else {
-        alert(`Failed to load registered matches: ${result.error}`);
+    if (!user?.name) {
+      alert('User name is missing. Please log out and log back in.');
+      return;
+    }
+
+    try {
+      // We don’t have PlayHQ SSO in this app; instead we use PlayHQ-derived match data
+      // and match the logged-in user's name against stored scorecards.
+      const response = await fetch('/matches-data.json', { cache: 'no-store' });
+      if (!response.ok) {
+        alert('Could not load match data. Please try again.');
+        return;
       }
+
+      const data = await response.json();
+      const matches = Array.isArray(data?.matches) ? data.matches : [];
+      const target = normalizeName(user.name);
+
+      const myMatches = matches
+        .filter((match: any) => {
+          const batting: any[] = [
+            ...(match?.team1?.batting || []),
+            ...(match?.team2?.batting || []),
+          ];
+
+          return batting.some((entry) => {
+            const entryName = typeof entry?.name === 'string' ? normalizeName(entry.name) : '';
+            return entryName === target;
+          });
+        })
+        .map((match: any) => ({
+          id: match?.id ?? `${match?.matchName ?? 'match'}-${match?.date ?? ''}`,
+          matchName: match?.matchName || 'Match',
+          date: match?.date || 'TBD',
+          venue: match?.venue || 'TBD',
+          status: match?.status || 'COMPLETED',
+          result: match?.result || '',
+        }));
+
+      setRegisteredMatches(myMatches);
+      setActiveModal('registeredMatches');
     } catch (error) {
-      console.error('Error fetching registered matches:', error);
-      alert('Failed to load registered matches. Please try again.');
+      console.error('Error fetching match data:', error);
+      alert('Failed to load your matches. Please try again.');
     }
   };
 
@@ -222,6 +390,90 @@ export default function DashboardPage() {
 
         {/* Dashboard Sections */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Admin Section */}
+          {isAdmin && (
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+              <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">Admin</h2>
+              <div className="space-y-3">
+                <Link
+                  href="/admin/matches"
+                  className="block w-full px-4 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg font-bold hover:bg-blue-50 transition-colors text-center"
+                >
+                  Manage Matches
+                </Link>
+                <Link
+                  href="/admin/player-stats"
+                  className="block w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors text-center"
+                >
+                  Manage Player Stats
+                </Link>
+                <Link
+                  href="/admin/standings"
+                  className="block w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors text-center"
+                >
+                  Manage Standings
+                </Link>
+                <Link
+                  href="/admin/register-interest"
+                  className="block w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors text-center"
+                >
+                  Registration Interests
+                </Link>
+                <Link
+                  href="/admin/newsletter-subscribers"
+                  className="block w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors text-center"
+                >
+                  Newsletter Subscribers
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Player Stats */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+            <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-2">My Player Stats</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Stats are calculated from PlayHQ scorecards stored in match data.
+            </p>
+
+            {myStatsLoading ? (
+              <div className="text-gray-600">Loading stats…</div>
+            ) : myBattingStats ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                  <p className="text-xs text-gray-600">Matches</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">{myBattingStats.matches}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                  <p className="text-xs text-gray-600">Innings</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">{myBattingStats.innings}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-green-50 border border-green-100">
+                  <p className="text-xs text-gray-600">Runs</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">{myBattingStats.runs}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-green-50 border border-green-100">
+                  <p className="text-xs text-gray-600">Highest</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">{myBattingStats.highest}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                  <p className="text-xs text-gray-600">Strike Rate</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">
+                    {myBattingStats.balls > 0
+                      ? ((myBattingStats.runs / myBattingStats.balls) * 100).toFixed(1)
+                      : "0.0"}
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                  <p className="text-xs text-gray-600">4s / 6s</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">
+                    {myBattingStats.fours} / {myBattingStats.sixes}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
           {/* Profile Section */}
           <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
             <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">
@@ -278,16 +530,59 @@ export default function DashboardPage() {
             <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">
               Statistics
             </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                <p className="text-2xl font-bold text-[var(--color-primary)]">0</p>
-                <p className="text-sm text-gray-600">Matches Played</p>
+
+            {emailStatsLoading ? (
+              <div className="text-gray-600">Loading…</div>
+            ) : emailStatsRecord?.stats ? (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-[var(--color-primary)]">
+                      {Number(emailStatsRecord.stats.matchesPlayed ?? 0)}
+                    </p>
+                    <p className="text-sm text-gray-600">Matches Played</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">
+                      {Number(emailStatsRecord.stats.runsScored ?? 0)}
+                    </p>
+                    <p className="text-sm text-gray-600">Runs Scored</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-purple-700">
+                      {Number(emailStatsRecord.stats.wickets ?? 0)}
+                    </p>
+                    <p className="text-sm text-gray-600">Wickets</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-[var(--color-dark)]">
+                      {typeof emailStatsRecord.stats.battingAverage === "number"
+                        ? emailStatsRecord.stats.battingAverage.toFixed(2)
+                        : "—"}
+                    </p>
+                    <p className="text-sm text-gray-600">Batting Avg</p>
+                  </div>
+                </div>
+
+                {emailStatsRecord.playCricketUrl && (
+                  <a
+                    href={emailStatsRecord.playCricketUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-block text-sm font-semibold text-[var(--color-primary)] hover:underline"
+                  >
+                    View PlayCricket Profile →
+                  </a>
+                )}
+              </>
+            ) : (
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+                No stats record found for <span className="font-bold">{user?.email}</span>.
+                <div className="mt-1 text-sm text-amber-800">
+                  Add a Firestore doc in <span className="font-semibold">playerStats</span> with doc id = your email.
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">0</p>
-                <p className="text-sm text-gray-600">Runs Scored</p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Activity Section */}
@@ -468,22 +763,35 @@ export default function DashboardPage() {
       {activeModal === 'registeredMatches' && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-2xl font-bold text-[var(--color-dark)] mb-6">Registered Matches</h3>
+            <h3 className="text-2xl font-bold text-[var(--color-dark)] mb-2">My Matches</h3>
+            <p className="text-sm text-gray-600 mb-6">Based on PlayHQ match data available to the site.</p>
             <div className="space-y-4">
-              {registeredMatches.map((match) => (
-                <div key={match.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-bold text-lg">vs {match.opponent}</p>
-                      <p className="text-gray-600">{match.date}</p>
-                      <p className="text-sm text-gray-500">Venue: {match.venue}</p>
-                    </div>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                      {match.status}
-                    </span>
+              {registeredMatches.length === 0 ? (
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+                  No matches found for <span className="font-bold">{user?.name}</span> in the current match data.
+                  <div className="mt-1 text-sm text-amber-800">
+                    Matches will appear once scorecards are added to match data.
                   </div>
                 </div>
-              ))}
+              ) : (
+                registeredMatches.map((match: any) => (
+                  <div key={match.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <p className="font-bold text-lg">{match.matchName}</p>
+                        <p className="text-gray-600">{match.date}</p>
+                        <p className="text-sm text-gray-500">Venue: {match.venue}</p>
+                        {match.result ? (
+                          <p className="text-sm text-gray-600 mt-1">Result: {match.result}</p>
+                        ) : null}
+                      </div>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium whitespace-nowrap">
+                        {match.status}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
             <div className="mt-6 text-center">
               <button

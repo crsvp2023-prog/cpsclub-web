@@ -7,10 +7,32 @@ let adminApp: admin.app.App;
 try {
   if (!admin.apps.length) {
     // Get service account from environment variable
-    let serviceAccount;
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    // Prefer base64 to avoid newline/control-character issues in env parsing.
+    let serviceAccount: any;
+
+    const tryParseServiceAccount = (raw: string) => {
       try {
-        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        return JSON.parse(raw);
+      } catch {
+        // If the env var contains literal newlines (common when copy/pasting keys),
+        // JSON.parse will fail with "Bad control character".
+        // Try a best-effort sanitization by escaping newlines.
+        const sanitized = raw.replace(/\r\n/g, "\\n").replace(/\n/g, "\\n").replace(/\r/g, "\\n");
+        return JSON.parse(sanitized);
+      }
+    };
+
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+      try {
+        const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8');
+        serviceAccount = tryParseServiceAccount(decoded);
+      } catch (e) {
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_BASE64:', e);
+        serviceAccount = undefined;
+      }
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        serviceAccount = tryParseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT);
       } catch (e) {
         console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', e);
         serviceAccount = undefined;

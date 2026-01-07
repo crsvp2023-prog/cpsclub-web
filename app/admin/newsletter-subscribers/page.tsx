@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/context/AuthContext';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
@@ -13,12 +15,32 @@ interface Subscriber {
 }
 
 export default function NewsletterSubscribersPage() {
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const ADMIN_EMAIL = 'crsvp.2023@gmail.com';
+  const isAdmin = isAuthenticated && (user?.email || '').trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
+
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    if (!isAdmin) {
+      router.push('/');
+      return;
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
+
+  useEffect(() => {
+    if (authLoading || !isAdmin) return;
+
     const fetchSubscribers = async () => {
       try {
         setLoading(true);
@@ -50,7 +72,35 @@ export default function NewsletterSubscribersPage() {
     };
 
     fetchSubscribers();
-  }, []);
+  }, [authLoading, isAdmin]);
+
+  if (authLoading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+          <p className="mt-4 text-gray-600">Checking permissions...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-6">You don't have permission to access this page. Admin access required.</p>
+          <button
+            onClick={() => router.push('/')}
+            className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:shadow-lg transition-all"
+          >
+            Go Home
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   const filteredSubscribers = subscribers.filter(
     (sub) =>
