@@ -14,6 +14,8 @@ export async function GET() {
         firestoreInitialized: !!db,
         projectId: projectId || null,
         envProjectId: process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || null,
+        nextPublicUseTestFirebase: process.env.NEXT_PUBLIC_USE_TEST_FIREBASE || null,
+        nextPublicProjectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || null,
         hasServiceAccountBase64: !!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64,
         hasServiceAccountJson: !!process.env.FIREBASE_SERVICE_ACCOUNT,
         timestamp: new Date().toISOString(),
