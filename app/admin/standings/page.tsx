@@ -26,19 +26,50 @@ export default function StandingsAdmin() {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  const loadCurrentStandings = async () => {
+    try {
+      setIsLoading(true);
+      // Load standings directly from the cached JSON file
+      const response = await fetch('/playhq-data.json');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.standings) {
+          setStandings(data.standings);
+          setMessage('✅ Data loaded from cache');
+          setTimeout(() => setMessage(''), 3000);
+        } else {
+          setMessage('⚠️ Could not load current data, using defaults');
+          setTimeout(() => setMessage(''), 3000);
+        }
+      } else {
+        setMessage('⚠️ Could not load current data, using defaults');
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to load current standings:', error);
+      setMessage('⚠️ Could not load current data, using defaults');
+      setTimeout(() => setMessage(''), 3000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Check authentication and redirect if not admin
   useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        router.push('/login');
-        return;
-      }
-      if (!isAdmin) {
-        router.push('/');
-        return;
-      }
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      router.push('/login');
     }
-  }, [isAuthenticated, isAdmin, authLoading, router]);
+  }, [isAuthenticated, authLoading, router]);
+
+  // Load standings once permissions are resolved and the user is admin.
+  // This hook must stay above conditional returns to preserve hook order.
+  useEffect(() => {
+    if (authLoading || adminChecking) return;
+    if (!isAuthenticated || !isAdmin) return;
+    loadCurrentStandings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, adminChecking, isAuthenticated, isAdmin]);
 
   // Show loading while checking authentication/admin
   if (authLoading || adminChecking || (isAuthenticated && serverIsAdmin === null)) {
@@ -71,39 +102,6 @@ export default function StandingsAdmin() {
       </main>
     );
   }
-
-  // Load current standings on component mount
-  useEffect(() => {
-    loadCurrentStandings();
-  }, []);
-
-  const loadCurrentStandings = async () => {
-    try {
-      setIsLoading(true);
-      // Load standings directly from the cached JSON file
-      const response = await fetch('/playhq-data.json');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.standings) {
-          setStandings(data.standings);
-          setMessage('✅ Data loaded from cache');
-          setTimeout(() => setMessage(''), 3000);
-        } else {
-          setMessage('⚠️ Could not load current data, using defaults');
-          setTimeout(() => setMessage(''), 3000);
-        }
-      } else {
-        setMessage('⚠️ Could not load current data, using defaults');
-        setTimeout(() => setMessage(''), 3000);
-      }
-    } catch (error) {
-      console.error('Failed to load current standings:', error);
-      setMessage('⚠️ Could not load current data, using defaults');
-      setTimeout(() => setMessage(''), 3000);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const updateStanding = (index: number, field: keyof Standing, value: string | number) => {
     const newStandings = [...standings];

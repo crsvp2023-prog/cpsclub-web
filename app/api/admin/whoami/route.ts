@@ -1,4 +1,4 @@
-import { admin } from "@/app/lib/firebase-admin";
+import { getAdminAuthForToken } from "@/app/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
@@ -32,12 +32,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
+    const auth = getAdminAuthForToken(token);
+    const decoded = await auth.verifyIdToken(token);
 
     let email = typeof (decoded as any)?.email === "string" ? (decoded as any).email : undefined;
     if (!email) {
       try {
-        const userRecord = await admin.auth().getUser(decoded.uid);
+        const userRecord = await auth.getUser(decoded.uid);
         email = userRecord.email || undefined;
       } catch {
         // ignore

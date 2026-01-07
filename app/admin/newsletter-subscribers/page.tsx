@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import { useServerAdmin } from '@/app/lib/useServerAdmin';
-import { db } from '@/app/lib/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 interface Subscriber {
   id: string;
@@ -30,13 +28,8 @@ export default function NewsletterSubscribersPage() {
     if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
-      return;
     }
-    if (!isAdmin) {
-      router.push('/');
-      return;
-    }
-  }, [authLoading, isAuthenticated, isAdmin, router]);
+  }, [authLoading, isAuthenticated, router]);
 
   useEffect(() => {
     if (authLoading || !isAdmin) return;
@@ -44,22 +37,25 @@ export default function NewsletterSubscribersPage() {
     const fetchSubscribers = async () => {
       try {
         setLoading(true);
-        const q = query(
-          collection(db, 'newsletter_subscribers'),
-          orderBy('subscribedAt', 'desc')
-        );
-        const querySnapshot = await getDocs(q);
-        const data: Subscriber[] = [];
-        
-        querySnapshot.forEach((doc) => {
-          data.push({
-            id: doc.id,
-            email: doc.data().email,
-            firstName: doc.data().firstName,
-            subscribedAt: doc.data().subscribedAt,
-            status: doc.data().status,
-          });
+        if (!firebaseUser) {
+          throw new Error('Not authenticated. Please log out and log in again.');
+        }
+
+        const idToken = await firebaseUser.getIdToken();
+        const res = await fetch('/api/admin/newsletter-subscribers', {
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
         });
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          throw new Error(text || 'Failed to fetch subscribers');
+        }
+
+        const json = await res.json();
+        const data: Subscriber[] = Array.isArray(json?.subscribers) ? json.subscribers : [];
 
         setSubscribers(data);
         setError(null);
@@ -72,7 +68,7 @@ export default function NewsletterSubscribersPage() {
     };
 
     fetchSubscribers();
-  }, [authLoading, isAdmin]);
+  }, [authLoading, isAdmin, firebaseUser]);
 
   if (authLoading || adminChecking || (isAuthenticated && serverIsAdmin === null)) {
     return (
