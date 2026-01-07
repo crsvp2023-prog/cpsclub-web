@@ -24,6 +24,8 @@ export default function DashboardPage() {
   const isAdmin = emailIsAdmin || serverIsAdmin === true;
   const [debugAdmin, setDebugAdmin] = useState(false);
   const displayName = user?.name || firebaseUser?.displayName || "User";
+  const serverEmail = typeof serverWhoami?.email === "string" ? serverWhoami.email : "";
+  const displayEmail = rawEmail || serverEmail;
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -195,14 +197,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const loadEmailStats = async () => {
-      if (!isAuthenticated || !rawEmail) {
+      const emailCandidate = (rawEmail || serverEmail || "").trim();
+      if (!isAuthenticated || !emailCandidate) {
         setEmailStatsRecord(null);
         return;
       }
 
       setEmailStatsLoading(true);
       try {
-        const email = rawEmail.toLowerCase();
+        const email = emailCandidate.toLowerCase();
         const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}`, { cache: "no-store" });
         if (!res.ok) {
           setEmailStatsRecord(null);
@@ -228,7 +231,7 @@ export default function DashboardPage() {
     };
 
     loadEmailStats();
-  }, [isAuthenticated, rawEmail]);
+  }, [isAuthenticated, rawEmail, serverEmail]);
 
   if (isLoading) {
     return (
@@ -450,7 +453,7 @@ export default function DashboardPage() {
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Email</p>
                 <p className="text-lg font-bold text-[var(--color-dark)] truncate">
-                  {rawEmail || "—"}
+                  {displayEmail || "—"}
                 </p>
               </div>
             </div>
@@ -658,7 +661,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
-                No stats record found for <span className="font-bold">{rawEmail || "your account"}</span>.
+                No stats record found for <span className="font-bold">{displayEmail || "your account"}</span>.
                 <div className="mt-1 text-sm text-amber-800">
                   Add a Firestore doc in <span className="font-semibold">playerStats</span> with doc id = your email.
                 </div>
