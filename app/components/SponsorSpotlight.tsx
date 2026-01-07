@@ -172,7 +172,7 @@ export default function SponsorSpotlight() {
               <div className="h-px w-10 sm:w-16 bg-white/15" />
             </div>
 
-            <div className="flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory md:overflow-visible md:snap-none md:pb-0 md:grid md:grid-cols-3 md:gap-6">
+            <div className="grid grid-cols-3 gap-3 md:grid-cols-3 md:gap-6">
               {primarySponsors.map((sponsor, index) => (
                 <a
                   key={`${sponsor.name}-primary-${index}`}
@@ -180,38 +180,38 @@ export default function SponsorSpotlight() {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ animationDelay: `${index * 90}ms` }}
-                  className="partner-card group relative bg-white/95 rounded-2xl p-4 sm:p-6 shadow-md border border-white/30 overflow-hidden hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 shrink-0 w-72 sm:w-80 md:w-auto snap-start md:snap-align-none flex flex-col"
+                  className="partner-card group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col"
                 >
-                  <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-[var(--color-accent)]/10" />
-                  <div className="partner-sheen pointer-events-none absolute -inset-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                  <div className="relative flex items-center justify-between mb-4">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)]/25 border border-[var(--color-accent)]/50 px-3 py-1 text-[0.7rem] font-extrabold uppercase tracking-widest text-[var(--color-dark)]">
+                  <div className="relative h-20 sm:h-44 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/15 via-white to-[var(--color-accent)]/15" />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
+                    <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-6">
+                      <img
+                        src={sponsor.logo}
+                        alt={sponsor.name}
+                        className="max-h-10 sm:max-h-16 md:max-h-20 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="absolute left-2 top-2 hidden sm:inline-flex items-center gap-2 rounded-full bg-white/80 border border-white/60 px-3 py-1 text-[0.7rem] font-extrabold uppercase tracking-widest text-[var(--color-dark)]">
                       <span aria-hidden>★</span>
                       {sponsor.role || 'Premier Sponsor'}
-                    </span>
-                    <span className="text-xs font-semibold text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
-                      Visit →
-                    </span>
+                    </div>
                   </div>
 
-                  <div className="relative flex items-center justify-center bg-gradient-to-br from-white to-gray-50 rounded-xl p-4 sm:p-5 min-h-24 sm:min-h-28">
-                    <img
-                      src={sponsor.logo}
-                      alt={sponsor.name}
-                      className="h-14 sm:h-16 md:h-24 w-auto object-contain"
-                    />
-                  </div>
-
-                  <div className="relative mt-3 sm:mt-4">
-                    <p className="text-base font-bold text-[var(--color-dark)] group-hover:text-[var(--color-primary)] transition-colors">
+                  <div className="p-3 sm:p-6 flex flex-col flex-grow">
+                    <p className="text-[0.8rem] sm:text-lg font-bold text-gray-900 mb-2 leading-snug group-hover:text-[var(--color-primary)] transition-colors">
                       {sponsor.name}
                     </p>
+
                     {sponsor.description && (
-                      <p className="mt-1 hidden sm:block text-sm text-gray-600 line-clamp-2">
+                      <p className="hidden sm:block text-sm text-gray-600 mb-4 leading-relaxed line-clamp-2 flex-grow">
                         {sponsor.description}
                       </p>
                     )}
+
+                    <div className="mt-auto flex items-center justify-center gap-2 px-3 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] rounded-lg font-black text-[0.7rem] sm:text-sm hover:shadow-lg hover:scale-105 transition-all duration-300 uppercase tracking-wider w-full">
+                      Visit Website →
+                    </div>
                   </div>
                 </a>
               ))}
