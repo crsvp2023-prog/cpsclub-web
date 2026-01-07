@@ -15,7 +15,9 @@ export default function DashboardPage() {
 
   const ADMIN_EMAIL = "crsvp.2023@gmail.com";
   const effectiveEmail = (user?.email || firebaseUser?.email || "").trim().toLowerCase();
-  const isAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
+  const emailIsAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
+  const [serverIsAdmin, setServerIsAdmin] = useState<boolean | null>(null);
+  const isAdmin = serverIsAdmin === true || (serverIsAdmin === null && emailIsAdmin);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -57,6 +59,39 @@ export default function DashboardPage() {
       router.push("/login");
     }
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkAdmin = async () => {
+      if (!isAuthenticated || !firebaseUser) {
+        setServerIsAdmin(null);
+        return;
+      }
+
+      try {
+        const idToken = await firebaseUser.getIdToken();
+        const res = await fetch("/api/admin/whoami", {
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        setServerIsAdmin(!!data?.isAdmin);
+      } catch {
+        if (cancelled) return;
+        setServerIsAdmin(null);
+      }
+    };
+
+    checkAdmin();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, firebaseUser]);
 
   useEffect(() => {
     const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
