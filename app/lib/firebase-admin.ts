@@ -41,6 +41,11 @@ try {
       serviceAccount = undefined;
     }
 
+    const resolvedProjectId =
+      process.env.FIREBASE_PROJECT_ID ||
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+      (serviceAccount && typeof serviceAccount.project_id === 'string' ? serviceAccount.project_id : undefined);
+
     if (!serviceAccount) {
       console.warn(
         'WARNING: Firebase Admin SDK not initialized - FIREBASE_SERVICE_ACCOUNT environment variable not set. ' +
@@ -49,12 +54,12 @@ try {
       );
       // Initialize with empty/dummy credentials for dev (will fail at runtime if used)
       adminApp = admin.initializeApp({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        projectId: resolvedProjectId,
       });
     } else {
       adminApp = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        projectId: resolvedProjectId,
       });
       console.log('Firebase Admin SDK initialized successfully');
     }
@@ -67,7 +72,7 @@ try {
   console.error('Error setting up Firebase Admin:', error);
   // Create a dummy firestore instance that will error at runtime
   adminApp = admin.initializeApp({
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    projectId: process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   });
   db = admin.firestore();
 }
