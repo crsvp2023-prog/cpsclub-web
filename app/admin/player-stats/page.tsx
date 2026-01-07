@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
+import { useServerAdmin } from '@/app/lib/useServerAdmin';
 
 type PlayerStats = {
   matchesPlayed?: number;
@@ -33,9 +34,8 @@ export default function AdminPlayerStatsPage() {
   const router = useRouter();
   const { user, firebaseUser, isAuthenticated, isLoading: authLoading } = useAuth();
 
-  const ADMIN_EMAIL = 'crsvp.2023@gmail.com';
-  const isAdmin =
-    isAuthenticated && (user?.email || '').trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
+  const { serverIsAdmin, checking: adminChecking } = useServerAdmin(isAuthenticated, firebaseUser);
+  const isAdmin = serverIsAdmin === true;
 
   const [emailInput, setEmailInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -62,6 +62,17 @@ export default function AdminPlayerStatsPage() {
       router.push('/');
     }
   }, [authLoading, isAuthenticated, isAdmin, router]);
+
+  if (authLoading || adminChecking || (isAuthenticated && serverIsAdmin === null)) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+          <p className="mt-4 text-gray-600">Checking permissions...</p>
+        </div>
+      </main>
+    );
+  }
 
   const loadRecord = async () => {
     if (!normalizedEmail) {

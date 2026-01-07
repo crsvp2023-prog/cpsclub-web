@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
+import { useServerAdmin } from '@/app/lib/useServerAdmin';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
@@ -16,10 +17,9 @@ interface Subscriber {
 
 export default function NewsletterSubscribersPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-
-  const ADMIN_EMAIL = 'crsvp.2023@gmail.com';
-  const isAdmin = isAuthenticated && (user?.email || '').trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
+  const { isAuthenticated, firebaseUser, isLoading: authLoading } = useAuth();
+  const { serverIsAdmin, checking: adminChecking } = useServerAdmin(isAuthenticated, firebaseUser);
+  const isAdmin = serverIsAdmin === true;
 
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +74,7 @@ export default function NewsletterSubscribersPage() {
     fetchSubscribers();
   }, [authLoading, isAdmin]);
 
-  if (authLoading) {
+  if (authLoading || adminChecking || (isAuthenticated && serverIsAdmin === null)) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
         <div className="text-center">
