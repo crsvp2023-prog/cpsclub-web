@@ -12,6 +12,9 @@ import { UPCOMING_MATCHES } from "../data/upcoming-matches";
 export default function DashboardPage() {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+
+  const ADMIN_EMAIL = "crsvp.2023@gmail.com";
+  const isAdmin = (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -24,6 +27,18 @@ export default function DashboardPage() {
   const [matchHistory, setMatchHistory] = useState<any[]>([]);
   const [registeredMatches, setRegisteredMatches] = useState<any[]>([]);
   const [availableMatches, setAvailableMatches] = useState<any[]>([]);
+
+  const [emailStatsLoading, setEmailStatsLoading] = useState(false);
+  const [emailStatsRecord, setEmailStatsRecord] = useState<null | {
+    playCricketUrl?: string;
+    stats?: {
+      matchesPlayed?: number;
+      runsScored?: number;
+      wickets?: number;
+      battingAverage?: number;
+      strikeRate?: number;
+    };
+  }>(null);
 
   const [myStatsLoading, setMyStatsLoading] = useState(false);
   const [myBattingStats, setMyBattingStats] = useState<null | {
@@ -122,6 +137,43 @@ export default function DashboardPage() {
 
     loadMyPlayerStats();
   }, [isAuthenticated, user?.name]);
+
+  useEffect(() => {
+    const loadEmailStats = async () => {
+      if (!isAuthenticated || !user?.email) {
+        setEmailStatsRecord(null);
+        return;
+      }
+
+      setEmailStatsLoading(true);
+      try {
+        const email = user.email.trim().toLowerCase();
+        const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}`, { cache: "no-store" });
+        if (!res.ok) {
+          setEmailStatsRecord(null);
+          return;
+        }
+
+        const data = await res.json();
+        if (!data?.exists) {
+          setEmailStatsRecord(null);
+          return;
+        }
+
+        setEmailStatsRecord({
+          playCricketUrl: typeof data?.playCricketUrl === "string" ? data.playCricketUrl : undefined,
+          stats: typeof data?.stats === "object" && data.stats ? data.stats : undefined,
+        });
+      } catch (e) {
+        console.warn("Failed to load email-based stats:", e);
+        setEmailStatsRecord(null);
+      } finally {
+        setEmailStatsLoading(false);
+      }
+    };
+
+    loadEmailStats();
+  }, [isAuthenticated, user?.email]);
 
   if (isLoading) {
     return (
@@ -338,6 +390,45 @@ export default function DashboardPage() {
 
         {/* Dashboard Sections */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Admin Section */}
+          {isAdmin && (
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+              <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">Admin</h2>
+              <div className="space-y-3">
+                <Link
+                  href="/admin/matches"
+                  className="block w-full px-4 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg font-bold hover:bg-blue-50 transition-colors text-center"
+                >
+                  Manage Matches
+                </Link>
+                <Link
+                  href="/admin/player-stats"
+                  className="block w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors text-center"
+                >
+                  Manage Player Stats
+                </Link>
+                <Link
+                  href="/admin/standings"
+                  className="block w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors text-center"
+                >
+                  Manage Standings
+                </Link>
+                <Link
+                  href="/admin/register-interest"
+                  className="block w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors text-center"
+                >
+                  Registration Interests
+                </Link>
+                <Link
+                  href="/admin/newsletter-subscribers"
+                  className="block w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors text-center"
+                >
+                  Newsletter Subscribers
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Player Stats */}
           <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
             <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-2">My Player Stats</h2>
@@ -380,14 +471,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
-                No PlayHQ scorecard stats found for <span className="font-bold">{user?.name}</span> yet.
-                <div className="mt-1 text-sm text-amber-800">
-                  Add batting scorecards to match data (so the site can calculate player stats).
-                </div>
-              </div>
-            )}
+            ) : null}
           </div>
 
           {/* Profile Section */}
@@ -446,16 +530,59 @@ export default function DashboardPage() {
             <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">
               Statistics
             </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                <p className="text-2xl font-bold text-[var(--color-primary)]">0</p>
-                <p className="text-sm text-gray-600">Matches Played</p>
+
+            {emailStatsLoading ? (
+              <div className="text-gray-600">Loading…</div>
+            ) : emailStatsRecord?.stats ? (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-[var(--color-primary)]">
+                      {Number(emailStatsRecord.stats.matchesPlayed ?? 0)}
+                    </p>
+                    <p className="text-sm text-gray-600">Matches Played</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">
+                      {Number(emailStatsRecord.stats.runsScored ?? 0)}
+                    </p>
+                    <p className="text-sm text-gray-600">Runs Scored</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-purple-700">
+                      {Number(emailStatsRecord.stats.wickets ?? 0)}
+                    </p>
+                    <p className="text-sm text-gray-600">Wickets</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-[var(--color-dark)]">
+                      {typeof emailStatsRecord.stats.battingAverage === "number"
+                        ? emailStatsRecord.stats.battingAverage.toFixed(2)
+                        : "—"}
+                    </p>
+                    <p className="text-sm text-gray-600">Batting Avg</p>
+                  </div>
+                </div>
+
+                {emailStatsRecord.playCricketUrl && (
+                  <a
+                    href={emailStatsRecord.playCricketUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-block text-sm font-semibold text-[var(--color-primary)] hover:underline"
+                  >
+                    View PlayCricket Profile →
+                  </a>
+                )}
+              </>
+            ) : (
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+                No stats record found for <span className="font-bold">{user?.email}</span>.
+                <div className="mt-1 text-sm text-amber-800">
+                  Add a Firestore doc in <span className="font-semibold">playerStats</span> with doc id = your email.
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">0</p>
-                <p className="text-sm text-gray-600">Runs Scored</p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Activity Section */}

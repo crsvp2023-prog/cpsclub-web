@@ -22,7 +22,9 @@ const ALLOW_ANY_AUTH_USER = false;
 export default function StandingsAdmin() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const isAdmin = ALLOW_ANY_AUTH_USER ? isAuthenticated : (isAuthenticated && user?.email === ADMIN_EMAIL);
+  const isAdmin = ALLOW_ANY_AUTH_USER
+    ? isAuthenticated
+    : (isAuthenticated && (user?.email || '').trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase());
   
   const [standings, setStandings] = useState<Standing[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);

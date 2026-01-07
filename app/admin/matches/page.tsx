@@ -36,7 +36,9 @@ const ALLOW_ANY_AUTH_USER = false;
 export default function MatchesAdmin() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const isAdmin = ALLOW_ANY_AUTH_USER ? isAuthenticated : (isAuthenticated && user?.email === ADMIN_EMAIL);
+  const isAdmin = ALLOW_ANY_AUTH_USER
+    ? isAuthenticated
+    : (isAuthenticated && (user?.email || '').trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase());
 
   const [matches, setMatches] = useState<Match[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
