@@ -4,6 +4,7 @@ import path from 'path';
 import { db } from '@/app/lib/firebase-admin';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const MATCHES_DOC = db.collection('siteData').doc('matches');
 
@@ -102,11 +103,14 @@ export async function GET() {
       if (snap.exists) {
         const data = snap.data();
         if (data && Array.isArray((data as any).matches)) {
-          return NextResponse.json({
-            success: true,
-            data,
-            source: 'firestore',
-          });
+          return NextResponse.json(
+            {
+              success: true,
+              data,
+              source: 'firestore',
+            },
+            { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+          );
         }
       }
     } catch (e) {
@@ -120,11 +124,14 @@ export async function GET() {
 
     if (fs.existsSync(filePath)) {
       const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      return NextResponse.json({
-        success: true,
-        data,
-        source: 'file',
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          data,
+          source: 'file',
+        },
+        { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+      );
     }
 
     return NextResponse.json(
@@ -132,7 +139,7 @@ export async function GET() {
         success: false,
         error: 'No matches data found',
       },
-      { status: 404 }
+      { status: 404, headers: { 'Cache-Control': 'no-store, max-age=0' } }
     );
   } catch (error) {
     console.error('Error reading matches:', error);
