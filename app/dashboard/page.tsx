@@ -123,13 +123,14 @@ export default function DashboardPage() {
       setMyStatsLoading(true);
 
       try {
-        const response = await fetch("/matches-data.json", { cache: "no-store" });
+        const response = await fetch("/api/update-matches", { cache: "no-store" });
         if (!response.ok) {
           setMyBattingStats(null);
           return;
         }
 
-        const data = await response.json();
+        const api = await response.json();
+        const data = api?.success ? api.data : null;
         const matches = Array.isArray(data?.matches) ? data.matches : [];
         const target = normalizeName(user.name);
 
@@ -291,13 +292,14 @@ export default function DashboardPage() {
     try {
       // We don’t have PlayHQ SSO in this app; instead we use PlayHQ-derived match data
       // and match the logged-in user's name against stored scorecards.
-      const response = await fetch('/matches-data.json', { cache: 'no-store' });
+      const response = await fetch('/api/update-matches', { cache: 'no-store' });
       if (!response.ok) {
         alert('Could not load match data. Please try again.');
         return;
       }
 
-      const data = await response.json();
+      const api = await response.json();
+      const data = api?.success ? api.data : null;
       const matches = Array.isArray(data?.matches) ? data.matches : [];
       const target = normalizeName(user.name);
 

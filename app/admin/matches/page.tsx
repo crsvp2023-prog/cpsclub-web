@@ -37,19 +37,22 @@ export default function MatchesAdmin() {
 
   const [matches, setMatches] = useState<Match[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
 
   const loadCurrentMatches = async () => {
     try {
       setIsLoading(true);
-      // Load matches directly from the cached JSON file
-      const response = await fetch('/matches-data.json');
+      // Load matches from the persisted API (Firestore-backed on Vercel)
+      const response = await fetch('/api/update-matches', { cache: 'no-store' });
       if (response.ok) {
-        const data = await response.json();
-        if (data.matches) {
+        const api = await response.json();
+        const data = api?.success ? api.data : null;
+        if (data?.matches) {
           setMatches(data.matches);
-          setMessage('✅ Data loaded from cache');
+          setMessage('✅ Data loaded');
           setTimeout(() => setMessage(''), 3000);
         } else {
           setMessage('⚠️ Could not load current data, using defaults');
@@ -193,6 +196,43 @@ export default function MatchesAdmin() {
     }
   };
 
+  const handleImportCsv = async () => {
+    if (!csvFile) {
+      setMessage('⚠️ Please choose a CSV file to import');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+
+    setIsImporting(true);
+    setMessage('');
+
+    try {
+      const form = new FormData();
+      form.append('file', csvFile);
+
+      const response = await fetch('/api/update-matches-from-csv', {
+        method: 'POST',
+        body: form,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(`✅ ${data.message || 'CSV imported successfully'}`);
+        setCsvFile(null);
+        await loadCurrentMatches();
+        setTimeout(() => setMessage(''), 5000);
+      } else {
+        setMessage(`❌ Error: ${data.error || 'Failed to import CSV'}`);
+      }
+    } catch (error) {
+      console.error('CSV import error:', error);
+      setMessage('❌ Error: Failed to import CSV');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
@@ -220,6 +260,31 @@ export default function MatchesAdmin() {
               >
                 ← Back to Scores
               </button>
+            </div>
+
+            <div className="mb-6 p-4 rounded-lg border border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-[var(--color-dark)]">Import from CSV</h2>
+                  <p className="text-sm text-gray-600">Upload the PlayHQ fixture export to update the site</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                  <input
+                    type="file"
+                    accept=".csv,text/csv"
+                    onChange={(e) => setCsvFile(e.target.files?.[0] ?? null)}
+                    className="block w-full sm:w-80 text-sm text-gray-700 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                  />
+                  <button
+                    onClick={handleImportCsv}
+                    disabled={isImporting || !csvFile}
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {isImporting ? 'Importing…' : 'Import CSV'}
+                  </button>
+                </div>
+              </div>
             </div>
 
             {message && (

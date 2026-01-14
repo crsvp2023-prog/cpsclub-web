@@ -6,11 +6,27 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    const { predictionId, optionIndex, userId } = await request.json();
+    const body = (await request.json()) as {
+      predictionId?: string;
+      optionIndex?: number;
+      userId?: string;
+      question?: string;
+      matchDate?: string;
+      options?: Array<{ name?: string } | string>;
+    };
+
+    const { predictionId, optionIndex, userId, question, matchDate, options } = body;
 
     if (!predictionId || optionIndex === undefined) {
       return Response.json(
         { error: 'Missing required fields: predictionId and optionIndex' },
+        { status: 400 }
+      );
+    }
+
+    if (typeof optionIndex !== 'number' || optionIndex < 0) {
+      return Response.json(
+        { error: 'Invalid optionIndex' },
         { status: 400 }
       );
     }
@@ -26,9 +42,51 @@ export async function POST(request: NextRequest) {
     const predictionSnap = await predictionRef.get();
 
     if (!predictionSnap.exists) {
+      // Allow first vote to create the prediction doc (used for "current match" predictions)
+      if (!question || !matchDate || !options || !Array.isArray(options) || options.length === 0) {
+        return Response.json(
+          { error: 'Prediction not found and missing creation fields (question, matchDate, options)' },
+          { status: 404 }
+        );
+      }
+
+      if (optionIndex >= options.length) {
+        return Response.json(
+          { error: 'optionIndex out of range' },
+          { status: 400 }
+        );
+      }
+
+      const normalizedOptions = options
+        .map((opt) => (typeof opt === 'string' ? opt : opt?.name))
+        .filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
+        .map((name) => ({ name: name.trim(), votes: 0 }));
+
+      if (normalizedOptions.length === 0) {
+        return Response.json(
+          { error: 'No valid options provided' },
+          { status: 400 }
+        );
+      }
+
+      await predictionRef.set({
+        question,
+        matchDate,
+        options: normalizedOptions,
+        totalVotes: 0,
+        createdAt: new Date(),
+        lastUpdated: new Date(),
+      });
+    }
+
+    const freshSnap = predictionSnap.exists ? predictionSnap : await predictionRef.get();
+    const data = freshSnap.data() as { options?: Array<{ name?: string; votes?: number }> } | undefined;
+    const optionCount = Array.isArray(data?.options) ? data!.options!.length : 0;
+
+    if (optionCount > 0 && optionIndex >= optionCount) {
       return Response.json(
-        { error: 'Prediction not found' },
-        { status: 404 }
+        { error: 'optionIndex out of range' },
+        { status: 400 }
       );
     }
 
@@ -99,7 +157,22 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      return Response.json(predictionSnap.data(), { status: 200 });
+      const data = predictionSnap.data() as any;
+      const options = Array.isArray(data?.options) ? data.options : [];
+
+      return Response.json(
+        {
+          id: predictionId,
+          question: data?.question || '',
+          options: options.map((opt: any) => ({
+            name: opt?.name || '',
+            votes: typeof opt?.votes === 'number' ? opt.votes : 0,
+          })),
+          totalVotes: typeof data?.totalVotes === 'number' ? data.totalVotes : 0,
+          matchDate: data?.matchDate || '',
+        },
+        { status: 200 }
+      );
     }
 
     // If no predictionId, fetch all predictions

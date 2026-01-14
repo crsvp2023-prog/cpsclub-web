@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import:matches:csv": "node scripts/import-playhq-fixture-csv.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -14,6 +15,7 @@
     "firebase": "^12.7.0",
     "framer-motion": "^12.23.26",
     "next": "16.1.0",
+    "papaparse": "^5.5.3",
     "pdf-parse": "^2.4.5",
     "puppeteer": "^24.34.0",
     "react": "19.2.3",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/papaparse": "^5.3.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

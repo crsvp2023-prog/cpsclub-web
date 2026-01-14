@@ -4,6 +4,22 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { UPCOMING_MATCHES, type Match } from '../data/upcoming-matches';
 
+type MatchesDataFile = {
+  matches?: Array<{
+    id?: number;
+    matchName?: string;
+    date?: string;
+    time?: string;
+    startDateTime?: string;
+    venue?: string;
+    status?: string;
+  }>;
+};
+
+type MatchesApiResponse =
+  | { success: true; data: MatchesDataFile }
+  | { success: false; error?: string };
+
 interface CountdownData {
   days: number;
   hours: number;
@@ -13,31 +29,83 @@ interface CountdownData {
 
 export default function MatchCountdown() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>(UPCOMING_MATCHES);
+  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
   const [countdowns, setCountdowns] = useState<CountdownData[]>(
-    UPCOMING_MATCHES.map(() => ({ days: 0, hours: 0, minutes: 0, seconds: 0 }))
+    []
   );
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter out past matches on mount
-  useEffect(() => {
+  const buildFallbackMatches = () => {
     const now = new Date();
-    const futureMatches = UPCOMING_MATCHES.filter((match) => {
-      if (match.matchDate < now) {
-        console.warn(`Match ${match.opponent} on ${match.matchDate} has passed, filtering out`);
-        return false;
-      }
-      return true;
-    });
+    const futureMatches = UPCOMING_MATCHES
+      .filter((match) => match.matchDate.getTime() > now.getTime())
+      .sort((a, b) => a.matchDate.getTime() - b.matchDate.getTime());
 
-    if (futureMatches.length > 0) {
-      setUpcomingMatches(futureMatches);
-      setCountdowns(futureMatches.map(() => ({ days: 0, hours: 0, minutes: 0, seconds: 0 })));
-    } else {
-      console.warn('No upcoming matches found');
-    }
+    return futureMatches;
+  };
+
+  const toDisplayMatch = (raw: NonNullable<MatchesDataFile['matches']>[number], index: number): Match | null => {
+    if (!raw?.date || !raw?.matchName) return null;
+    const parsed = new Date(raw.startDateTime || raw.date);
+    if (Number.isNaN(parsed.getTime())) return null;
+
+    const dateLabel = parsed.toLocaleDateString('en-AU', { day: '2-digit', month: 'short' });
+
+    return {
+      id: raw.id ?? index + 1,
+      opponent: raw.matchName,
+      date: dateLabel,
+      time: raw.time ?? 'TBC',
+      venue: raw.venue ?? 'TBC',
+      matchDate: parsed,
+    };
+  };
+
+  // Load upcoming matches (prefer public/matches-data.json; fallback to static list)
+  useEffect(() => {
+    let isCancelled = false;
+
+    const load = async () => {
+      try {
+        const response = await fetch('/api/update-matches', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Failed to load matches (${response.status})`);
+
+        const api = (await response.json()) as MatchesApiResponse;
+        const data = api && api.success ? api.data : { matches: [] };
+        const now = new Date();
+
+        const fromFile = (data.matches ?? [])
+          .filter((m) => (m.status ?? '').toUpperCase() === 'UPCOMING')
+          .map((m, idx) => toDisplayMatch(m, idx))
+          .filter((m): m is Match => Boolean(m))
+          .filter((m) => m.matchDate.getTime() > now.getTime())
+          .sort((a, b) => a.matchDate.getTime() - b.matchDate.getTime());
+
+        const nextMatches = fromFile.length > 0 ? fromFile : buildFallbackMatches();
+        if (isCancelled) return;
+
+        setUpcomingMatches(nextMatches);
+        setCurrentIndex(0);
+        setCountdowns(nextMatches.map(() => ({ days: 0, hours: 0, minutes: 0, seconds: 0 })));
+      } catch {
+        const fallback = buildFallbackMatches();
+        if (isCancelled) return;
+        setUpcomingMatches(fallback);
+        setCurrentIndex(0);
+        setCountdowns(fallback.map(() => ({ days: 0, hours: 0, minutes: 0, seconds: 0 })));
+      } finally {
+        if (!isCancelled) setIsLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {
+    if (upcomingMatches.length === 0) return;
     const interval = setInterval(() => {
       setCountdowns(
         upcomingMatches.map((match) => {
@@ -97,18 +165,33 @@ const CountdownBox = ({ value, label }: { value: number; label: string }) => (
           <h2 className="text-base sm:text-lg md:text-2xl font-extrabold text-[#0d3e2a]">
             Next Match <span className="text-[var(--color-accent)]">Countdown</span>
           </h2>
-          <p className="text-xs sm:text-sm text-[#1a5640] mt-1 line-clamp-2 px-2">
-            {currentMatch.opponent}
-          </p>
+          {!isLoading && currentMatch ? (
+            <p className="text-xs sm:text-sm text-[#1a5640] mt-1 line-clamp-2 px-2">
+              {currentMatch.opponent}
+            </p>
+          ) : (
+            <p className="text-xs sm:text-sm text-[#1a5640] mt-1 line-clamp-2 px-2">
+              {isLoading ? 'Loading…' : 'No upcoming matches'}
+            </p>
+          )}
         </div>
 
         {/* Countdown Display */}
-        <div className="grid grid-cols-4 gap-1 sm:gap-2 mb-3 sm:mb-4">
-          <CountdownBox value={countdown.days} label="Days" />
-          <CountdownBox value={countdown.hours} label="Hours" />
-          <CountdownBox value={countdown.minutes} label="Minutes" />
-          <CountdownBox value={countdown.seconds} label="Seconds" />
-        </div>
+        {currentMatch && countdown ? (
+          <div className="grid grid-cols-4 gap-1 sm:gap-2 mb-3 sm:mb-4">
+            <CountdownBox value={countdown.days} label="Days" />
+            <CountdownBox value={countdown.hours} label="Hours" />
+            <CountdownBox value={countdown.minutes} label="Minutes" />
+            <CountdownBox value={countdown.seconds} label="Seconds" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-1 sm:gap-2 mb-3 sm:mb-4">
+            <CountdownBox value={0} label="Days" />
+            <CountdownBox value={0} label="Hours" />
+            <CountdownBox value={0} label="Minutes" />
+            <CountdownBox value={0} label="Seconds" />
+          </div>
+        )}
 
         {/* Match Details */}
         <div className="bg-white rounded-lg p-2 sm:p-3 mb-3 sm:mb-4 shadow-lg flex-1">
@@ -116,13 +199,13 @@ const CountdownBox = ({ value, label }: { value: number; label: string }) => (
             <div className="text-center">
               <p className="text-xs text-gray-600 mb-0.5 font-semibold">Date & Time</p>
               <p className="text-xs font-bold text-[var(--color-dark)]">
-                {currentMatch.date}, {currentMatch.time}
+                {currentMatch ? `${currentMatch.date}, ${currentMatch.time}` : 'TBC'}
               </p>
             </div>
             <div className="text-center border-l border-r border-gray-200">
               <p className="text-xs text-gray-600 mb-0.5 font-semibold">Venue</p>
               <p className="text-xs font-bold text-[var(--color-dark)]">
-                {currentMatch.venue}
+                {currentMatch ? currentMatch.venue : 'TBC'}
               </p>
             </div>
             <div className="text-center">
@@ -146,7 +229,7 @@ const CountdownBox = ({ value, label }: { value: number; label: string }) => (
       </div>
 
       {/* Carousel Navigation - Only show if multiple matches */}
-      {UPCOMING_MATCHES.length > 1 && (
+      {upcomingMatches.length > 1 && (
         <div className="flex justify-center gap-2 sm:gap-4 mt-3">
           <button
             onClick={goToPrevious}
@@ -156,7 +239,7 @@ const CountdownBox = ({ value, label }: { value: number; label: string }) => (
             ←
           </button>
           <div className="flex gap-2 items-center">
-            {UPCOMING_MATCHES.map((_, index) => (
+            {upcomingMatches.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
