@@ -166,11 +166,11 @@ const CountdownBox = ({ value, label }: { value: number; label: string }) => (
             Next Match <span className="text-[var(--color-accent)]">Countdown</span>
           </h2>
           {!isLoading && currentMatch ? (
-            <p className="text-xs sm:text-sm text-[#1a5640] mt-1 line-clamp-2 px-2">
+            <p className="text-sm sm:text-base md:text-lg font-extrabold text-white mt-2 line-clamp-2 px-2">
               {currentMatch.opponent}
             </p>
           ) : (
-            <p className="text-xs sm:text-sm text-[#1a5640] mt-1 line-clamp-2 px-2">
+            <p className="text-xs sm:text-sm text-white/90 mt-2 line-clamp-2 px-2">
               {isLoading ? 'Loading…' : 'No upcoming matches'}
             </p>
           )}
