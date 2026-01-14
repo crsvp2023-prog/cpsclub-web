@@ -13,18 +13,83 @@ interface Prediction {
   matchDate: string;
 }
 
-const PREDICTIONS_DATA: Prediction[] = [
-  {
-    id: '1',
-    question: 'Who will win: CPSC vs Old Ignatians?',
+type MatchesDataFile = {
+  matches?: Array<{
+    id?: number;
+    gameId?: string;
+    gameCode?: string;
+    matchName?: string;
+    date?: string;
+    time?: string;
+    startDateTime?: string;
+    venue?: string;
+    status?: string;
+    team1?: { name?: string };
+    team2?: { name?: string };
+  }>;
+};
+
+type MatchesApiResponse =
+  | { success: true; data: MatchesDataFile }
+  | { success: false; error?: string };
+
+const PREDICTIONS_DATA: Prediction[] = [];
+
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
+function pickNextUpcomingMatch(
+  matches: NonNullable<MatchesDataFile['matches']>
+): NonNullable<MatchesDataFile['matches']>[number] | null {
+  const now = new Date();
+
+  const parsed = matches
+    .map((m) => {
+      const when = new Date(m.startDateTime || m.date || '');
+      return {
+        m,
+        when,
+      };
+    })
+    .filter(({ when }) => !Number.isNaN(when.getTime()))
+    .filter(({ m, when }) => (m.status ?? '').toUpperCase() === 'UPCOMING' && when.getTime() > now.getTime())
+    .sort((a, b) => a.when.getTime() - b.when.getTime());
+
+  return parsed.length > 0 ? parsed[0].m : null;
+}
+
+function buildPredictionId(match: NonNullable<ReturnType<typeof pickNextUpcomingMatch>>): string {
+  if (match.gameId) return match.gameId;
+  if (match.gameCode) return `game_${match.gameCode}`;
+
+  const a = match.team1?.name || 'team-a';
+  const b = match.team2?.name || 'team-b';
+  const dateKey = (match.startDateTime || match.date || '').replace(/[^0-9]/g, '').slice(0, 8) || 'match';
+  return `match_${dateKey}_${slugify(a)}_vs_${slugify(b)}`;
+}
+
+function buildLocalPrediction(match: NonNullable<ReturnType<typeof pickNextUpcomingMatch>>): Prediction {
+  const teamA = match.team1?.name || 'Team A';
+  const teamB = match.team2?.name || 'Team B';
+  const matchDateKey = match.startDateTime || match.date || '';
+  const matchDateLabel = [match.date, match.time].filter(Boolean).join(' • ') || matchDateKey || 'TBC';
+
+  return {
+    id: buildPredictionId(match),
+    question: `Who will win: ${teamA} vs ${teamB}?`,
     options: [
-      { name: 'CPSC', votes: 234 },
-      { name: 'Old Ignatians', votes: 156 },
+      { name: teamA, votes: 0 },
+      { name: teamB, votes: 0 },
     ],
-    totalVotes: 390,
-    matchDate: 'Jan 10, 2026',
-  },
-];
+    totalVotes: 0,
+    matchDate: matchDateLabel,
+  };
+}
 
 export default function MatchPredictions() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -32,62 +97,61 @@ export default function MatchPredictions() {
   const [userVotes, setUserVotes] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
 
-  // Fetch predictions from Firestore on mount
+  // Load the current match and its prediction on mount
   useEffect(() => {
-    const fetchPredictions = async () => {
+    let isCancelled = false;
+
+    const load = async () => {
       try {
-        const response = await fetch('/api/predictions/vote');
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: Failed to fetch`);
+        const matchesRes = await fetch('/api/update-matches', { cache: 'no-store' });
+        if (!matchesRes.ok) throw new Error(`HTTP ${matchesRes.status}: Failed to load matches`);
+
+        const api = (await matchesRes.json()) as MatchesApiResponse;
+        const matchesData = api && api.success ? api.data : { matches: [] };
+        const match = pickNextUpcomingMatch(matchesData.matches ?? []);
+
+        if (!match) {
+          if (!isCancelled) setPredictions([]);
+          return;
         }
-        const data = await response.json();
-        console.log('Fetched predictions:', data);
-        
-        const now = new Date();
-        
-        if (data.predictions && Array.isArray(data.predictions) && data.predictions.length > 0) {
-          // Check if predictions have options, not in the past, and match the question filter
-          const validPredictions = data.predictions.filter((p: any) => {
-            if (!p.options || !Array.isArray(p.options) || p.options.length === 0) {
-              return false;
-            }
-            if (p.question !== 'Who will win: CPSC vs Old Ignatians?') {
-              return false;
-            }
-            // Check if match date has passed
-            try {
-              const matchDate = new Date(p.matchDate);
-              if (matchDate < now) {
-                console.warn(`Match date ${p.matchDate} has passed, filtering out`);
-                return false;
-              }
-            } catch (e) {
-              console.warn(`Could not parse match date: ${p.matchDate}`);
-            }
-            return true;
-          });
-          
-          if (validPredictions.length > 0) {
-            console.log('Using fetched predictions:', validPredictions);
-            setPredictions(validPredictions);
-          } else {
-            console.warn('No valid predictions found, using fallback data');
-            setPredictions(PREDICTIONS_DATA);
+
+        const localPrediction = buildLocalPrediction(match);
+        const predictionId = localPrediction.id;
+
+        // Default UI immediately, then overwrite with Firestore data if present
+        if (!isCancelled) {
+          setPredictions([localPrediction]);
+          setCurrentIndex(0);
+        }
+
+        const predictionRes = await fetch(`/api/predictions/vote?predictionId=${encodeURIComponent(predictionId)}`, {
+          cache: 'no-store',
+        });
+
+        if (predictionRes.ok) {
+          const p = (await predictionRes.json()) as Prediction;
+          if (!isCancelled && p?.options?.length) {
+            setPredictions([{
+              ...localPrediction,
+              ...p,
+              // Keep our matchDate label if backend stored a raw date string
+              matchDate: localPrediction.matchDate,
+            }]);
+            setCurrentIndex(0);
           }
-        } else {
-          console.warn('No predictions found in response, using fallback data');
-          setPredictions(PREDICTIONS_DATA);
         }
       } catch (error) {
-        console.error('Failed to fetch predictions:', error);
-        // Fall back to hardcoded data on error
-        setPredictions(PREDICTIONS_DATA);
+        console.error('Failed to load match predictions:', error);
+        if (!isCancelled) setPredictions([]);
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
 
-    fetchPredictions();
+    load();
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   const goToPrevious = () => {
@@ -155,10 +219,15 @@ export default function MatchPredictions() {
     }));
 
     // Optional: Send to API for logging (fire and forget)
+    const current = predictions.find((p) => p.id === predictionId);
     const voteData = {
       predictionId,
       optionIndex,
       userId: 'anonymous',
+      // Provide creation fields so the backend can auto-create a new prediction doc for the current match
+      question: current?.question,
+      matchDate: current?.matchDate,
+      options: current?.options?.map((o) => ({ name: o.name })),
     };
     console.log('Sending vote data:', voteData);
     

@@ -151,17 +151,18 @@ export default function ScoresPage() {
     try {
       console.log('Loading matches from JSON file...');
 
-      // Try to load matches from the JSON file
-      const response = await fetch('/matches-data.json');
+      // Try to load matches from the persisted API (Firestore-backed on Vercel)
+      const response = await fetch('/api/update-matches', { cache: 'no-store' });
       console.log('Matches file response status:', response.status);
 
       if (response.ok) {
-        const data = await response.json();
+        const api = await response.json();
+        const data = api?.success ? api.data : null;
         console.log('Loaded matches data:', data);
 
-        if (data.matches && data.matches.length > 0) {
+        if (data?.matches && data.matches.length > 0) {
           setMatches(data.matches);
-          console.log('✅ Matches loaded successfully from file');
+          console.log('✅ Matches loaded successfully from API');
         } else {
           console.error('No matches data in file, using defaults');
           setMatches(matchesData);
