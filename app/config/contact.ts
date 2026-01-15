@@ -13,7 +13,7 @@ export const contactConfig = {
 
   // Phone numbers
   phone: {
-    main: "+61 2 XXXX XXXX",
+	main: "+61 2 XXXX XXXX",
     hours: "9:00 AM - 6:00 PM",
   },
 
@@ -29,10 +29,10 @@ export const contactConfig = {
   // Response times
   responseTime: "24-hour response time",
 
-  // Social media links (optional)
+  // Social media links (keep in sync with home page handles)
   social: {
-    instagram: "https://instagram.com/cpscricket",
-    facebook: "https://facebook.com/cpscricket",
+    instagram: "https://www.instagram.com/chatswoodpremiersportsclub/",
+    facebook: "https://www.facebook.com/chatswood.premier.sports.club",
     twitter: "https://twitter.com/cpscricket",
   },
 };

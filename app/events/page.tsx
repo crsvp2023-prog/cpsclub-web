@@ -2,6 +2,8 @@
 
 import Card from "../components/Card";
 import { useState } from "react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { meetupDb } from "@/app/lib/firebase";
 
 const events = [
   {
@@ -52,6 +54,39 @@ const events = [
 
 export default function EventsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showMeetupModal, setShowMeetupModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<(typeof events)[0] | null>(null);
+  const [interestName, setInterestName] = useState("");
+  const [interestEmail, setInterestEmail] = useState("");
+  const [interestContact, setInterestContact] = useState("");
+  const [interestLoading, setInterestLoading] = useState(false);
+  const [interestSubmitted, setInterestSubmitted] = useState(false);
+  const [interestError, setInterestError] = useState("");
+
+  async function handleInterestSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setInterestLoading(true);
+    setInterestError("");
+    try {
+      await addDoc(collection(meetupDb, "meetup_interests"), {
+        name: interestName,
+        email: interestEmail,
+        contact: interestContact,
+        eventId: selectedEvent?.id ?? null,
+        eventTitle: selectedEvent?.title ?? null,
+        createdAt: serverTimestamp(),
+      });
+      setInterestSubmitted(true);
+      setInterestName("");
+      setInterestEmail("");
+      setInterestContact("");
+    } catch (err) {
+      console.error("Error saving meetup interest from Events page:", err);
+      setInterestError("Something went wrong. Please try again.");
+    } finally {
+      setInterestLoading(false);
+    }
+  }
   
   const filteredEvents = selectedCategory
     ? events.filter(event => event.category === selectedCategory)
@@ -60,6 +95,7 @@ export default function EventsPage() {
   const categories = ["Tournament", "Social", "Training", "League"];
 
   return (
+    <>
     <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20">
       <style jsx>{`
         @keyframes fadeInDown {
@@ -227,7 +263,15 @@ export default function EventsPage() {
                       <p className="text-xl font-black text-[var(--color-primary-2)]">{event.attendees}</p>
                     </div>
                   </div>
-                  <button className="px-6 py-3 bg-gradient-to-r from-[var(--color-primary-2)] to-[var(--color-accent)] text-white rounded-xl font-black text-sm uppercase tracking-wide hover:shadow-2xl hover:scale-110 transition-all duration-300 active:scale-95">
+                  <button
+                    onClick={() => {
+                      setSelectedEvent(event);
+                      setInterestSubmitted(false);
+                      setInterestError("");
+                      setShowMeetupModal(true);
+                    }}
+                    className="px-6 py-3 bg-gradient-to-r from-[var(--color-primary-2)] to-[var(--color-accent)] text-white rounded-xl font-black text-sm uppercase tracking-wide hover:shadow-2xl hover:scale-110 transition-all duration-300 active:scale-95"
+                  >
                     JOIN 🚀
                   </button>
                 </div>
@@ -269,5 +313,95 @@ export default function EventsPage() {
         </div>
       </section>
     </main>
+
+    {/* Meetup Interest Modal */}
+    {showMeetupModal && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 flex justify-between items-center">
+            <h3 className="text-2xl font-bold text-white">
+              Join {selectedEvent?.title ?? "Event"}
+            </h3>
+            <button
+              onClick={() => setShowMeetupModal(false)}
+              className="text-white text-3xl font-bold hover:opacity-70 transition-opacity"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="p-6">
+            {interestSubmitted ? (
+              <div className="text-center">
+                <div className="text-6xl mb-4">✅</div>
+                <h4 className="text-xl font-bold text-gray-800 mb-2">Thank You!</h4>
+                <p className="text-gray-600 mb-6">
+                  {selectedEvent?.title === "Community Meetup"
+                    ? "We'll keep you updated on the venue and meetup details."
+                    : "We'll email you event updates and joining details."}
+                </p>
+                <button
+                  onClick={() => setShowMeetupModal(false)}
+                  className="bg-green-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition-all duration-300"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleInterestSubmit} className="space-y-4">
+                {selectedEvent?.title === "Community Meetup" && (
+                  <p className="text-sm text-gray-600 bg-green-50 border border-green-200 rounded-lg p-3 mb-2">
+                    Venue is being finalized. Share your interest and we'll confirm the exact location soon.
+                  </p>
+                )}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
+                  <input
+                    type="text"
+                    value={interestName}
+                    onChange={(e) => setInterestName(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Your full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={interestEmail}
+                    onChange={(e) => setInterestEmail(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="your.email@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
+                  <input
+                    type="tel"
+                    value={interestContact}
+                    onChange={(e) => setInterestContact(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Your phone number"
+                  />
+                </div>
+                {interestError && (
+                  <p className="text-red-600 text-sm">{interestError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={interestLoading}
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                >
+                  {interestLoading ? "Submitting..." : "Submit Interest"}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

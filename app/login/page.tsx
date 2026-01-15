@@ -54,7 +54,16 @@ export default function LoginPage() {
     } catch (err: any) {
       // Don't show error if user cancelled
       if (err?.code === 'auth/popup-closed-by-user') {
-        setLoading(false);
+        return;
+      }
+
+      if (err?.code === "auth/unauthorized-domain") {
+        const hostname = typeof window !== "undefined" ? window.location.hostname : "this domain";
+        setError(
+          `Google sign-in is blocked because ${hostname} is not an authorized domain in Firebase Auth. ` +
+            `Add it in Firebase Console → Authentication → Settings → Authorized domains.`
+        );
+        await logAnalyticsEvent("form_submit", "google_login_failed");
         return;
       }
       
@@ -63,6 +72,7 @@ export default function LoginPage() {
       
       // Log failed login attempt
       await logAnalyticsEvent("form_submit", "google_login_failed");
+    } finally {
       setLoading(false);
     }
   };
@@ -82,7 +92,6 @@ export default function LoginPage() {
     } catch (err: any) {
       // Don't show error if user cancelled
       if (err?.code === 'auth/popup-closed-by-user') {
-        setLoading(false);
         return;
       }
       
@@ -91,6 +100,7 @@ export default function LoginPage() {
       
       // Log failed login attempt
       await logAnalyticsEvent("form_submit", "facebook_login_failed");
+    } finally {
       setLoading(false);
     }
   };

@@ -1,10 +1,42 @@
 'use client';
 
 import { useState } from 'react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { meetupDb } from '@/app/lib/firebase';
 
 export default function AboutPage() {
   const [activeTab, setActiveTab] = useState('mission');
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
+  const [showMeetupModal, setShowMeetupModal] = useState(false);
+  const [interestName, setInterestName] = useState('');
+  const [interestEmail, setInterestEmail] = useState('');
+  const [interestContact, setInterestContact] = useState('');
+  const [interestLoading, setInterestLoading] = useState(false);
+  const [interestSubmitted, setInterestSubmitted] = useState(false);
+  const [interestError, setInterestError] = useState('');
+
+  async function handleInterestSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setInterestLoading(true);
+    setInterestError('');
+    try {
+      await addDoc(collection(meetupDb, 'meetup_interests'), {
+        name: interestName,
+        email: interestEmail,
+        contact: interestContact,
+        createdAt: serverTimestamp(),
+      });
+      setInterestSubmitted(true);
+      setInterestName('');
+      setInterestEmail('');
+      setInterestContact('');
+    } catch (err) {
+      console.error('Error saving meetup interest from About page:', err);
+      setInterestError('Something went wrong. Please try again.');
+    } finally {
+      setInterestLoading(false);
+    }
+  }
 
   const achievements = [
     { year: '2020', title: '2 Cricket Tournaments Organized', icon: '🏏' },
@@ -29,35 +61,6 @@ export default function AboutPage() {
   return (
     <>
     <main className="min-h-screen bg-white pt-20">
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slideUp {
-          animation: slideUp 0.6s ease-out;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.8s ease-out;
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
 
       {/* Hero Section */}
       <section className="relative py-24 px-6 bg-gradient-to-br from-[#001a4d] via-[#0052CC] to-[#003B82] overflow-hidden">
@@ -83,22 +86,53 @@ export default function AboutPage() {
       <section className="py-16 px-6 bg-gradient-to-r from-white via-[#E8F4FF] to-[#F0F9FF]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <p className="text-4xl font-bold text-[var(--color-primary)] mb-2">2016</p>
-              <p className="text-gray-700 font-semibold">Founded</p>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow animate-float" style={{ animationDelay: '0s' }}>
+              <p className="text-6xl md:text-7xl font-extrabold mb-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-transparent bg-clip-text drop-shadow-2xl">2016</p>
+              <p className="text-gray-700 font-semibold text-lg md:text-xl tracking-wide">Founded</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <p className="text-4xl font-bold text-[var(--color-primary-2)] mb-2">100+</p>
-              <p className="text-gray-700 font-semibold">Members</p>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow animate-float" style={{ animationDelay: '0.5s' }}>
+              <p className="text-6xl md:text-7xl font-extrabold mb-2 bg-gradient-to-r from-[var(--color-primary-2)] to-[var(--color-accent)] text-transparent bg-clip-text drop-shadow-2xl">100+</p>
+              <p className="text-gray-700 font-semibold text-lg md:text-xl tracking-wide">Members</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <p className="text-4xl font-bold text-[var(--color-accent)] mb-2">2023</p>
-              <p className="text-gray-700 font-semibold">Incorporated</p>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow animate-float" style={{ animationDelay: '1s' }}>
+              <p className="text-6xl md:text-7xl font-extrabold mb-2 bg-gradient-to-r from-[var(--color-accent)] to-[#00a652] text-transparent bg-clip-text drop-shadow-2xl">2023</p>
+              <p className="text-gray-700 font-semibold text-lg md:text-xl tracking-wide">Incorporated</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <p className="text-4xl font-bold text-[#00a652] mb-2">$8K+</p>
-              <p className="text-gray-700 font-semibold">Donated</p>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow animate-float" style={{ animationDelay: '1.5s' }}>
+              <p className="text-6xl md:text-7xl font-extrabold mb-2 bg-gradient-to-r from-[#00a652] to-[var(--color-primary)] text-transparent bg-clip-text drop-shadow-2xl">$8K+</p>
+              <p className="text-gray-700 font-semibold text-lg md:text-xl tracking-wide">Donated</p>
             </div>
+                {/* ...existing code... */}
+              {/* ...existing code... */}
+              <style jsx>{`
+                @keyframes slideUp {
+                  from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateY(0);
+                  }
+                }
+                .animate-slideUp {
+                  animation: slideUp 0.6s ease-out;
+                }
+                @keyframes fadeIn {
+                  from { opacity: 0; }
+                  to { opacity: 1; }
+                }
+                .animate-fadeIn {
+                  animation: fadeIn 0.8s ease-out;
+                }
+                @keyframes float {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-18px); }
+                }
+                .animate-float {
+                  animation: float 3.5s ease-in-out infinite;
+                }
+              `}</style>
           </div>
         </div>
       </section>
@@ -149,7 +183,7 @@ export default function AboutPage() {
                 <div className="absolute -top-20 -right-20 w-40 h-40 bg-[var(--color-accent)] rounded-full opacity-5 blur-3xl"></div>
                 <div className="relative z-10">
                   <div className="text-6xl mb-6 animate-float">🏏</div>
-                  <h3 className="text-5xl font-black mb-4" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.05em', color: '#FFD100' }}>One Team,<br />One Dream</h3>
+                  <h3 className="text-6xl sm:text-7xl font-black" style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.05em', color: '#FFD100' }}>One Team, One Dream</h3>
                   <p className="text-lg text-white/90 mb-6 font-semibold" style={{ fontFamily: 'Arial, sans-serif' }}>
                     Our motto embodies the collective spirit and shared aspirations of every member in our community.
                   </p>
@@ -376,7 +410,7 @@ export default function AboutPage() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid md:grid-cols-3 gap-8">
                   <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200">
                     <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] h-56 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                       <div className="text-7xl">🏏</div>
@@ -398,6 +432,21 @@ export default function AboutPage() {
                       <p className="text-gray-600 mb-4">Unprecedented community mobilization showcasing elite sportsmanship and unity</p>
                       <button className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-4 py-2 rounded-lg font-bold hover:shadow-lg transition-all duration-300">
                         View Photos
+                      </button>
+                    </div>
+                  </div>
+                  <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200">
+                    <div className="bg-gradient-to-br from-green-500 to-green-600 h-56 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <div className="text-7xl">🤝</div>
+                    </div>
+                    <div className="p-8">
+                      <h4 className="text-xl font-bold text-gray-800 mb-2">Community Meet Up</h4>
+                      <p className="text-gray-600 mb-4">Venue to be decided. Join us for an exciting community gathering and networking event!</p>
+                      <button 
+                        onClick={() => setShowMeetupModal(true)}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg font-bold hover:shadow-lg transition-all duration-300"
+                      >
+                        Join
                       </button>
                     </div>
                   </div>
@@ -457,10 +506,16 @@ export default function AboutPage() {
             Whether you're a seasoned cricketer or just starting out, there's a place for you in the CPS Cricket Club. Join us and be part of something special.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/register-interest" className="bg-[var(--color-accent)] text-[var(--color-dark)] px-10 py-4 rounded-full font-black hover:shadow-lg hover:scale-105 transform transition-all duration-200 text-lg uppercase tracking-wider hover:bg-[#FFC939]">
+            <a
+              href="/register-interest"
+              className="bg-[var(--color-accent)] text-[var(--color-dark)] px-10 py-4 rounded-full font-black hover:shadow-lg hover:scale-105 transform transition-all duration-200 text-lg uppercase tracking-wider hover:bg-[#FFC939]"
+           >
               Register Now
             </a>
-            <a href="/contact" className="border-2 border-white text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-[var(--color-dark)] transition-all duration-200 text-lg">
+            <a
+              href="/contact"
+              className="px-10 py-4 rounded-full font-black text-lg uppercase tracking-wider bg-gradient-to-r from-white via-[#FFB81C] to-white text-[var(--color-dark)] shadow-lg hover:shadow-2xl hover:-translate-y-0.5 transform transition-all duration-200 border border-white/40"
+            >
               Get in Touch
             </a>
           </div>
@@ -495,18 +550,96 @@ export default function AboutPage() {
                 className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white px-8 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300"
               >
                 Download PDF
-              </a>
-              <button
-                onClick={() => setSelectedPdf(null)}
-                className="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg font-bold hover:bg-gray-300 transition-all duration-300"
-              >
-                Close
-              </button>
+                </a>
+                <button
+                  onClick={() => setSelectedPdf(null)}
+                  className="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg font-bold hover:bg-gray-300 transition-all duration-300"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    )}
-    </>
-  );
-}
+      )}
+      
+      {/* Meetup Interest Modal */}
+      {showMeetupModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-white">Join Community Meet Up</h3>
+              <button
+                onClick={() => setShowMeetupModal(false)}
+                className="text-white text-3xl font-bold hover:opacity-70 transition-opacity"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              {interestSubmitted ? (
+                <div className="text-center">
+                  <div className="text-6xl mb-4">✅</div>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">Thank You!</h4>
+                  <p className="text-gray-600 mb-6">We'll keep you updated on the venue and details.</p>
+                  <button
+                    onClick={() => setShowMeetupModal(false)}
+                    className="bg-green-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition-all duration-300"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleInterestSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={interestName}
+                      onChange={(e) => setInterestName(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={interestEmail}
+                      onChange={(e) => setInterestEmail(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="your.email@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
+                    <input
+                      type="tel"
+                      value={interestContact}
+                      onChange={(e) => setInterestContact(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Your phone number"
+                    />
+                  </div>
+                  {interestError && (
+                    <p className="text-red-600 text-sm">{interestError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={interestLoading}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                  >
+                    {interestLoading ? 'Submitting...' : 'Submit Interest'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      </>
+    );
+  }

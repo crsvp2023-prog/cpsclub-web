@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db } from '@/app/lib/firebase-admin';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/context/AuthContext';
+import { useServerAdmin } from '@/app/lib/useServerAdmin';
 
 interface Subscriber {
   id: string;
@@ -13,31 +14,48 @@ interface Subscriber {
 }
 
 export default function NewsletterSubscribersPage() {
+  const router = useRouter();
+  const { isAuthenticated, firebaseUser, isLoading: authLoading } = useAuth();
+  const { serverIsAdmin, checking: adminChecking } = useServerAdmin(isAuthenticated, firebaseUser);
+  const isAdmin = serverIsAdmin === true;
+
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (authLoading || !isAdmin) return;
+
     const fetchSubscribers = async () => {
       try {
         setLoading(true);
-        const q = query(
-          collection(db, 'newsletter_subscribers'),
-          orderBy('subscribedAt', 'desc')
-        );
-        const querySnapshot = await getDocs(q);
-        const data: Subscriber[] = [];
-        
-        querySnapshot.forEach((doc) => {
-          data.push({
-            id: doc.id,
-            email: doc.data().email,
-            firstName: doc.data().firstName,
-            subscribedAt: doc.data().subscribedAt,
-            status: doc.data().status,
-          });
+        if (!firebaseUser) {
+          throw new Error('Not authenticated. Please log out and log in again.');
+        }
+
+        const idToken = await firebaseUser.getIdToken();
+        const res = await fetch('/api/admin/newsletter-subscribers', {
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
         });
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          throw new Error(text || 'Failed to fetch subscribers');
+        }
+
+        const json = await res.json();
+        const data: Subscriber[] = Array.isArray(json?.subscribers) ? json.subscribers : [];
 
         setSubscribers(data);
         setError(null);
@@ -50,7 +68,35 @@ export default function NewsletterSubscribersPage() {
     };
 
     fetchSubscribers();
-  }, []);
+  }, [authLoading, isAdmin, firebaseUser]);
+
+  if (authLoading || adminChecking || (isAuthenticated && serverIsAdmin === null)) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+          <p className="mt-4 text-gray-600">Checking permissions...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-6">You don't have permission to access this page. Admin access required.</p>
+          <button
+            onClick={() => router.push('/')}
+            className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:shadow-lg transition-all"
+          >
+            Go Home
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   const filteredSubscribers = subscribers.filter(
     (sub) =>

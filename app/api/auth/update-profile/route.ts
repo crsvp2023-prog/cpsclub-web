@@ -72,16 +72,28 @@ export async function POST(request: Request) {
 
     const { uid, email, displayName, photoURL, phone, role } = requestBody;
 
-    // Validate required fields
-    if (!uid || !email) {
+    // Validate required fields - uid is required, email is optional for updates
+    if (!uid) {
       console.warn("Missing required fields:", { uid: !!uid, email: !!email });
       return Response.json(
-        { error: "Missing required fields: uid, email" },
+        { error: "Missing required fields: uid" },
         { status: 400 }
       );
     }
 
     console.log("Updating user profile for:", { uid, email, displayName });
+
+    // Check if Firebase Admin is properly initialized
+    if (!db) {
+      console.warn("Firebase Admin not initialized, skipping profile update");
+      return Response.json(
+        { 
+          message: "Profile update skipped - Firebase Admin not configured",
+          warning: "Server-side database operations are disabled"
+        },
+        { status: 200 }
+      );
+    }
 
     // Get IP address
     const ip = getIpFromRequest(request);
@@ -92,25 +104,24 @@ export async function POST(request: Request) {
     // Reference to user document
     const userRef = db.collection('users').doc(uid);
 
-    // User data to save/update
-    const userData = {
-      uid,
-      email,
-      displayName: displayName || "",
-      photoURL: photoURL || "",
-      phone: phone || "",
-      role: role || "member",
-      ip,
-      location: {
-        country: location.country,
-        city: location.city,
-        region: location.region,
-        latitude: location.latitude,
-        longitude: location.longitude,
-      },
-      lastLogin: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+
+    // Only include fields that are defined and valid
+    const userData: any = { uid };
+    if (typeof email === 'string' && email.length > 0) userData.email = email;
+    if (typeof displayName === 'string' && displayName.length > 0) userData.displayName = displayName;
+    if (typeof photoURL === 'string' && photoURL.length > 0) userData.photoURL = photoURL;
+    if (typeof phone === 'string' && phone.length > 0) userData.phone = phone;
+    if (typeof role === 'string' && role.length > 0) userData.role = role;
+    userData.ip = ip;
+    userData.location = {
+      country: location.country,
+      city: location.city,
+      region: location.region,
+      latitude: location.latitude,
+      longitude: location.longitude,
     };
+    userData.lastLogin = admin.firestore.FieldValue.serverTimestamp();
+    userData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
     console.log("Attempting to save user data to Firestore...");
     console.log("User data to save:", userData);

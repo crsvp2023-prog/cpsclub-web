@@ -9,7 +9,10 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   FacebookAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  updateProfile
 } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
 
@@ -20,6 +23,7 @@ interface UserProfile {
   phone?: string;
   role?: string;
   experience?: string;
+  photoURL?: string;
 }
 
 interface AuthContextType {
@@ -41,16 +45,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper function to fetch user profile from database
+  const fetchUserProfile = useCallback(async (uid: string) => {
+    try {
+      const response = await fetch(`/api/auth/get-profile?uid=${uid}`);
+      if (response.ok) {
+        const profileData = await response.json();
+        return profileData;
+      } else if (response.status === 503) {
+        console.log("Database not available, using Firebase Auth data only");
+        return null;
+      }
+    } catch (error) {
+      console.warn("Failed to fetch user profile:", error);
+    }
+    return null;
+  }, []);
+
   // Listen to Firebase auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // User is signed in, set basic user info from Firebase Auth
-        setUser({
+        // First set basic user info from Firebase Auth
+        const basicUser = {
           id: currentUser.uid,
           email: currentUser.email || "",
           name: currentUser.displayName || "",
-        });
+        };
+
+        // Try to fetch additional profile data from database
+        const profileData = await fetchUserProfile(currentUser.uid);
+        if (profileData && profileData.displayName) {
+          // Use profile data from database if it exists and has a name
+          setUser({
+            id: currentUser.uid,
+            email: profileData.email || basicUser.email,
+            name: profileData.displayName,
+            phone: profileData.phone,
+            role: profileData.role,
+            experience: profileData.experience,
+          });
+        } else if (basicUser.name) {
+          // Use Firebase Auth displayName if available
+          setUser(basicUser);
+        } else {
+          // No name available - user needs to update profile
+          setUser({
+            ...basicUser,
+            name: "User", // Default name to prevent empty name errors
+          });
+        }
       } else {
         setUser(null);
       }
@@ -80,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({
           uid,
-          email,
+          ...(email && { email }),
           displayName,
           photoURL,
           phone,
@@ -93,18 +137,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const errorText = await response.text();
           console.warn("Profile update response:", errorText);
-          
           if (errorText) {
             try {
               const errorData = JSON.parse(errorText);
-              console.error("Profile update error:", {
-                status: response.status,
-                error: errorData.error,
-                details: errorData.details,
-              });
+              // Only log if errorData has meaningful content
+              if (errorData && (errorData.error || errorData.details)) {
+                console.error("Profile update error:", {
+                  status: response.status,
+                  error: errorData.error,
+                  details: errorData.details,
+                });
+              } else {
+                console.warn("Profile update error: Empty or uninformative error object", errorData);
+              }
             } catch {
               console.warn("Response was not JSON:", errorText.substring(0, 100));
             }
+          } else {
+            console.warn("Profile update error: Empty response body");
           }
         } catch (readError) {
           console.warn("Could not read response body:", readError);
@@ -112,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         try {
           const data = await response.json();
-          console.log("Profile update successful");
+          console.log("Profile update successful:", data.message || "Profile updated");
         } catch {
           console.log("Profile update successful (no JSON response)");
         }
@@ -121,6 +171,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn("Profile update fetch failed:", fetchError instanceof Error ? fetchError.message : String(fetchError));
     }
   }, []);
+
+  // Complete OAuth redirect flows (used as a fallback when popups are blocked)
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (!isMounted || !result?.user) return;
+
+        try {
+          await updateUserProfile(
+            result.user.uid,
+            result.user.email || "",
+            result.user.displayName || undefined,
+            result.user.photoURL || undefined
+          );
+        } catch (profileError) {
+          console.warn("Profile update failed after redirect login:", profileError);
+        }
+      } catch (error) {
+        // Don't throw here; redirect errors shouldn't break app render
+        console.error("OAuth redirect result error:", error);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [updateUserProfile]);
 
   const signup = useCallback(async (
     email: string, 
@@ -136,6 +216,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(auth, email, randomPassword);
       const newUser = userCredential.user;
+
+      // Update the Firebase Auth user's display name
+      try {
+        await updateProfile(newUser, {
+          displayName: name,
+        });
+        console.log("Firebase Auth displayName updated successfully");
+      } catch (displayNameError) {
+        console.warn("Could not update Firebase Auth displayName:", displayNameError);
+      }
 
       // Save user profile via API
       try {
@@ -191,7 +281,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
+      provider.setCustomParameters({ prompt: "select_account" });
+
+      let userCredential;
+      try {
+        userCredential = await signInWithPopup(auth, provider);
+      } catch (error: any) {
+        // If popups are blocked (common in production/Safari/mobile), fall back to redirect.
+        if (
+          error?.code === "auth/popup-blocked" ||
+          error?.code === "auth/operation-not-supported-in-this-environment"
+        ) {
+          await signInWithRedirect(auth, provider);
+          return;
+        }
+        throw error;
+      }
       
       console.log("Google login successful:", {
         uid: userCredential.user.uid,
@@ -233,7 +338,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const provider = new FacebookAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
+
+      let userCredential;
+      try {
+        userCredential = await signInWithPopup(auth, provider);
+      } catch (error: any) {
+        if (
+          error?.code === "auth/popup-blocked" ||
+          error?.code === "auth/operation-not-supported-in-this-environment"
+        ) {
+          await signInWithRedirect(auth, provider);
+          return;
+        }
+        throw error;
+      }
       
       // Try to update user profile in database with Facebook data
       // Even if this fails, the user is still logged in

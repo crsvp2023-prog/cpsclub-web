@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
-import { useContext } from 'react';
-import { AuthContext } from '@/app/context/AuthContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useServerAdmin } from '@/app/lib/useServerAdmin';
 
 interface Registration {
   id: string;
@@ -20,23 +20,62 @@ interface Registration {
 }
 
 export default function AdminRegisterInterestPage() {
-  const context = useContext(AuthContext);
+  const { isAuthenticated, firebaseUser, isLoading: authLoading } = useAuth();
+  const { serverIsAdmin, checking: adminChecking } = useServerAdmin(isAuthenticated, firebaseUser);
   const router = useRouter();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
+  const isAdmin = serverIsAdmin === true;
+
   useEffect(() => {
-    // Check if user is authenticated and is admin
-    if (!context?.isAuthenticated) {
+    // Redirect to login if not authenticated.
+    if (authLoading) return;
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
 
-    // For now, allow logged-in users. In production, add role-based access control
+    // Only load data once admin is confirmed.
+    if (adminChecking || serverIsAdmin == null) return;
+    if (!isAdmin) return;
     fetchRegistrations();
-  }, [context, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, isAuthenticated, isAdmin, adminChecking, serverIsAdmin, router]);
+
+  if (adminChecking || (isAuthenticated && serverIsAdmin === null)) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+          <p className="mt-4 text-gray-600">Checking permissions...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[var(--color-dark)] via-blue-50 to-green-50 pt-20 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-6">You don't have permission to access this page. Admin access required.</p>
+          <button
+            onClick={() => router.push('/')}
+            className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:shadow-lg transition-all"
+          >
+            Go Home
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   const fetchRegistrations = async () => {
     try {
@@ -123,7 +162,7 @@ export default function AdminRegisterInterestPage() {
     }
   };
 
-  if (!context?.isAuthenticated) {
+  if (!isAuthenticated) {
     return null;
   }
 

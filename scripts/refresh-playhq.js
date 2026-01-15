@@ -13,7 +13,7 @@ async function refreshData() {
   
   try {
     // Call the API endpoint
-    const response = await fetch('http://localhost:3000/api/scrape-playhq');
+    const response = await fetch('http://localhost:3002/api/scrape-playhq');
     const data = await response.json();
 
     if (response.ok) {
@@ -31,7 +31,7 @@ async function refreshData() {
     }
   } catch (error) {
     console.error('❌ Failed to refresh data:', error.message);
-    console.log('\n💡 Make sure your Next.js server is running on localhost:3000');
+    console.log('\n💡 Make sure your Next.js server is running on localhost:3002');
   }
 }
 

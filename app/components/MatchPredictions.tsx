@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Prediction {
   id: string;
@@ -13,44 +13,146 @@ interface Prediction {
   matchDate: string;
 }
 
-const PREDICTIONS_DATA: Prediction[] = [
-  {
-    id: '1',
-    question: 'Who will win: CPSC vs Old Ignatians?',
+type MatchesDataFile = {
+  matches?: Array<{
+    id?: number;
+    gameId?: string;
+    gameCode?: string;
+    matchName?: string;
+    date?: string;
+    time?: string;
+    startDateTime?: string;
+    venue?: string;
+    status?: string;
+    team1?: { name?: string };
+    team2?: { name?: string };
+  }>;
+};
+
+type MatchesApiResponse =
+  | { success: true; data: MatchesDataFile }
+  | { success: false; error?: string };
+
+const PREDICTIONS_DATA: Prediction[] = [];
+
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
+function pickNextUpcomingMatch(
+  matches: NonNullable<MatchesDataFile['matches']>
+): NonNullable<MatchesDataFile['matches']>[number] | null {
+  const now = new Date();
+
+  const parsed = matches
+    .map((m) => {
+      const when = new Date(m.startDateTime || m.date || '');
+      return {
+        m,
+        when,
+      };
+    })
+    .filter(({ when }) => !Number.isNaN(when.getTime()))
+    .filter(({ m, when }) => (m.status ?? '').toUpperCase() === 'UPCOMING' && when.getTime() > now.getTime())
+    .sort((a, b) => a.when.getTime() - b.when.getTime());
+
+  return parsed.length > 0 ? parsed[0].m : null;
+}
+
+function buildPredictionId(match: NonNullable<ReturnType<typeof pickNextUpcomingMatch>>): string {
+  if (match.gameId) return match.gameId;
+  if (match.gameCode) return `game_${match.gameCode}`;
+
+  const a = match.team1?.name || 'team-a';
+  const b = match.team2?.name || 'team-b';
+  const dateKey = (match.startDateTime || match.date || '').replace(/[^0-9]/g, '').slice(0, 8) || 'match';
+  return `match_${dateKey}_${slugify(a)}_vs_${slugify(b)}`;
+}
+
+function buildLocalPrediction(match: NonNullable<ReturnType<typeof pickNextUpcomingMatch>>): Prediction {
+  const teamA = match.team1?.name || 'Team A';
+  const teamB = match.team2?.name || 'Team B';
+  const matchDateKey = match.startDateTime || match.date || '';
+  const matchDateLabel = [match.date, match.time].filter(Boolean).join(' • ') || matchDateKey || 'TBC';
+
+  return {
+    id: buildPredictionId(match),
+    question: `Who will win: ${teamA} vs ${teamB}?`,
     options: [
-      { name: 'CPSC', votes: 234 },
-      { name: 'Old Ignatians', votes: 156 },
+      { name: teamA, votes: 0 },
+      { name: teamB, votes: 0 },
     ],
-    totalVotes: 390,
-    matchDate: 'Jan 10, 2026',
-  },
-  {
-    id: '2',
-    question: 'Highest Run Scorer?',
-    options: [
-      { name: 'Player A', votes: 145 },
-      { name: 'Player B', votes: 98 },
-      { name: 'Player C', votes: 112 },
-    ],
-    totalVotes: 355,
-    matchDate: 'Jan 10, 2026',
-  },
-  {
-    id: '3',
-    question: 'Will we see a century?',
-    options: [
-      { name: 'Yes', votes: 187 },
-      { name: 'No', votes: 142 },
-    ],
-    totalVotes: 329,
-    matchDate: 'Jan 15, 2026',
-  },
-];
+    totalVotes: 0,
+    matchDate: matchDateLabel,
+  };
+}
 
 export default function MatchPredictions() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [predictions] = useState<Prediction[]>(PREDICTIONS_DATA);
+  const [predictions, setPredictions] = useState<Prediction[]>(PREDICTIONS_DATA);
   const [userVotes, setUserVotes] = useState<{ [key: string]: number }>({});
+  const [loading, setLoading] = useState(true);
+
+  // Load the current match and its prediction on mount
+  useEffect(() => {
+    let isCancelled = false;
+
+    const load = async () => {
+      try {
+        const matchesRes = await fetch('/api/update-matches', { cache: 'no-store' });
+        if (!matchesRes.ok) throw new Error(`HTTP ${matchesRes.status}: Failed to load matches`);
+
+        const api = (await matchesRes.json()) as MatchesApiResponse;
+        const matchesData = api && api.success ? api.data : { matches: [] };
+        const match = pickNextUpcomingMatch(matchesData.matches ?? []);
+
+        if (!match) {
+          if (!isCancelled) setPredictions([]);
+          return;
+        }
+
+        const localPrediction = buildLocalPrediction(match);
+        const predictionId = localPrediction.id;
+
+        // Default UI immediately, then overwrite with Firestore data if present
+        if (!isCancelled) {
+          setPredictions([localPrediction]);
+          setCurrentIndex(0);
+        }
+
+        const predictionRes = await fetch(`/api/predictions/vote?predictionId=${encodeURIComponent(predictionId)}`, {
+          cache: 'no-store',
+        });
+
+        if (predictionRes.ok) {
+          const p = (await predictionRes.json()) as Prediction;
+          if (!isCancelled && p?.options?.length) {
+            setPredictions([{
+              ...localPrediction,
+              ...p,
+              // Keep our matchDate label if backend stored a raw date string
+              matchDate: localPrediction.matchDate,
+            }]);
+            setCurrentIndex(0);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load match predictions:', error);
+        if (!isCancelled) setPredictions([]);
+      } finally {
+        if (!isCancelled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) =>
@@ -66,11 +168,81 @@ export default function MatchPredictions() {
 
   const currentPrediction = predictions[currentIndex];
 
+  if (loading) {
+    return (
+      <section className="relative w-full h-full">
+        <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col items-center justify-center">
+          <p className="text-white">Loading predictions...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!currentPrediction) {
+    return (
+      <section className="relative w-full h-full">
+        <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col items-center justify-center">
+          <p className="text-white">No predictions available</p>
+        </div>
+      </section>
+    );
+  }
+
   const handleVote = (predictionId: string, optionIndex: number) => {
+    // Check if user already voted for this prediction
+    if (userVotes[predictionId] !== undefined) {
+      return; // User already voted
+    }
+
+    // Update vote counts in the predictions
+    setPredictions(prev => 
+      prev.map(pred => {
+        if (pred.id === predictionId) {
+          const updatedOptions = pred.options.map((option, idx) => ({
+            ...option,
+            votes: idx === optionIndex ? option.votes + 1 : option.votes
+          }));
+          return {
+            ...pred,
+            options: updatedOptions,
+            totalVotes: pred.totalVotes + 1
+          };
+        }
+        return pred;
+      })
+    );
+
+    // Record user vote
     setUserVotes(prev => ({
       ...prev,
       [predictionId]: optionIndex,
     }));
+
+    // Optional: Send to API for logging (fire and forget)
+    const current = predictions.find((p) => p.id === predictionId);
+    const voteData = {
+      predictionId,
+      optionIndex,
+      userId: 'anonymous',
+      // Provide creation fields so the backend can auto-create a new prediction doc for the current match
+      question: current?.question,
+      matchDate: current?.matchDate,
+      options: current?.options?.map((o) => ({ name: o.name })),
+    };
+    console.log('Sending vote data:', voteData);
+    
+    fetch('/api/predictions/vote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(voteData),
+    })
+    .then(res => res.json())
+    .then(data => console.log('Vote response:', data))
+    .catch(error => {
+      console.error('Vote error:', error);
+    });
   };
 
   const getPercentage = (votes: number, total: number) => {
@@ -78,8 +250,8 @@ export default function MatchPredictions() {
   };
 
   return (
-    <section className="relative w-full h-full">
-      <div className="w-full h-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
+    <section className="relative w-full min-h-fit">
+      <div className="w-full px-6 py-8 bg-gradient-to-br from-[var(--color-primary-2)] via-[#0052CC] to-[var(--color-primary)] rounded-2xl border border-[var(--color-accent)]/30 flex flex-col">
         {/* Title */}
         <div className="text-center mb-4">
           <h2 className="text-xl md:text-2xl font-extrabold text-white">
@@ -152,8 +324,24 @@ export default function MatchPredictions() {
 
         {/* CTA Button */}
         <div className="flex justify-center">
-          <button className="px-6 py-2 bg-[var(--color-accent)] text-[var(--color-dark)] font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-xs uppercase tracking-wider hover:bg-[#FFC939]">
-            Vote Now
+          <button 
+            onClick={() => {
+              // Find the selected option index
+              const selectedIndex = userVotes[currentPrediction.id];
+              if (selectedIndex !== undefined) {
+                handleVote(currentPrediction.id, selectedIndex);
+              } else {
+                alert('Please select an option first!');
+              }
+            }}
+            disabled={userVotes[currentPrediction.id] !== undefined}
+            className={`px-6 py-2 font-black rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-xs uppercase tracking-wider ${
+              userVotes[currentPrediction.id] !== undefined
+                ? 'bg-green-500 text-white cursor-not-allowed opacity-80'
+                : 'bg-[var(--color-accent)] text-[var(--color-dark)] hover:bg-[#FFC939]'
+            }`}
+          >
+            {userVotes[currentPrediction.id] !== undefined ? '✓ Voted' : 'Vote Now'}
           </button>
         </div>
       </div>

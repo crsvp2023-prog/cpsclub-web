@@ -1,29 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, admin } from '@/app/lib/firebase-admin';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, eventType, eventName, userAgent, page } = body;
-
-    // Log analytics event
-    await db.collection('analytics').add({
-      userId: userId || 'anonymous',
-      eventType,
-      eventName,
-      userAgent: userAgent || null,
-      page: page || null,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    return NextResponse.json({ success: true }, { status: 201 });
+    // Analytics endpoint disabled - Firebase Admin credentials not configured
+    console.warn('Analytics request received but endpoint is disabled');
+    return NextResponse.json({ success: false, message: 'Analytics endpoint disabled' }, { status: 200 });
   } catch (error) {
-    console.error('Error logging analytics:', error);
+    console.error('Error in analytics endpoint:', error);
     return NextResponse.json(
-      { error: 'Failed to log analytics' },
-      { status: 500 }
+      { error: 'Analytics endpoint not available' },
+      { status: 503 }
     );
   }
 }

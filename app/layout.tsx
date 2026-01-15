@@ -4,14 +4,15 @@ import Chatbot from "./components/Chatbot";
 import { PageViewTracker } from "./components/PageViewTracker";
 import { AuthProvider } from "./context/AuthContext";
 import { Inter, Montserrat } from "next/font/google";
+import SocialEmbedScripts from "./components/SocialEmbedScripts";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" });
 
 export const metadata = {
-  title: "CPS Club",
-  description: "CPS Cricket Club website",
+  title: "Chatswood Premier Sports Club",
+  description: "Chatswood Premier Sports Club - One Team, One Dream",
 };
 
 export default function RootLayout({
@@ -23,13 +24,6 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-        {/* Facebook SDK */}
-        <script
-          async
-          defer
-          crossOrigin="anonymous"
-          src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0"
-        />
       </head>
       <body className={`${inter.variable} ${montserrat.variable} font-inter bg-white text-gray-900`}>
         <AuthProvider>
@@ -39,6 +33,7 @@ export default function RootLayout({
           <Footer />
           <Chatbot />
         </AuthProvider>
+        <SocialEmbedScripts />
       </body>
     </html>
   );

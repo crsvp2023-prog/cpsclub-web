@@ -28,7 +28,7 @@ export default function Footer() {
               </p>
               <p className="flex items-center gap-2">
                 <span className="text-[var(--color-accent)] font-semibold text-lg flex-shrink-0">✉️</span>
-                <a href="mailto:info@cpsclub.com.au" className="hover:text-[var(--color-accent)] transition-colors break-all">
+                <a href="mailto:crsvp.2023@gmail.com" className="hover:text-[var(--color-accent)] transition-colors break-all">
                   info@cpsclub.com.au
                 </a>
               </p>
@@ -52,6 +52,18 @@ export default function Footer() {
                 <a href="/register" className="hover:text-[var(--color-accent)] transition-colors">Register</a>
               </li>
             </ul>
+          </div>
+        </div>
+
+        {/* Cricket Australia Support */}
+        <div className="mb-8 sm:mb-12 text-center py-6 sm:py-8">
+          <p className="text-xs sm:text-sm font-semibold text-[var(--color-accent)] mb-4 uppercase tracking-wide">Proudly supported by</p>
+          <div className="flex justify-center">
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/en/3/3f/Cricket_Australia.png" 
+              alt="Cricket Australia" 
+              className="h-10 sm:h-14 md:h-16 w-auto max-w-xs hover:opacity-80 transition-opacity"
+            />
           </div>
         </div>
 

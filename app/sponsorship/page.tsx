@@ -79,6 +79,16 @@ export default function SponsorshipPage() {
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  const handleChoosePlan = (tierName: string) => {
+    setFormData(prev => ({ ...prev, tierInterest: tierName }));
+
+    // Smooth scroll to the inquiry form
+    const formSection = document.getElementById('sponsorship-form');
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -183,11 +193,15 @@ export default function SponsorshipPage() {
                     ))}
                   </ul>
 
-                  <button className={`w-full py-3 rounded-lg font-semibold transition ${
-                    tier.highlighted
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}>
+                  <button
+                    type="button"
+                    onClick={() => handleChoosePlan(tier.name)}
+                    className={`w-full py-3 rounded-lg font-semibold transition ${
+                      tier.highlighted
+                        ? 'bg-green-500 text-white hover:bg-green-600'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
                     Choose Plan
                   </button>
                 </div>
@@ -225,7 +239,7 @@ export default function SponsorshipPage() {
       </section>
 
       {/* Sponsorship Inquiry Form */}
-      <section className="py-16">
+      <section className="py-16" id="sponsorship-form">
         <div className="container mx-auto px-4 max-w-2xl">
           <h2 className="text-4xl font-bold text-center mb-2">Ready to Partner With Us?</h2>
           <p className="text-center text-gray-600 mb-8">
@@ -333,8 +347,11 @@ export default function SponsorshipPage() {
           <h3 className="text-2xl font-bold mb-4">Have Questions?</h3>
           <p className="mb-2">Email: crsvp.2023@gmail.com</p>
           <p className="mb-6">We'd love to discuss how we can grow together</p>
-          <Link href="/contact" className="text-green-400 hover:text-green-300 font-semibold">
-            Get in Touch →
+          <Link
+            href="/contact"
+            className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 text-gray-900 font-bold shadow-lg hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200"
+          >
+            Get in Touch 
           </Link>
         </div>
       </section>

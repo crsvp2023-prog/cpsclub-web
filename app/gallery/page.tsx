@@ -136,6 +136,38 @@ export default function GalleryPage() {
         </div>
       </section>
 
+      {/* CPSC Magic Moments Video */}
+      <section className="px-6 pb-10">
+        <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="px-6 pt-6 pb-4 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.2em] text-[var(--color-primary-2)] uppercase mb-1">
+                CPSC Magic Moments
+              </p>
+              <h2 className="text-2xl md:text-3xl font-bold text-[var(--color-dark)]">
+                Highlight Reel
+              </h2>
+              <p className="text-sm md:text-base text-gray-600 mt-1">
+                Watch some of our favourite on-field and off-field moments.
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs font-semibold">
+              🎥 HD Video
+            </span>
+          </div>
+          <div className="w-full bg-black">
+            <video
+              className="w-full h-auto max-h-[480px] object-contain bg-black"
+              controls
+              preload="metadata"
+            >
+              <source src="/videos/CPSC-Memories.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </section>
+
       {/* Category Filter */}
       <section className="px-6 py-8">
         <div className="max-w-7xl mx-auto">
