@@ -263,19 +263,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Update user profile in database
-      await updateUserProfile(
-        userCredential.user.uid,
-        userCredential.user.email || email
-      );
-      // Auth state listener will handle setting user data
+      
+      // Fetch the user profile from database to get the complete user data
+      const profileData = await fetchUserProfile(userCredential.user.uid);
+      
+      if (profileData && profileData.displayName) {
+        // Use the name from database profile
+        setUser({
+          id: userCredential.user.uid,
+          email: profileData.email || userCredential.user.email || email,
+          name: profileData.displayName,
+          phone: profileData.phone,
+          role: profileData.role,
+          experience: profileData.experience,
+        });
+      } else {
+        // Fallback to Firebase Auth data
+        setUser({
+          id: userCredential.user.uid,
+          email: userCredential.user.email || email,
+          name: userCredential.user.displayName || "User",
+        });
+      }
     } catch (error) {
       console.error("Login error:", error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [updateUserProfile]);
+  }, [fetchUserProfile]);
 
   const loginWithGoogle = useCallback(async () => {
     setIsLoading(true);

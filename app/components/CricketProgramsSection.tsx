@@ -87,12 +87,12 @@ export default function CricketProgramsSection() {
                 <p className="text-sm sm:text-base text-gray-600 mb-4 leading-relaxed flex-grow">
                   Compete at a higher level with our senior teams. Challenge yourself, showcase your skills, and be part of our competitive leagues.
                 </p>
-                <a 
-                  href="/register-interest"
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-bold text-xs sm:text-sm hover:shadow-lg hover:scale-105 transition-all duration-300 uppercase tracking-wider w-full"
+                <button 
+                  disabled
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-300 text-gray-600 rounded-lg font-bold text-xs sm:text-sm cursor-not-allowed opacity-60 uppercase tracking-wider w-full"
                 >
-                  Register Now →
-                </a>
+                  Registration Closed →
+                </button>
               </div>
             </div>
 
