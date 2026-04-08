@@ -487,7 +487,7 @@ export async function GET(request: Request) {
     console.log("Player stats API result:", {
       email: emailParam,
       uid: resolvedUid,
-      hasStats: Boolean(statsRecord),
+      hasStats: Boolean(data && Object.keys(data).length > 0),
       hasLiveStats: Boolean(liveStats),
       hasLiveSummary: Boolean(liveSummary),
       resolvedByUid: Boolean(!emailParam && resolvedUid),
