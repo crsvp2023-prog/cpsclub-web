@@ -20,6 +20,8 @@ export default function DashboardPage() {
   const [tokenName, setTokenName] = useState("");
   const providerEmail =
     (firebaseUser?.providerData || []).find((p) => typeof p?.email === "string" && p.email.trim())?.email || "";
+  const effectiveUid = (user?.id || firebaseUser?.uid || "").trim();
+  const [profileEmailFallback, setProfileEmailFallback] = useState("");
   const rawEmail = (user?.email || firebaseUser?.email || providerEmail || "").trim();
   const effectiveEmail = (rawEmail || tokenEmail).toLowerCase();
   const emailIsAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
@@ -28,7 +30,7 @@ export default function DashboardPage() {
   const isAdmin = emailIsAdmin || serverIsAdmin === true;
   const [debugAdmin, setDebugAdmin] = useState(false);
   const serverEmail = typeof serverWhoami?.email === "string" ? serverWhoami.email : "";
-  const displayEmail = rawEmail || serverEmail || tokenEmail;
+  const displayEmail = rawEmail || serverEmail || tokenEmail || profileEmailFallback;
   const profileName = typeof user?.name === "string" ? user.name.trim() : "";
   const displayName = profileName && profileName.toLowerCase() !== "user"
     ? profileName
@@ -201,6 +203,44 @@ export default function DashboardPage() {
   }, [isAuthenticated, firebaseUser]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadProfileEmailFallback = async () => {
+      if (!effectiveUid) {
+        setProfileEmailFallback("");
+        return;
+      }
+
+      // Skip if we already have an email from auth/token/server.
+      if (rawEmail || serverEmail || tokenEmail) {
+        setProfileEmailFallback("");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/auth/get-profile?uid=${encodeURIComponent(effectiveUid)}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          if (!cancelled) setProfileEmailFallback("");
+          return;
+        }
+
+        const data = await res.json().catch(() => null);
+        const fallbackEmail = typeof data?.email === "string" ? data.email.trim() : "";
+        if (!cancelled) setProfileEmailFallback(fallbackEmail);
+      } catch {
+        if (!cancelled) setProfileEmailFallback("");
+      }
+    };
+
+    loadProfileEmailFallback();
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveUid, rawEmail, serverEmail, tokenEmail]);
+
+  useEffect(() => {
     const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
 
     const loadMyPlayerStats = async () => {
@@ -284,8 +324,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const loadEmailStats = async () => {
-      const emailCandidate = (rawEmail || serverEmail || tokenEmail || "").trim();
-      if (!isAuthenticated || !emailCandidate) {
+      const emailCandidate = (rawEmail || serverEmail || tokenEmail || profileEmailFallback || "").trim();
+      const uidCandidate = effectiveUid;
+      if (!isAuthenticated || (!emailCandidate && !uidCandidate)) {
         setEmailStatsRecord(null);
         return;
       }
@@ -293,8 +334,12 @@ export default function DashboardPage() {
       setEmailStatsLoading(true);
       try {
         const email = emailCandidate.toLowerCase();
+        const qs = new URLSearchParams();
+        if (email) qs.set("email", email);
+        if (uidCandidate) qs.set("uid", uidCandidate);
+        qs.set("live", "1");
         const idToken = firebaseUser ? await firebaseUser.getIdToken() : "";
-        const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}&live=1`, {
+        const res = await fetch(`/api/player-stats?${qs.toString()}`, {
           cache: "no-store",
           headers: idToken
             ? {
@@ -327,7 +372,16 @@ export default function DashboardPage() {
     };
 
     loadEmailStats();
-  }, [isAuthenticated, rawEmail, serverEmail, tokenEmail, firebaseUser]);
+  }, [isAuthenticated, rawEmail, serverEmail, tokenEmail, profileEmailFallback, firebaseUser, effectiveUid]);
+
+  useEffect(() => {
+    setProfileData((prev) => ({
+      ...prev,
+      email: displayEmail || prev.email,
+      phone: user?.phone || prev.phone,
+      name: displayName || prev.name,
+    }));
+  }, [displayEmail, displayName, user?.phone]);
 
   useEffect(() => {
     setMerchForm((prev) => ({
