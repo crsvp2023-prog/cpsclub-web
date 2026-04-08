@@ -5,6 +5,9 @@ export const runtime = "nodejs";
 const FALLBACK_PLAYCRICKET_URLS: Record<string, string> = {
   "ravip.2006@gmail.com": "https://play.cricket.com.au/player/90918ca4-b93a-4d46-9f0c-000135fee349/ravi-prakash?tab=career",
 };
+const FALLBACK_UID_EMAILS: Record<string, string> = {
+  "qH0sMkxxB4Xzp5vxhaVoXDP7s163": "ravip.2006@gmail.com",
+};
 const PLAYCRICKET_API_BASE = "https://grassrootsapiproxy.cricket.com.au";
 
 function normalizeEmail(email: string) {
@@ -347,6 +350,11 @@ export async function GET(request: Request) {
         if (uidEmail) {
           resolvedEmail = uidEmail;
         }
+      }
+      // Fallback: if no email found in user doc, check hardcoded UID mappings
+      if (!resolvedEmail && FALLBACK_UID_EMAILS[resolvedUid]) {
+        resolvedEmail = FALLBACK_UID_EMAILS[resolvedUid];
+        console.log("Used UID-to-email fallback", { resolvedUid, resolvedEmail });
       }
     }
 
