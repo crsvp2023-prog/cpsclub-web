@@ -16,18 +16,23 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const ADMIN_EMAIL = "crsvp.2023@gmail.com";
+  const [tokenEmail, setTokenEmail] = useState("");
+  const [tokenName, setTokenName] = useState("");
   const providerEmail =
     (firebaseUser?.providerData || []).find((p) => typeof p?.email === "string" && p.email.trim())?.email || "";
   const rawEmail = (user?.email || firebaseUser?.email || providerEmail || "").trim();
-  const effectiveEmail = rawEmail.toLowerCase();
+  const effectiveEmail = (rawEmail || tokenEmail).toLowerCase();
   const emailIsAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
   const [serverIsAdmin, setServerIsAdmin] = useState<boolean | null>(null);
   const [serverWhoami, setServerWhoami] = useState<any>(null);
   const isAdmin = emailIsAdmin || serverIsAdmin === true;
   const [debugAdmin, setDebugAdmin] = useState(false);
-  const displayName = user?.name || firebaseUser?.displayName || "User";
   const serverEmail = typeof serverWhoami?.email === "string" ? serverWhoami.email : "";
-  const displayEmail = rawEmail || serverEmail;
+  const displayEmail = rawEmail || serverEmail || tokenEmail;
+  const profileName = typeof user?.name === "string" ? user.name.trim() : "";
+  const displayName = profileName && profileName.toLowerCase() !== "user"
+    ? profileName
+    : (firebaseUser?.displayName || tokenName || profileName || "User");
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -131,6 +136,38 @@ export default function DashboardPage() {
   useEffect(() => {
     let cancelled = false;
 
+    const loadTokenIdentity = async () => {
+      if (!firebaseUser) {
+        setTokenEmail("");
+        setTokenName("");
+        return;
+      }
+
+      try {
+        const tokenResult = await firebaseUser.getIdTokenResult();
+        if (cancelled) return;
+
+        const claimEmail = typeof tokenResult?.claims?.email === "string" ? tokenResult.claims.email.trim() : "";
+        const claimName = typeof tokenResult?.claims?.name === "string" ? tokenResult.claims.name.trim() : "";
+
+        setTokenEmail(claimEmail);
+        setTokenName(claimName);
+      } catch {
+        if (cancelled) return;
+        setTokenEmail("");
+        setTokenName("");
+      }
+    };
+
+    loadTokenIdentity();
+    return () => {
+      cancelled = true;
+    };
+  }, [firebaseUser]);
+
+  useEffect(() => {
+    let cancelled = false;
+
     const checkAdmin = async () => {
       if (!isAuthenticated || !firebaseUser) {
         setServerIsAdmin(null);
@@ -167,7 +204,7 @@ export default function DashboardPage() {
     const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
 
     const loadMyPlayerStats = async () => {
-      if (!isAuthenticated || !user?.name) return;
+      if (!isAuthenticated || !displayName || displayName.toLowerCase() === "user") return;
 
       setMyStatsLoading(true);
 
@@ -181,7 +218,7 @@ export default function DashboardPage() {
         const api = await response.json();
         const data = api?.success ? api.data : null;
         const matches = Array.isArray(data?.matches) ? data.matches : [];
-        const target = normalizeName(user.name);
+        const target = normalizeName(displayName);
 
         let matchesCount = 0;
         let innings = 0;
@@ -243,11 +280,11 @@ export default function DashboardPage() {
     };
 
     loadMyPlayerStats();
-  }, [isAuthenticated, user?.name]);
+  }, [isAuthenticated, displayName]);
 
   useEffect(() => {
     const loadEmailStats = async () => {
-      const emailCandidate = (rawEmail || serverEmail || "").trim();
+      const emailCandidate = (rawEmail || serverEmail || tokenEmail || "").trim();
       if (!isAuthenticated || !emailCandidate) {
         setEmailStatsRecord(null);
         return;
@@ -282,7 +319,7 @@ export default function DashboardPage() {
     };
 
     loadEmailStats();
-  }, [isAuthenticated, rawEmail, serverEmail]);
+  }, [isAuthenticated, rawEmail, serverEmail, tokenEmail]);
 
   useEffect(() => {
     setMerchForm((prev) => ({
@@ -342,7 +379,7 @@ export default function DashboardPage() {
   const handleViewRegisteredMatches = async () => {
     const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
 
-    if (!user?.name) {
+    if (!displayName || displayName.toLowerCase() === 'user') {
       alert('User name is missing. Please log out and log back in.');
       return;
     }
@@ -359,7 +396,7 @@ export default function DashboardPage() {
       const api = await response.json();
       const data = api?.success ? api.data : null;
       const matches = Array.isArray(data?.matches) ? data.matches : [];
-      const target = normalizeName(user.name);
+      const target = normalizeName(displayName);
 
       const myMatches = matches
         .filter((match: any) => {
