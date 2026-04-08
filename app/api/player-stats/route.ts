@@ -1,4 +1,4 @@
-import { admin, db } from "@/app/lib/firebase-admin";
+import { admin, db, getFirestoreForToken } from "@/app/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
@@ -17,6 +17,29 @@ async function getPuppeteer() {
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
+}
+
+async function resolvePlayCricketUrlFromUsersCollection(
+  firestore: FirebaseFirestore.Firestore,
+  email: string
+) {
+  const normalized = normalizeEmail(email);
+  const usersRef = firestore.collection("users");
+
+  const byEmail = await usersRef.where("email", "==", normalized).limit(1).get();
+  const doc = byEmail.docs[0];
+  if (!doc) return null;
+
+  const data = doc.data() || {};
+  const candidates = [
+    data.playCricketUrl,
+    data.playcricketUrl,
+    data.playCricketProfileUrl,
+    data.playCricket,
+  ];
+
+  const found = candidates.find((v) => typeof v === "string" && v.trim());
+  return typeof found === "string" ? found.trim() : null;
 }
 
 function normalizePlayCricketUrl(url: string) {
@@ -254,20 +277,26 @@ export async function GET(request: Request) {
     const emailParam = url.searchParams.get("email");
     const debug = url.searchParams.get("debug") === "1";
     const live = url.searchParams.get("live") === "1";
+    const authHeader = request.headers.get("authorization") || request.headers.get("Authorization") || "";
+    const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
+
+    const activeDb = bearer ? getFirestoreForToken(bearer) : db;
+    const activeProjectId = (activeDb.app.options as any)?.projectId || (admin.app()?.options as any)?.projectId;
 
     if (!emailParam) {
       return Response.json({ error: "Missing email parameter" }, { status: 400 });
     }
 
-    if (!db) {
+    if (!activeDb) {
       return Response.json({ error: "Database not available" }, { status: 503 });
     }
 
     const docId = normalizeEmail(emailParam);
-    const doc = await db.collection("playerStats").doc(docId).get();
+    const doc = await activeDb.collection("playerStats").doc(docId).get();
 
     if (!doc.exists) {
-      const fallbackUrl = FALLBACK_PLAYCRICKET_URLS[docId];
+      const usersCollectionUrl = await resolvePlayCricketUrlFromUsersCollection(activeDb, docId);
+      const fallbackUrl = usersCollectionUrl || FALLBACK_PLAYCRICKET_URLS[docId];
 
       if (fallbackUrl) {
         let liveStats: Record<string, number | string | undefined> | null = null;
@@ -280,7 +309,7 @@ export async function GET(request: Request) {
         const sanitizedStats = liveStats ? stripUndefined(liveStats) : null;
         const sanitizedSummary = liveSummary ? stripUndefined(liveSummary) : null;
 
-        await db
+        await activeDb
           .collection("playerStats")
           .doc(docId)
           .set(
@@ -316,9 +345,10 @@ export async function GET(request: Request) {
             ...(debug
               ? {
                   debug: {
-                    projectId: (admin.app()?.options as any)?.projectId,
+                    projectId: activeProjectId,
                     docPath: `playerStats/${docId}`,
-                    usedFallbackUrl: true,
+                    usedFallbackUrl: Boolean(FALLBACK_PLAYCRICKET_URLS[docId]),
+                    usedUsersCollectionUrl: Boolean(usersCollectionUrl),
                     liveRequested: live,
                     liveStatsFound: Boolean(liveStats),
                     liveSummaryFound: Boolean(liveSummary),
@@ -336,8 +366,9 @@ export async function GET(request: Request) {
           ...(debug
             ? {
                 debug: {
-                  projectId: (admin.app()?.options as any)?.projectId,
+                  projectId: activeProjectId,
                   docPath: `playerStats/${docId}`,
+                  checkedUsersCollection: true,
                 },
               }
             : null),
@@ -358,7 +389,7 @@ export async function GET(request: Request) {
       const sanitizedSummary = liveSummary ? stripUndefined(liveSummary) : null;
 
       if (sanitizedStats || sanitizedSummary) {
-        await db
+        await activeDb
           .collection("playerStats")
           .doc(docId)
           .set(
@@ -399,7 +430,7 @@ export async function GET(request: Request) {
         ...(debug
           ? {
               debug: {
-                projectId: (admin.app()?.options as any)?.projectId,
+                projectId: activeProjectId,
                 docPath: `playerStats/${docId}`,
                 liveRequested: live,
                 liveStatsFound: Boolean(liveStats),

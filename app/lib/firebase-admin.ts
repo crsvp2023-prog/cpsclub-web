@@ -165,17 +165,37 @@ function decodeJwtPayload(token: string): Record<string, any> | null {
   }
 }
 
-export function getAdminAuthForToken(token: string): admin.auth.Auth {
+function resolveAdminAppForToken(token: string): admin.app.App {
   const payload = decodeJwtPayload(token);
   const aud = typeof payload?.aud === 'string' ? payload.aud : undefined;
 
-  if (aud && testAdminApp) {
-    const testProjectId = testAdminApp.options?.projectId;
-    if (testProjectId && aud === testProjectId) {
-      return testAdminApp.auth();
-    }
+  if (!aud) {
+    return admin.app();
   }
 
-  // Default to the primary admin app.
-  return admin.auth();
+  const matched = admin.apps.find((a) => (a.options?.projectId as string | undefined) === aud);
+  if (matched) {
+    return matched;
+  }
+
+  // Best-effort fallback: create a lightweight app for token verification/routing.
+  // This helps when client auth project differs from the primary admin project.
+  try {
+    const safeName = `aud:${aud}`;
+    return admin.initializeApp({ projectId: aud }, safeName);
+  } catch {
+    const existing = admin.apps.find((a) => a.name === `aud:${aud}`);
+    if (existing) return existing;
+    return admin.app();
+  }
+}
+
+export function getAdminAuthForToken(token: string): admin.auth.Auth {
+  const appForToken = resolveAdminAppForToken(token);
+  return appForToken.auth();
+}
+
+export function getFirestoreForToken(token: string): admin.firestore.Firestore {
+  const appForToken = resolveAdminAppForToken(token);
+  return admin.firestore(appForToken);
 }

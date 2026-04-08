@@ -293,7 +293,15 @@ export default function DashboardPage() {
       setEmailStatsLoading(true);
       try {
         const email = emailCandidate.toLowerCase();
-        const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}&live=1`, { cache: "no-store" });
+        const idToken = firebaseUser ? await firebaseUser.getIdToken() : "";
+        const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}&live=1`, {
+          cache: "no-store",
+          headers: idToken
+            ? {
+                Authorization: `Bearer ${idToken}`,
+              }
+            : undefined,
+        });
         if (!res.ok) {
           setEmailStatsRecord(null);
           return;
@@ -319,7 +327,7 @@ export default function DashboardPage() {
     };
 
     loadEmailStats();
-  }, [isAuthenticated, rawEmail, serverEmail, tokenEmail]);
+  }, [isAuthenticated, rawEmail, serverEmail, tokenEmail, firebaseUser]);
 
   useEffect(() => {
     setMerchForm((prev) => ({
