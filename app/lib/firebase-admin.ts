@@ -173,7 +173,7 @@ function resolveAdminAppForToken(token: string): admin.app.App {
     return admin.app();
   }
 
-  const matched = admin.apps.find((a) => (a.options?.projectId as string | undefined) === aud);
+  const matched = admin.apps.find((a) => a && (a.options?.projectId as string | undefined) === aud);
   if (matched) {
     return matched;
   }
@@ -184,7 +184,7 @@ function resolveAdminAppForToken(token: string): admin.app.App {
     const safeName = `aud:${aud}`;
     return admin.initializeApp({ projectId: aud }, safeName);
   } catch {
-    const existing = admin.apps.find((a) => a.name === `aud:${aud}`);
+    const existing = admin.apps.find((a) => a && a.name === `aud:${aud}`);
     if (existing) return existing;
     return admin.app();
   }
@@ -198,4 +198,9 @@ export function getAdminAuthForToken(token: string): admin.auth.Auth {
 export function getFirestoreForToken(token: string): admin.firestore.Firestore {
   const appForToken = resolveAdminAppForToken(token);
   return admin.firestore(appForToken);
+}
+
+export function getProjectIdForToken(token: string): string | undefined {
+  const appForToken = resolveAdminAppForToken(token);
+  return appForToken.options?.projectId as string | undefined;
 }

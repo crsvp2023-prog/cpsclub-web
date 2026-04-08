@@ -1,4 +1,4 @@
-import { admin, db, getFirestoreForToken } from "@/app/lib/firebase-admin";
+import { admin, db, getFirestoreForToken, getProjectIdForToken } from "@/app/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
@@ -281,7 +281,7 @@ export async function GET(request: Request) {
     const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
 
     const activeDb = bearer ? getFirestoreForToken(bearer) : db;
-    const activeProjectId = (activeDb.app.options as any)?.projectId || (admin.app()?.options as any)?.projectId;
+    const activeProjectId = (bearer ? getProjectIdForToken(bearer) : undefined) || (admin.app()?.options as any)?.projectId;
 
     if (!emailParam) {
       return Response.json({ error: "Missing email parameter" }, { status: 400 });
