@@ -9,6 +9,8 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { logAnalyticsEvent } from "@/app/lib/analytics";
 import { UPCOMING_MATCHES } from "../data/upcoming-matches";
 
+const MERCH_SIZES = ["8", "10", "12", "14", "XS", "S", "M", "L", "XL", "2XL", "3XL"];
+
 export default function DashboardPage() {
   const { user, firebaseUser, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -38,16 +40,63 @@ export default function DashboardPage() {
   const [matchHistory, setMatchHistory] = useState<any[]>([]);
   const [registeredMatches, setRegisteredMatches] = useState<any[]>([]);
   const [availableMatches, setAvailableMatches] = useState<any[]>([]);
+  const [merchSubmitting, setMerchSubmitting] = useState(false);
+  const [merchMessage, setMerchMessage] = useState<string | null>(null);
+  const [merchError, setMerchError] = useState<string | null>(null);
+  const [merchUniqueId, setMerchUniqueId] = useState<string | null>(null);
+  const [activeStatsTab, setActiveStatsTab] = useState<"batting" | "bowling" | "fielding">("batting");
+  const [merchForm, setMerchForm] = useState({
+    email: "",
+    phone: "",
+    playerRegistration: "New Player",
+    jerseySize: "",
+    jerseyQuantity: 0,
+    trouserSize: "",
+    trouserQuantity: 0,
+    hatsQuantity: 0,
+  });
 
   const [emailStatsLoading, setEmailStatsLoading] = useState(false);
   const [emailStatsRecord, setEmailStatsRecord] = useState<null | {
     playCricketUrl?: string;
+    summary?: {
+      seasonLabel?: string;
+      matchesPlayed?: number;
+      runsScored?: number;
+      battingAverage?: number;
+      highScore?: number;
+      wickets?: number;
+      bowlingAverage?: number;
+      bestBowling?: string;
+      totalCatches?: number;
+      wicketKeeperCatches?: number;
+      nonWicketKeeperCatches?: number;
+      runOuts?: number;
+      stumpings?: number;
+    };
     stats?: {
       matchesPlayed?: number;
+      innings?: number;
       runsScored?: number;
       wickets?: number;
       battingAverage?: number;
       strikeRate?: number;
+      highScore?: number;
+      hundreds?: number;
+      fifties?: number;
+      ducks?: number;
+      notOuts?: number;
+      overs?: number;
+      maidens?: number;
+      bowlingRuns?: number;
+      bestBowling?: string;
+      bowlingAverage?: number;
+      economy?: number;
+      totalCatches?: number;
+      wicketKeeperCatches?: number;
+      nonWicketKeeperCatches?: number;
+      runOuts?: number;
+      stumpings?: number;
     };
   }>(null);
 
@@ -207,7 +256,7 @@ export default function DashboardPage() {
       setEmailStatsLoading(true);
       try {
         const email = emailCandidate.toLowerCase();
-        const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}`, { cache: "no-store" });
+        const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}&live=1`, { cache: "no-store" });
         if (!res.ok) {
           setEmailStatsRecord(null);
           return;
@@ -221,6 +270,7 @@ export default function DashboardPage() {
 
         setEmailStatsRecord({
           playCricketUrl: typeof data?.playCricketUrl === "string" ? data.playCricketUrl : undefined,
+          summary: typeof data?.summary === "object" && data.summary ? data.summary : undefined,
           stats: typeof data?.stats === "object" && data.stats ? data.stats : undefined,
         });
       } catch (e) {
@@ -233,6 +283,14 @@ export default function DashboardPage() {
 
     loadEmailStats();
   }, [isAuthenticated, rawEmail, serverEmail]);
+
+  useEffect(() => {
+    setMerchForm((prev) => ({
+      ...prev,
+      email: displayEmail || prev.email,
+      phone: user?.phone || prev.phone,
+    }));
+  }, [displayEmail, user?.phone]);
 
   if (isLoading) {
     return (
@@ -345,6 +403,90 @@ export default function DashboardPage() {
     setAvailableMatches(availableMatches);
   };
 
+  const jerseyTotal = merchForm.jerseyQuantity * 25;
+  const trouserTotal = merchForm.trouserQuantity * 30;
+  const hatTotal = merchForm.hatsQuantity * 14;
+  const orderTotal = jerseyTotal + trouserTotal + hatTotal;
+
+  const summaryLabel = emailStatsRecord?.summary?.seasonLabel || "Current Season";
+  const summaryMatches = Number(emailStatsRecord?.summary?.matchesPlayed ?? 0);
+  const summaryRuns = Number(emailStatsRecord?.summary?.runsScored ?? 0);
+  const summaryBattingAverage =
+    typeof emailStatsRecord?.summary?.battingAverage === "number"
+      ? emailStatsRecord.summary.battingAverage.toFixed(2)
+      : "—";
+  const summaryHighScore = Number(emailStatsRecord?.summary?.highScore ?? 0);
+  const summaryWickets = Number(emailStatsRecord?.summary?.wickets ?? 0);
+  const summaryBowlingAverage =
+    typeof emailStatsRecord?.summary?.bowlingAverage === "number"
+      ? emailStatsRecord.summary.bowlingAverage.toFixed(2)
+      : "—";
+  const summaryBestBowling = emailStatsRecord?.summary?.bestBowling || "—";
+  const summaryCatches = Number(emailStatsRecord?.summary?.totalCatches ?? 0);
+
+  const handleMerchSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMerchError(null);
+    setMerchMessage(null);
+    setMerchUniqueId(null);
+
+    if (!merchForm.email.trim() || !merchForm.phone.trim()) {
+      setMerchError("Email and phone number are required.");
+      return;
+    }
+
+    if (merchForm.jerseyQuantity <= 0 && merchForm.trouserQuantity <= 0 && merchForm.hatsQuantity <= 0) {
+      setMerchError("Please select at least one item to order.");
+      return;
+    }
+
+    if (merchForm.jerseyQuantity > 0 && !merchForm.jerseySize) {
+      setMerchError("Please select a jersey size.");
+      return;
+    }
+
+    if (merchForm.trouserQuantity > 0 && !merchForm.trouserSize) {
+      setMerchError("Please select a trouser size.");
+      return;
+    }
+
+    setMerchSubmitting(true);
+    try {
+      const response = await fetch("/api/merchandise-preorder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...merchForm,
+          userUid: user?.id || firebaseUser?.uid || null,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setMerchError(data?.error || "Failed to submit pre-order.");
+        return;
+      }
+
+      setMerchUniqueId(data?.uniqueId ? String(data.uniqueId) : null);
+      setMerchMessage("Your CPSC 2026 Winter pre-order has been submitted.");
+      setMerchForm((prev) => ({
+        ...prev,
+        jerseySize: "",
+        jerseyQuantity: 0,
+        trouserSize: "",
+        trouserQuantity: 0,
+        hatsQuantity: 0,
+      }));
+    } catch (error) {
+      console.error("Failed to submit merchandise preorder:", error);
+      setMerchError("Failed to submit pre-order.");
+    } finally {
+      setMerchSubmitting(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-green-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -433,7 +575,7 @@ export default function DashboardPage() {
 
         {/* User Info Card */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 text-[var(--color-dark)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-2)] rounded-full flex items-center justify-center text-white text-xl font-bold">
                 {displayName.charAt(0).toUpperCase()}
@@ -447,7 +589,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xl">
                 ✉️
@@ -461,7 +603,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-xl">
                 ✓
@@ -475,10 +617,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Dashboard Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           {/* Admin Section */}
           {isAdmin && (
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl md:col-span-2">
               <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">Admin</h2>
               <div className="space-y-3">
                 <Link
@@ -516,8 +658,11 @@ export default function DashboardPage() {
           )}
 
           {/* Player Stats */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
-            <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-2">My Player Stats</h2>
+          <div className="bg-white rounded-3xl shadow-xl p-8 border border-blue-100 md:col-span-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 mb-3">
+              📊 Performance Snapshot
+            </div>
+            <h2 className="text-2xl font-extrabold text-[var(--color-dark)] mb-2 tracking-tight">My Player Stats</h2>
             <p className="text-sm text-gray-600 mb-6">
               Stats are calculated from PlayHQ scorecards stored in match data.
             </p>
@@ -526,23 +671,23 @@ export default function DashboardPage() {
               <div className="text-gray-600">Loading stats…</div>
             ) : myBattingStats ? (
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 shadow-sm">
                   <p className="text-xs text-gray-600">Matches</p>
                   <p className="text-2xl font-black text-[var(--color-dark)]">{myBattingStats.matches}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-200 shadow-sm">
                   <p className="text-xs text-gray-600">Innings</p>
                   <p className="text-2xl font-black text-[var(--color-dark)]">{myBattingStats.innings}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-green-50 border border-green-100">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 border border-emerald-200 shadow-sm">
                   <p className="text-xs text-gray-600">Runs</p>
                   <p className="text-2xl font-black text-[var(--color-dark)]">{myBattingStats.runs}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-green-50 border border-green-100">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-lime-50 to-lime-100 border border-lime-200 shadow-sm">
                   <p className="text-xs text-gray-600">Highest</p>
                   <p className="text-2xl font-black text-[var(--color-dark)]">{myBattingStats.highest}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 shadow-sm">
                   <p className="text-xs text-gray-600">Strike Rate</p>
                   <p className="text-2xl font-black text-[var(--color-dark)]">
                     {myBattingStats.balls > 0
@@ -550,18 +695,157 @@ export default function DashboardPage() {
                       : "0.0"}
                   </p>
                 </div>
-                <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 shadow-sm">
                   <p className="text-xs text-gray-600">4s / 6s</p>
                   <p className="text-2xl font-black text-[var(--color-dark)]">
                     {myBattingStats.fours} / {myBattingStats.sixes}
                   </p>
                 </div>
               </div>
-            ) : null}
+            ) : emailStatsRecord?.stats ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 shadow-sm">
+                  <p className="text-xs text-gray-600">Matches</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">
+                    {Number(emailStatsRecord.stats.matchesPlayed ?? 0)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 border border-emerald-200 shadow-sm">
+                  <p className="text-xs text-gray-600">Runs</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">
+                    {Number(emailStatsRecord.stats.runsScored ?? 0)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 shadow-sm">
+                  <p className="text-xs text-gray-600">Wickets</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">
+                    {Number(emailStatsRecord.stats.wickets ?? 0)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 shadow-sm">
+                  <p className="text-xs text-gray-600">Batting Avg</p>
+                  <p className="text-2xl font-black text-[var(--color-dark)]">
+                    {typeof emailStatsRecord.stats.battingAverage === "number"
+                      ? emailStatsRecord.stats.battingAverage.toFixed(2)
+                      : "—"}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm">
+                No batting entries were found in local match scorecards for your name yet.
+                <div className="mt-1 text-amber-800">
+                  We will show live PlayCricket stats here once your profile is linked.
+                </div>
+              </div>
+            )}
+
+            {emailStatsRecord?.playCricketUrl && (
+              <a
+                href={emailStatsRecord.playCricketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[var(--color-primary)] bg-blue-50 border border-blue-200 rounded-full hover:bg-blue-100 transition-colors"
+              >
+                🔗 View PlayCricket Profile
+              </a>
+            )}
+
+            {emailStatsRecord?.stats && (
+              <div className="mt-6 space-y-4">
+                <div className="rounded-2xl border border-gray-200 p-4 bg-gray-50 text-gray-800 shadow-sm">
+                  <p className="text-sm font-semibold text-[var(--color-dark)]">All Seasons - All Clubs, All formats</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    <span className="font-bold text-[var(--color-dark)]">{Number(emailStatsRecord.stats.matchesPlayed ?? 0)}</span> Matches
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStatsTab("batting")}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      activeStatsTab === "batting"
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
+                    }`}
+                  >
+                    Batting
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveStatsTab("bowling")}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      activeStatsTab === "bowling"
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                    }`}
+                  >
+                    Bowling
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveStatsTab("fielding")}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      activeStatsTab === "fielding"
+                        ? "bg-purple-600 text-white border-purple-600"
+                        : "bg-white text-purple-700 border-purple-200 hover:bg-purple-50"
+                    }`}
+                  >
+                    Fielding
+                  </button>
+                </div>
+
+                {activeStatsTab === "batting" && (
+                  <div className="rounded-2xl border border-blue-200 p-4 bg-gradient-to-br from-blue-50 to-cyan-50 text-gray-800 shadow-sm animate-[fadeIn_0.2s_ease-in-out]">
+                    <h3 className="text-sm font-bold text-[var(--color-dark)] mb-3">Batting</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                      <p>Innings: <span className="font-bold">{Number(emailStatsRecord.stats.innings ?? 0)}</span></p>
+                      <p>Runs: <span className="font-bold">{Number(emailStatsRecord.stats.runsScored ?? 0)}</span></p>
+                      <p>Average: <span className="font-bold">{typeof emailStatsRecord.stats.battingAverage === "number" ? emailStatsRecord.stats.battingAverage.toFixed(2) : "—"}</span></p>
+                      <p>High Score: <span className="font-bold">{Number(emailStatsRecord.stats.highScore ?? 0)}</span></p>
+                      <p>100s: <span className="font-bold">{Number(emailStatsRecord.stats.hundreds ?? 0)}</span></p>
+                      <p>50s: <span className="font-bold">{Number(emailStatsRecord.stats.fifties ?? 0)}</span></p>
+                      <p>Ducks: <span className="font-bold">{Number(emailStatsRecord.stats.ducks ?? 0)}</span></p>
+                      <p>Not Outs: <span className="font-bold">{Number(emailStatsRecord.stats.notOuts ?? 0)}</span></p>
+                      <p>Strike Rate: <span className="font-bold">{typeof emailStatsRecord.stats.strikeRate === "number" ? emailStatsRecord.stats.strikeRate.toFixed(1) : "—"}</span></p>
+                    </div>
+                  </div>
+                )}
+
+                {activeStatsTab === "bowling" && (
+                  <div className="rounded-2xl border border-green-200 p-4 bg-gradient-to-br from-green-50 to-emerald-50 text-gray-800 shadow-sm animate-[fadeIn_0.2s_ease-in-out]">
+                    <h3 className="text-sm font-bold text-[var(--color-dark)] mb-3">Bowling</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                      <p>Overs: <span className="font-bold">{typeof emailStatsRecord.stats.overs === "number" ? emailStatsRecord.stats.overs.toFixed(1) : "—"}</span></p>
+                      <p>Maidens: <span className="font-bold">{Number(emailStatsRecord.stats.maidens ?? 0)}</span></p>
+                      <p>Runs: <span className="font-bold">{Number(emailStatsRecord.stats.bowlingRuns ?? 0)}</span></p>
+                      <p>Wickets: <span className="font-bold">{Number(emailStatsRecord.stats.wickets ?? 0)}</span></p>
+                      <p>Best Bowling: <span className="font-bold">{emailStatsRecord.stats.bestBowling || "—"}</span></p>
+                      <p>Average: <span className="font-bold">{typeof emailStatsRecord.stats.bowlingAverage === "number" ? emailStatsRecord.stats.bowlingAverage.toFixed(2) : "—"}</span></p>
+                      <p>Economy: <span className="font-bold">{typeof emailStatsRecord.stats.economy === "number" ? emailStatsRecord.stats.economy.toFixed(1) : "—"}</span></p>
+                    </div>
+                  </div>
+                )}
+
+                {activeStatsTab === "fielding" && (
+                  <div className="rounded-2xl border border-purple-200 p-4 bg-gradient-to-br from-purple-50 to-fuchsia-50 text-gray-800 shadow-sm animate-[fadeIn_0.2s_ease-in-out]">
+                    <h3 className="text-sm font-bold text-[var(--color-dark)] mb-3">Fielding</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                      <p>Total Catches: <span className="font-bold">{Number(emailStatsRecord.stats.totalCatches ?? 0)}</span></p>
+                      <p>Wicket Keeper Catches: <span className="font-bold">{Number(emailStatsRecord.stats.wicketKeeperCatches ?? 0)}</span></p>
+                      <p>Non Wicket Keeper Catches: <span className="font-bold">{Number(emailStatsRecord.stats.nonWicketKeeperCatches ?? 0)}</span></p>
+                      <p>Run Outs: <span className="font-bold">{Number(emailStatsRecord.stats.runOuts ?? 0)}</span></p>
+                      <p>Stumpings: <span className="font-bold">{Number(emailStatsRecord.stats.stumpings ?? 0)}</span></p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Profile Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">
               Profile Settings
             </h2>
@@ -585,106 +869,236 @@ export default function DashboardPage() {
           </div>
 
           {/* Matches Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">
               My Matches
             </h2>
             <div className="space-y-4">
               <button 
                 onClick={handleViewRegisteredMatches}
-                className="w-full px-4 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg font-bold hover:bg-blue-50 transition-colors"
+                disabled
+                className="w-full px-4 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 View Registered Matches
               </button>
               <button 
                 onClick={handleViewMatchHistory}
-                className="w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors"
+                disabled
+                className="w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 View Match History
               </button>
               <button 
                 onClick={handleRegisterForMatch}
-                className="w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold hover:bg-gray-50 transition-colors"
+                disabled
+                className="w-full px-4 py-3 border-2 border-gray-300 text-[var(--color-dark)] rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Register for Match
               </button>
             </div>
           </div>
 
-          {/* Stats Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
-            <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">
-              Statistics
-            </h2>
+          {/* Merchandise Pre-Order */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 md:col-span-2 transition-all duration-300 hover:shadow-xl">
+            <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-2">CPSC 2026 Winter Pre-Order Form</h2>
+            <p className="text-sm text-gray-600 mb-6">Order your official merchandise after login.</p>
 
-            {emailStatsLoading ? (
-              <div className="text-gray-600">Loading…</div>
-            ) : emailStatsRecord?.stats ? (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-[var(--color-primary)]">
-                      {Number(emailStatsRecord.stats.matchesPlayed ?? 0)}
-                    </p>
-                    <p className="text-sm text-gray-600">Matches Played</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">
-                      {Number(emailStatsRecord.stats.runsScored ?? 0)}
-                    </p>
-                    <p className="text-sm text-gray-600">Runs Scored</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-700">
-                      {Number(emailStatsRecord.stats.wickets ?? 0)}
-                    </p>
-                    <p className="text-sm text-gray-600">Wickets</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-[var(--color-dark)]">
-                      {typeof emailStatsRecord.stats.battingAverage === "number"
-                        ? emailStatsRecord.stats.battingAverage.toFixed(2)
-                        : "—"}
-                    </p>
-                    <p className="text-sm text-gray-600">Batting Avg</p>
-                  </div>
+            <form onSubmit={handleMerchSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={merchForm.email}
+                    onChange={(e) => setMerchForm((prev) => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[var(--color-dark)] placeholder:text-gray-500 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                    placeholder="you@example.com"
+                    required
+                  />
                 </div>
-
-                {emailStatsRecord.playCricketUrl && (
-                  <a
-                    href={emailStatsRecord.playCricketUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-block text-sm font-semibold text-[var(--color-primary)] hover:underline"
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={merchForm.phone}
+                    onChange={(e) => setMerchForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[var(--color-dark)] placeholder:text-gray-500 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                    placeholder="(042) 269-6569"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Player Registration</label>
+                  <select
+                    value={merchForm.playerRegistration}
+                    onChange={(e) => setMerchForm((prev) => ({ ...prev, playerRegistration: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[var(--color-dark)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   >
-                    View PlayCricket Profile →
-                  </a>
-                )}
-              </>
-            ) : (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
-                No stats record found for <span className="font-bold">{displayEmail || "your account"}</span>.
-                <div className="mt-1 text-sm text-amber-800">
-                  Add a Firestore doc in <span className="font-semibold">playerStats</span> with doc id = your email.
+                    <option value="New Player">New Player</option>
+                    <option value="Existing Player">Existing Player</option>
+                  </select>
                 </div>
               </div>
-            )}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-xl border border-gray-200 p-4 bg-blue-50">
+                  <p className="font-bold text-[var(--color-dark)] mb-3">Half Sleeves Playing Jersey - $25</p>
+                  <div className="space-y-3">
+                    <select
+                      value={merchForm.jerseySize}
+                      onChange={(e) => setMerchForm((prev) => ({ ...prev, jerseySize: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[var(--color-dark)]"
+                    >
+                      <option value="">Select size</option>
+                      {MERCH_SIZES.map((size) => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min={0}
+                      value={merchForm.jerseyQuantity}
+                      onChange={(e) =>
+                        setMerchForm((prev) => ({
+                          ...prev,
+                          jerseyQuantity: Math.max(0, Number(e.target.value) || 0),
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[var(--color-dark)] placeholder:text-gray-500"
+                      placeholder="Quantity"
+                    />
+                    <p className="text-sm text-gray-700">Total Jerseys: <span className="font-bold">{merchForm.jerseyQuantity}</span></p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-gray-200 p-4 bg-green-50">
+                  <p className="font-bold text-[var(--color-dark)] mb-3">Trouser - $30</p>
+                  <div className="space-y-3">
+                    <select
+                      value={merchForm.trouserSize}
+                      onChange={(e) => setMerchForm((prev) => ({ ...prev, trouserSize: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[var(--color-dark)]"
+                    >
+                      <option value="">Select size</option>
+                      {MERCH_SIZES.map((size) => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min={0}
+                      value={merchForm.trouserQuantity}
+                      onChange={(e) =>
+                        setMerchForm((prev) => ({
+                          ...prev,
+                          trouserQuantity: Math.max(0, Number(e.target.value) || 0),
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[var(--color-dark)] placeholder:text-gray-500"
+                      placeholder="Quantity"
+                    />
+                    <p className="text-sm text-gray-700">Total Trousers: <span className="font-bold">{merchForm.trouserQuantity}</span></p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-gray-200 p-4 bg-amber-50">
+                  <p className="font-bold text-[var(--color-dark)] mb-3">Hats - $14</p>
+                  <input
+                    type="number"
+                    min={0}
+                    value={merchForm.hatsQuantity}
+                    onChange={(e) =>
+                      setMerchForm((prev) => ({
+                        ...prev,
+                        hatsQuantity: Math.max(0, Number(e.target.value) || 0),
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[var(--color-dark)] placeholder:text-gray-500"
+                    placeholder="Quantity"
+                  />
+                  <p className="text-sm text-gray-700 mt-3">Total Hats: <span className="font-bold">{merchForm.hatsQuantity}</span></p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 p-4 bg-gray-50">
+                <p className="text-sm text-gray-700">Jersey Total: <span className="font-bold">${jerseyTotal}</span></p>
+                <p className="text-sm text-gray-700">Trouser Total: <span className="font-bold">${trouserTotal}</span></p>
+                <p className="text-sm text-gray-700">Hats Total: <span className="font-bold">${hatTotal}</span></p>
+                <p className="text-lg font-bold text-[var(--color-dark)] mt-1">Order Total: ${orderTotal}</p>
+                {merchUniqueId && (
+                  <p className="text-sm text-[var(--color-primary)] mt-2">Unique ID: <span className="font-bold">{merchUniqueId}</span></p>
+                )}
+              </div>
+
+              {merchError && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{merchError}</div>
+              )}
+              {merchMessage && (
+                <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">{merchMessage}</div>
+              )}
+
+              <button
+                type="submit"
+                disabled={merchSubmitting}
+                className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg font-bold hover:shadow-lg transition-all disabled:opacity-60"
+              >
+                {merchSubmitting ? "Submitting..." : "Submit Pre-Order"}
+              </button>
+            </form>
           </div>
 
-          {/* Activity Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+          {/* Summary Section */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 md:col-span-2 transition-all duration-300 hover:shadow-xl">
             <h2 className="text-2xl font-bold text-[var(--color-dark)] mb-6">
-              Analytics
+              Summary
             </h2>
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">View detailed website analytics and user engagement metrics</p>
-              <Link
-                href="/analytics"
-                className="inline-block px-6 py-3 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 text-[var(--color-dark)] rounded-lg font-bold hover:shadow-lg transition-shadow border-2 border-[var(--color-primary)]"
-              >
-                📊 View Analytics
-              </Link>
-            </div>
+            {emailStatsLoading ? (
+              <div className="text-gray-600">Loading summary…</div>
+            ) : emailStatsRecord?.summary ? (
+              <>
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 mb-4">
+                  {summaryLabel}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                    <p className="text-xs text-gray-600">Matches Played</p>
+                    <p className="text-2xl font-black text-[var(--color-dark)]">{summaryMatches}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-green-50 border border-green-100">
+                    <p className="text-xs text-gray-600">Runs</p>
+                    <p className="text-2xl font-black text-[var(--color-dark)]">{summaryRuns}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                    <p className="text-xs text-gray-600">Batting Average</p>
+                    <p className="text-2xl font-black text-[var(--color-dark)]">{summaryBattingAverage}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-lime-50 border border-lime-100">
+                    <p className="text-xs text-gray-600">High Score</p>
+                    <p className="text-2xl font-black text-[var(--color-dark)]">{summaryHighScore}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-purple-50 border border-purple-100">
+                    <p className="text-xs text-gray-600">Wickets</p>
+                    <p className="text-2xl font-black text-[var(--color-dark)]">{summaryWickets}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-fuchsia-50 border border-fuchsia-100">
+                    <p className="text-xs text-gray-600">Bowling Average</p>
+                    <p className="text-2xl font-black text-[var(--color-dark)]">{summaryBowlingAverage}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
+                    <p className="text-xs text-gray-600">Best Bowling</p>
+                    <p className="text-2xl font-black text-[var(--color-dark)]">{summaryBestBowling}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p className="text-xs text-gray-600">Total Catches</p>
+                    <p className="text-2xl font-black text-[var(--color-dark)]">{summaryCatches}</p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm">
+                No summary data available yet. Link your PlayCricket profile to fetch summary stats.
+              </div>
+            )}
           </div>
         </div>
 
