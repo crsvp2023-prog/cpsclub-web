@@ -326,6 +326,8 @@ export async function GET(request: Request) {
     const activeDb = bearer ? getFirestoreForToken(bearer) : db;
     const activeProjectId = (bearer ? getProjectIdForToken(bearer) : undefined) || (admin.app()?.options as any)?.projectId;
 
+    console.log("Player stats API called", { emailParam, uidParam, live, bearer: !!bearer, activeProjectId });
+
     if (!emailParam && !uidParam) {
       return Response.json({ error: "Missing email or uid parameter" }, { status: 400 });
     }
@@ -349,6 +351,7 @@ export async function GET(request: Request) {
     }
 
     const docId = resolvedEmail || resolvedUid;
+    console.log("Resolved identifiers", { resolvedEmail, resolvedUid, docId });
     const doc = await activeDb.collection("playerStats").doc(docId).get();
 
     if (!doc.exists) {
@@ -480,6 +483,15 @@ export async function GET(request: Request) {
         }
       }
     }
+
+    console.log("Player stats API result:", {
+      email: emailParam,
+      uid: resolvedUid,
+      hasStats: Boolean(statsRecord),
+      hasLiveStats: Boolean(liveStats),
+      hasLiveSummary: Boolean(liveSummary),
+      resolvedByUid: Boolean(!emailParam && resolvedUid),
+    });
 
     return Response.json(
       {
