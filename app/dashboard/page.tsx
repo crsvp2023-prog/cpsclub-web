@@ -11,6 +11,10 @@ import { UPCOMING_MATCHES } from "../data/upcoming-matches";
 
 const MERCH_SIZES = ["8", "10", "12", "14", "XS", "S", "M", "L", "XL", "2XL", "3XL"];
 
+const FALLBACK_UID_EMAILS: Record<string, string> = {
+  "qH0sMkxxB4Xzp5vxhaVoXDP7s163": "ravip.2006@gmail.com",
+};
+
 export default function DashboardPage() {
   const { user, firebaseUser, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -23,14 +27,16 @@ export default function DashboardPage() {
   const effectiveUid = (user?.id || firebaseUser?.uid || "").trim();
   const [profileEmailFallback, setProfileEmailFallback] = useState("");
   const rawEmail = (user?.email || firebaseUser?.email || providerEmail || "").trim();
-  const effectiveEmail = (rawEmail || tokenEmail).toLowerCase();
+  const uidFallbackEmail = effectiveUid && FALLBACK_UID_EMAILS[effectiveUid] ? FALLBACK_UID_EMAILS[effectiveUid] : "";
+  const resolvedEmail = (rawEmail || tokenEmail || uidFallbackEmail).trim();
+  const effectiveEmail = resolvedEmail.toLowerCase();
   const emailIsAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
   const [serverIsAdmin, setServerIsAdmin] = useState<boolean | null>(null);
   const [serverWhoami, setServerWhoami] = useState<any>(null);
   const isAdmin = emailIsAdmin || serverIsAdmin === true;
   const [debugAdmin, setDebugAdmin] = useState(false);
   const serverEmail = typeof serverWhoami?.email === "string" ? serverWhoami.email : "";
-  const displayEmail = rawEmail || serverEmail || tokenEmail || profileEmailFallback;
+  const displayEmail = resolvedEmail || serverEmail || profileEmailFallback;
   const profileName = typeof user?.name === "string" ? user.name.trim() : "";
   const displayName = profileName && profileName.toLowerCase() !== "user"
     ? profileName
