@@ -1,4 +1,7 @@
 import { db, admin } from "@/app/lib/firebase-admin";
+import { Resend } from "resend";
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export const runtime = 'nodejs';
 
@@ -141,6 +144,38 @@ export async function POST(request: Request) {
         error: JSON.stringify(firestoreError),
       });
       throw firestoreError;
+    }
+
+    // Send confirmation email
+    if (resend && email) {
+      try {
+        console.log("Sending profile update confirmation email to:", email);
+        await resend.emails.send({
+          from: "CPSC Club <noreply@cpsclub.com.au>",
+          to: [email],
+          subject: "Profile Updated Successfully",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #1f2937;">Profile Updated Successfully</h2>
+              <p>Hello ${displayName || 'User'},</p>
+              <p>Your profile has been successfully updated with the following information:</p>
+              <ul>
+                ${displayName ? `<li><strong>Name:</strong> ${displayName}</li>` : ''}
+                ${email ? `<li><strong>Email:</strong> ${email}</li>` : ''}
+                ${phone ? `<li><strong>Phone:</strong> ${phone}</li>` : ''}
+              </ul>
+              <p>If you did not make these changes, please contact us immediately.</p>
+              <p>Best regards,<br>CPSC Club Team</p>
+            </div>
+          `,
+        });
+        console.log("Profile update confirmation email sent successfully");
+      } catch (emailError) {
+        console.error("Failed to send profile update email:", emailError);
+        // Don't fail the request if email fails
+      }
+    } else if (!resend) {
+      console.warn("RESEND_API_KEY not configured, skipping profile update email");
     }
 
     return Response.json(

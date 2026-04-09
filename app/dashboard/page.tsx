@@ -1260,10 +1260,48 @@ export default function DashboardPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // Handle profile update
-                  alert('Profile updated successfully!');
-                  setActiveModal(null);
+                onClick={async () => {
+                  if (!user?.id) {
+                    alert('User not authenticated');
+                    return;
+                  }
+
+                  try {
+                    const idToken = firebaseUser ? await firebaseUser.getIdToken() : "";
+                    
+                    const response = await fetch('/api/auth/update-profile', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+                      },
+                      body: JSON.stringify({
+                        uid: user.id,
+                        email: profileData.email,
+                        displayName: profileData.name,
+                        phone: profileData.phone,
+                      }),
+                    });
+
+                    if (!response.ok) {
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || 'Failed to update profile');
+                    }
+
+                    const result = await response.json();
+                    
+                    // Update local user state
+                    if (result.success) {
+                      alert('Profile updated successfully! A confirmation email has been sent.');
+                      setActiveModal(null);
+                      
+                      // Refresh the page to show updated data
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error('Profile update error:', error);
+                    alert('Failed to update profile: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                  }
                 }}
                 className="flex-1 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg font-bold hover:bg-blue-600 transition-colors"
               >
