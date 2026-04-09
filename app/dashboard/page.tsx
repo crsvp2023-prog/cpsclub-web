@@ -125,10 +125,10 @@ export default function DashboardPage() {
   }>(null);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !isAuthenticated && !user) {
       router.push("/login");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   useEffect(() => {
     // Opt-in debug for production troubleshooting: /dashboard?debugAdmin=1
