@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
 import { storage } from "@/app/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updatePassword } from "firebase/auth";
 import { logAnalyticsEvent } from "@/app/lib/analytics";
 import { UPCOMING_MATCHES } from "../data/upcoming-matches";
 
@@ -1353,14 +1354,61 @@ export default function DashboardPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (profileData.newPassword !== profileData.confirmPassword) {
                     alert('Passwords do not match!');
                     return;
                   }
-                  // Handle password change
-                  alert('Password changed successfully!');
-                  setActiveModal(null);
+                  
+                  if (!profileData.newPassword || profileData.newPassword.length < 6) {
+                    alert('Password must be at least 6 characters long!');
+                    return;
+                  }
+
+                  try {
+                    // Change password using Firebase Auth
+                    if (firebaseUser) {
+                      await updatePassword(firebaseUser, profileData.newPassword);
+                      
+                      // Send notification email
+                      const idToken = await firebaseUser.getIdToken();
+                      await fetch('/api/auth/password-changed', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${idToken}`,
+                        },
+                        body: JSON.stringify({
+                          email: user?.email || firebaseUser.email,
+                          displayName: user?.name || firebaseUser.displayName,
+                        }),
+                      });
+                      
+                      alert('Password changed successfully! A confirmation email has been sent.');
+                      setActiveModal(null);
+                      
+                      // Clear password fields
+                      setProfileData(prev => ({
+                        ...prev,
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                      }));
+                    } else {
+                      alert('User not authenticated. Please log in again.');
+                    }
+                  } catch (error: any) {
+                    console.error('Password change error:', error);
+                    
+                    // Handle specific Firebase Auth errors
+                    if (error.code === 'auth/requires-recent-login') {
+                      alert('For security reasons, please log out and log back in before changing your password.');
+                    } else if (error.code === 'auth/weak-password') {
+                      alert('Password is too weak. Please choose a stronger password.');
+                    } else {
+                      alert('Failed to change password: ' + (error.message || 'Unknown error'));
+                    }
+                  }
                 }}
                 className="flex-1 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg font-bold hover:bg-blue-600 transition-colors"
               >
