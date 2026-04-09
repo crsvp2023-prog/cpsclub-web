@@ -764,7 +764,7 @@ export default function DashboardPage() {
           )}
 
           {/* Player Stats */}
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-blue-100 md:col-span-2">
+          <div data-section="player-stats" className="bg-white rounded-3xl shadow-xl p-8 border border-blue-100 md:col-span-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 mb-3">
               📊 Performance Snapshot
             </div>
@@ -838,10 +838,47 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm">
-                No batting entries were found in local match scorecards for your name yet.
-                <div className="mt-1 text-amber-800">
-                  We will show live PlayCricket stats here once your profile is linked.
+              <div className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 text-amber-900">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-amber-900 mb-2">No Player Statistics Found</h4>
+                    <p className="text-sm text-amber-800 mb-4">
+                      We couldn't find your cricket statistics. This could be because:
+                    </p>
+                    <ul className="text-sm text-amber-800 mb-4 space-y-1">
+                      <li>• Your PlayCricket profile isn't linked yet</li>
+                      <li>• Your name doesn't match our records</li>
+                      <li>• You haven't played in recorded matches yet</li>
+                    </ul>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={() => window.open('https://play.cricket.com.au', '_blank')}
+                        className="inline-flex items-center px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Visit PlayCricket
+                      </button>
+                      <button
+                        onClick={() => setActiveModal('editProfile')}
+                        className="inline-flex items-center px-4 py-2 bg-white text-amber-700 text-sm font-medium rounded-lg border border-amber-300 hover:bg-amber-50 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Update Profile
+                      </button>
+                    </div>
+                    <p className="text-xs text-amber-700 mt-3">
+                      Contact an admin if you believe your stats should be available.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -1201,8 +1238,51 @@ export default function DashboardPage() {
                 </div>
               </>
             ) : (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm">
-                No summary data available yet. Link your PlayCricket profile to fetch summary stats.
+              <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 text-blue-900">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-blue-900 mb-2">Season Summary Not Available</h4>
+                    <p className="text-sm text-blue-800 mb-4">
+                      Your comprehensive season statistics will appear here once your PlayCricket profile is connected.
+                    </p>
+                    <div className="bg-blue-100 p-3 rounded-lg mb-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>What you'll see:</strong> Matches played, total runs, wickets taken, batting/striking averages, and your best performances this season.
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={() => window.open('https://play.cricket.com.au', '_blank')}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Check PlayCricket
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Scroll to player stats section
+                          const statsSection = document.querySelector('[data-section="player-stats"]');
+                          if (statsSection) {
+                            statsSection.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                        className="inline-flex items-center px-4 py-2 bg-white text-blue-700 text-sm font-medium rounded-lg border border-blue-300 hover:bg-blue-50 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                        View Match Stats
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
