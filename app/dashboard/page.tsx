@@ -6,10 +6,15 @@ import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
 import { storage } from "@/app/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updatePassword } from "firebase/auth";
 import { logAnalyticsEvent } from "@/app/lib/analytics";
 import { UPCOMING_MATCHES } from "../data/upcoming-matches";
 
 const MERCH_SIZES = ["8", "10", "12", "14", "XS", "S", "M", "L", "XL", "2XL", "3XL"];
+
+const FALLBACK_UID_EMAILS: Record<string, string> = {
+  "qH0sMkxxB4Xzp5vxhaVoXDP7s163": "ravip.2006@gmail.com",
+};
 
 export default function DashboardPage() {
   const { user, firebaseUser, logout, isAuthenticated, isLoading } = useAuth();
@@ -20,15 +25,19 @@ export default function DashboardPage() {
   const [tokenName, setTokenName] = useState("");
   const providerEmail =
     (firebaseUser?.providerData || []).find((p) => typeof p?.email === "string" && p.email.trim())?.email || "";
+  const effectiveUid = (user?.id || firebaseUser?.uid || "").trim();
+  const [profileEmailFallback, setProfileEmailFallback] = useState("");
   const rawEmail = (user?.email || firebaseUser?.email || providerEmail || "").trim();
-  const effectiveEmail = (rawEmail || tokenEmail).toLowerCase();
+  const uidFallbackEmail = effectiveUid && FALLBACK_UID_EMAILS[effectiveUid] ? FALLBACK_UID_EMAILS[effectiveUid] : "";
+  const resolvedEmail = (rawEmail || tokenEmail || uidFallbackEmail).trim();
+  const effectiveEmail = resolvedEmail.toLowerCase();
   const emailIsAdmin = effectiveEmail === ADMIN_EMAIL.trim().toLowerCase();
   const [serverIsAdmin, setServerIsAdmin] = useState<boolean | null>(null);
   const [serverWhoami, setServerWhoami] = useState<any>(null);
   const isAdmin = emailIsAdmin || serverIsAdmin === true;
   const [debugAdmin, setDebugAdmin] = useState(false);
   const serverEmail = typeof serverWhoami?.email === "string" ? serverWhoami.email : "";
-  const displayEmail = rawEmail || serverEmail || tokenEmail;
+  const displayEmail = resolvedEmail || serverEmail || profileEmailFallback;
   const profileName = typeof user?.name === "string" ? user.name.trim() : "";
   const displayName = profileName && profileName.toLowerCase() !== "user"
     ? profileName
@@ -117,10 +126,10 @@ export default function DashboardPage() {
   }>(null);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !isAuthenticated && !user) {
       router.push("/login");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   useEffect(() => {
     // Opt-in debug for production troubleshooting: /dashboard?debugAdmin=1
@@ -199,6 +208,44 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [isAuthenticated, firebaseUser]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProfileEmailFallback = async () => {
+      if (!effectiveUid) {
+        setProfileEmailFallback("");
+        return;
+      }
+
+      // Skip if we already have an email from auth/token/server.
+      if (rawEmail || serverEmail || tokenEmail) {
+        setProfileEmailFallback("");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/auth/get-profile?uid=${encodeURIComponent(effectiveUid)}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          if (!cancelled) setProfileEmailFallback("");
+          return;
+        }
+
+        const data = await res.json().catch(() => null);
+        const fallbackEmail = typeof data?.email === "string" ? data.email.trim() : "";
+        if (!cancelled) setProfileEmailFallback(fallbackEmail);
+      } catch {
+        if (!cancelled) setProfileEmailFallback("");
+      }
+    };
+
+    loadProfileEmailFallback();
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveUid, rawEmail, serverEmail, tokenEmail]);
 
   useEffect(() => {
     const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -284,8 +331,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const loadEmailStats = async () => {
-      const emailCandidate = (rawEmail || serverEmail || tokenEmail || "").trim();
-      if (!isAuthenticated || !emailCandidate) {
+      const emailCandidate = (rawEmail || serverEmail || tokenEmail || profileEmailFallback || "").trim();
+      const uidCandidate = effectiveUid;
+      if (!isAuthenticated || (!emailCandidate && !uidCandidate)) {
         setEmailStatsRecord(null);
         return;
       }
@@ -293,7 +341,19 @@ export default function DashboardPage() {
       setEmailStatsLoading(true);
       try {
         const email = emailCandidate.toLowerCase();
-        const res = await fetch(`/api/player-stats?email=${encodeURIComponent(email)}&live=1`, { cache: "no-store" });
+        const qs = new URLSearchParams();
+        if (email) qs.set("email", email);
+        if (uidCandidate) qs.set("uid", uidCandidate);
+        qs.set("live", "1");
+        const idToken = firebaseUser ? await firebaseUser.getIdToken() : "";
+        const res = await fetch(`/api/player-stats?${qs.toString()}`, {
+          cache: "no-store",
+          headers: idToken
+            ? {
+                Authorization: `Bearer ${idToken}`,
+              }
+            : undefined,
+        });
         if (!res.ok) {
           setEmailStatsRecord(null);
           return;
@@ -319,7 +379,16 @@ export default function DashboardPage() {
     };
 
     loadEmailStats();
-  }, [isAuthenticated, rawEmail, serverEmail, tokenEmail]);
+  }, [isAuthenticated, rawEmail, serverEmail, tokenEmail, profileEmailFallback, firebaseUser, effectiveUid]);
+
+  useEffect(() => {
+    setProfileData((prev) => ({
+      ...prev,
+      email: displayEmail || prev.email,
+      phone: user?.phone || prev.phone,
+      name: displayName || prev.name,
+    }));
+  }, [displayEmail, displayName, user?.phone]);
 
   useEffect(() => {
     setMerchForm((prev) => ({
@@ -695,7 +764,7 @@ export default function DashboardPage() {
           )}
 
           {/* Player Stats */}
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-blue-100 md:col-span-2">
+          <div data-section="player-stats" className="bg-white rounded-3xl shadow-xl p-8 border border-blue-100 md:col-span-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 mb-3">
               📊 Performance Snapshot
             </div>
@@ -769,10 +838,47 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm">
-                No batting entries were found in local match scorecards for your name yet.
-                <div className="mt-1 text-amber-800">
-                  We will show live PlayCricket stats here once your profile is linked.
+              <div className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 text-amber-900">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-amber-900 mb-2">No Player Statistics Found</h4>
+                    <p className="text-sm text-amber-800 mb-4">
+                      We couldn't find your cricket statistics. This could be because:
+                    </p>
+                    <ul className="text-sm text-amber-800 mb-4 space-y-1">
+                      <li>• Your PlayCricket profile isn't linked yet</li>
+                      <li>• Your name doesn't match our records</li>
+                      <li>• You haven't played in recorded matches yet</li>
+                    </ul>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={() => window.open('https://play.cricket.com.au', '_blank')}
+                        className="inline-flex items-center px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Visit PlayCricket
+                      </button>
+                      <button
+                        onClick={() => setActiveModal('editProfile')}
+                        className="inline-flex items-center px-4 py-2 bg-white text-amber-700 text-sm font-medium rounded-lg border border-amber-300 hover:bg-amber-50 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Update Profile
+                      </button>
+                    </div>
+                    <p className="text-xs text-amber-700 mt-3">
+                      Contact an admin if you believe your stats should be available.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -1132,8 +1238,51 @@ export default function DashboardPage() {
                 </div>
               </>
             ) : (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm">
-                No summary data available yet. Link your PlayCricket profile to fetch summary stats.
+              <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 text-blue-900">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-blue-900 mb-2">Season Summary Not Available</h4>
+                    <p className="text-sm text-blue-800 mb-4">
+                      Your comprehensive season statistics will appear here once your PlayCricket profile is connected.
+                    </p>
+                    <div className="bg-blue-100 p-3 rounded-lg mb-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>What you'll see:</strong> Matches played, total runs, wickets taken, batting/striking averages, and your best performances this season.
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={() => window.open('https://play.cricket.com.au', '_blank')}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Check PlayCricket
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Scroll to player stats section
+                          const statsSection = document.querySelector('[data-section="player-stats"]');
+                          if (statsSection) {
+                            statsSection.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                        className="inline-flex items-center px-4 py-2 bg-white text-blue-700 text-sm font-medium rounded-lg border border-blue-300 hover:bg-blue-50 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                        View Match Stats
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1192,10 +1341,48 @@ export default function DashboardPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // Handle profile update
-                  alert('Profile updated successfully!');
-                  setActiveModal(null);
+                onClick={async () => {
+                  if (!user?.id) {
+                    alert('User not authenticated');
+                    return;
+                  }
+
+                  try {
+                    const idToken = firebaseUser ? await firebaseUser.getIdToken() : "";
+                    
+                    const response = await fetch('/api/auth/update-profile', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+                      },
+                      body: JSON.stringify({
+                        uid: user.id,
+                        email: profileData.email,
+                        displayName: profileData.name,
+                        phone: profileData.phone,
+                      }),
+                    });
+
+                    if (!response.ok) {
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || 'Failed to update profile');
+                    }
+
+                    const result = await response.json();
+                    
+                    // Update local user state
+                    if (result.success) {
+                      alert('Profile updated successfully! A confirmation email has been sent.');
+                      setActiveModal(null);
+                      
+                      // Refresh the page to show updated data
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error('Profile update error:', error);
+                    alert('Failed to update profile: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                  }
                 }}
                 className="flex-1 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg font-bold hover:bg-blue-600 transition-colors"
               >
@@ -1247,14 +1434,61 @@ export default function DashboardPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (profileData.newPassword !== profileData.confirmPassword) {
                     alert('Passwords do not match!');
                     return;
                   }
-                  // Handle password change
-                  alert('Password changed successfully!');
-                  setActiveModal(null);
+                  
+                  if (!profileData.newPassword || profileData.newPassword.length < 6) {
+                    alert('Password must be at least 6 characters long!');
+                    return;
+                  }
+
+                  try {
+                    // Change password using Firebase Auth
+                    if (firebaseUser) {
+                      await updatePassword(firebaseUser, profileData.newPassword);
+                      
+                      // Send notification email
+                      const idToken = await firebaseUser.getIdToken();
+                      await fetch('/api/auth/password-changed', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${idToken}`,
+                        },
+                        body: JSON.stringify({
+                          email: user?.email || firebaseUser.email,
+                          displayName: user?.name || firebaseUser.displayName,
+                        }),
+                      });
+                      
+                      alert('Password changed successfully! A confirmation email has been sent.');
+                      setActiveModal(null);
+                      
+                      // Clear password fields
+                      setProfileData(prev => ({
+                        ...prev,
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                      }));
+                    } else {
+                      alert('User not authenticated. Please log in again.');
+                    }
+                  } catch (error: any) {
+                    console.error('Password change error:', error);
+                    
+                    // Handle specific Firebase Auth errors
+                    if (error.code === 'auth/requires-recent-login') {
+                      alert('For security reasons, please log out and log back in before changing your password.');
+                    } else if (error.code === 'auth/weak-password') {
+                      alert('Password is too weak. Please choose a stronger password.');
+                    } else {
+                      alert('Failed to change password: ' + (error.message || 'Unknown error'));
+                    }
+                  }
                 }}
                 className="flex-1 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg font-bold hover:bg-blue-600 transition-colors"
               >

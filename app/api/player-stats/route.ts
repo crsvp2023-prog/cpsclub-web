@@ -1,22 +1,40 @@
-import { admin, db } from "@/app/lib/firebase-admin";
+import { admin, db, getFirestoreForToken, getProjectIdForToken } from "@/app/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
 const FALLBACK_PLAYCRICKET_URLS: Record<string, string> = {
   "ravip.2006@gmail.com": "https://play.cricket.com.au/player/90918ca4-b93a-4d46-9f0c-000135fee349/ravi-prakash?tab=career",
 };
-
-let puppeteerLib: any;
-
-async function getPuppeteer() {
-  if (!puppeteerLib) {
-    puppeteerLib = (await import("puppeteer")).default;
-  }
-  return puppeteerLib;
-}
+const FALLBACK_UID_EMAILS: Record<string, string> = {
+  "qH0sMkxxB4Xzp5vxhaVoXDP7s163": "ravip.2006@gmail.com",
+};
+const PLAYCRICKET_API_BASE = "https://grassrootsapiproxy.cricket.com.au";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
+}
+
+async function resolvePlayCricketUrlFromUsersCollection(
+  firestore: FirebaseFirestore.Firestore,
+  email: string
+) {
+  const normalized = normalizeEmail(email);
+  const usersRef = firestore.collection("users");
+
+  const byEmail = await usersRef.where("email", "==", normalized).limit(1).get();
+  const doc = byEmail.docs[0];
+  if (!doc) return null;
+
+  const data = doc.data() || {};
+  const candidates = [
+    data.playCricketUrl,
+    data.playcricketUrl,
+    data.playCricketProfileUrl,
+    data.playCricket,
+  ];
+
+  const found = candidates.find((v) => typeof v === "string" && v.trim());
+  return typeof found === "string" ? found.trim() : null;
 }
 
 function normalizePlayCricketUrl(url: string) {
@@ -38,6 +56,33 @@ function normalizePlayCricketSummaryUrl(url: string) {
   return trimmed.includes("tab=summary")
     ? trimmed
     : `${trimmed}${trimmed.includes("?") ? "&" : "?"}tab=summary`;
+}
+
+function extractPlayCricketPlayerId(playCricketUrl: string) {
+  const pathMatch = playCricketUrl.match(/\/player\/([0-9a-f-]{36})/i);
+  if (pathMatch?.[1]) return pathMatch[1];
+
+  const genericUuid = playCricketUrl.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+  return genericUuid?.[1] || null;
+}
+
+async function fetchPlayCricketJson(path: string, params: Record<string, string>) {
+  const url = new URL(`${PLAYCRICKET_API_BASE}${path}`);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+
+  const response = await fetch(url.toString(), {
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "Mozilla/5.0",
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json().catch(() => null);
 }
 
 function toNumber(value?: string) {
@@ -170,66 +215,89 @@ function parseSummaryStatsFromText(text: string) {
 }
 
 async function scrapeCareerStats(playCricketUrl: string) {
-  let browser: any = null;
   try {
-    const puppeteer = await getPuppeteer();
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    const playerId = extractPlayCricketPlayerId(normalizePlayCricketUrl(playCricketUrl));
+    if (!playerId) return null;
+
+    const data = await fetchPlayCricketJson(`/participants/players/${playerId}/summary-statistics`, {
+      seasonId: "",
+      organisationId: "",
+      matchTypeId: "",
+      jsconfig: "eccn:true",
     });
 
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1366, height: 768 });
-    await page.setDefaultNavigationTimeout(30000);
+    if (!data || typeof data !== "object") return null;
 
-    await page.goto(normalizePlayCricketUrl(playCricketUrl), { waitUntil: "networkidle2" });
-    await page.waitForSelector("section, body", { timeout: 12000 });
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-
-    const bodyText = await page.evaluate(() => document.body?.innerText || "");
-    const parsed = parseCareerStatsFromText(bodyText);
-
-    await page.close().catch(() => {});
-    return parsed;
+    return {
+      matchesPlayed: toNumber(String((data as any).matches ?? "")),
+      innings: toNumber(String((data as any).battingInnings ?? "")),
+      runsScored: toNumber(String((data as any).battingAggregate ?? "")),
+      wickets: toNumber(String((data as any).bowlingWickets ?? "")),
+      battingAverage: toNumber(String((data as any).battingAverage ?? "")),
+      strikeRate: toNumber(String((data as any).battingStrikeRate ?? "")),
+      highScore: toNumber(String((data as any).battingHighScore ?? "")),
+      hundreds: toNumber(String((data as any).batting100s ?? "")),
+      fifties: toNumber(String((data as any).batting50s ?? "")),
+      ducks: toNumber(String((data as any).batting0s ?? "")),
+      notOuts: toNumber(String((data as any).battingNotOuts ?? "")),
+      overs: toNumber(String((data as any).bowlingOvers ?? "")),
+      maidens: toNumber(String((data as any).bowlingMaidens ?? "")),
+      bowlingRuns: toNumber(String((data as any).bowlingRuns ?? "")),
+      bestBowling: typeof (data as any).bowlingBestInnings === "string" ? (data as any).bowlingBestInnings : undefined,
+      bowlingAverage: toNumber(String((data as any).bowlingAverage ?? "")),
+      economy: toNumber(String((data as any).bowlingEconomyRate ?? "")),
+      totalCatches: toNumber(String((data as any).fieldingTotalCatches ?? "")),
+      wicketKeeperCatches: toNumber(String((data as any).fieldingCatchesWK ?? "")),
+      nonWicketKeeperCatches: toNumber(String((data as any).fieldingCatchesNonWK ?? "")),
+      runOuts: toNumber(String((data as any).fieldingRunOuts ?? "")),
+      stumpings: toNumber(String((data as any).fieldingStumpings ?? "")),
+    };
   } catch (error) {
-    console.warn("Failed to scrape PlayCricket career stats:", error);
+    console.warn("Failed to fetch PlayCricket career stats:", error);
     return null;
-  } finally {
-    if (browser) {
-      await browser.close().catch(() => {});
-    }
   }
 }
 
 async function scrapeSummaryStats(playCricketUrl: string) {
-  let browser: any = null;
   try {
-    const puppeteer = await getPuppeteer();
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    const playerId = extractPlayCricketPlayerId(normalizePlayCricketSummaryUrl(playCricketUrl));
+    if (!playerId) return null;
+
+    const seasons = await fetchPlayCricketJson(`/participants/players/${playerId}/seasons`, {
+      jsconfig: "eccn:true",
     });
 
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1366, height: 768 });
-    await page.setDefaultNavigationTimeout(30000);
+    const currentSeason = Array.isArray(seasons) ? seasons[0] : null;
+    const seasonId = typeof currentSeason?.id === "string" ? currentSeason.id : "";
+    const seasonLabel = typeof currentSeason?.name === "string" ? currentSeason.name : "Current Season";
 
-    await page.goto(normalizePlayCricketSummaryUrl(playCricketUrl), { waitUntil: "networkidle2" });
-    await page.waitForSelector("section, body", { timeout: 12000 });
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const data = await fetchPlayCricketJson(`/participants/players/${playerId}/summary-statistics`, {
+      seasonId,
+      organisationId: "",
+      matchTypeId: "",
+      jsconfig: "eccn:true",
+    });
 
-    const bodyText = await page.evaluate(() => document.body?.innerText || "");
-    const parsed = parseSummaryStatsFromText(bodyText);
+    if (!data || typeof data !== "object") return null;
 
-    await page.close().catch(() => {});
-    return parsed;
+    return {
+      seasonLabel,
+      matchesPlayed: toNumber(String((data as any).matches ?? "")),
+      runsScored: toNumber(String((data as any).battingAggregate ?? "")),
+      battingAverage: toNumber(String((data as any).battingAverage ?? "")),
+      highScore: toNumber(String((data as any).battingHighScore ?? "")),
+      wickets: toNumber(String((data as any).bowlingWickets ?? "")),
+      bowlingAverage: toNumber(String((data as any).bowlingAverage ?? "")),
+      bestBowling: typeof (data as any).bowlingBestInnings === "string" ? (data as any).bowlingBestInnings : undefined,
+      totalCatches: toNumber(String((data as any).fieldingTotalCatches ?? "")),
+      wicketKeeperCatches: toNumber(String((data as any).fieldingCatchesWK ?? "")),
+      nonWicketKeeperCatches: toNumber(String((data as any).fieldingCatchesNonWK ?? "")),
+      runOuts: toNumber(String((data as any).fieldingRunOuts ?? "")),
+      stumpings: toNumber(String((data as any).fieldingStumpings ?? "")),
+    };
   } catch (error) {
-    console.warn("Failed to scrape PlayCricket summary stats:", error);
+    console.warn("Failed to fetch PlayCricket summary stats:", error);
     return null;
-  } finally {
-    if (browser) {
-      await browser.close().catch(() => {});
-    }
   }
 }
 
@@ -252,22 +320,65 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const emailParam = url.searchParams.get("email");
+    const uidParam = url.searchParams.get("uid");
     const debug = url.searchParams.get("debug") === "1";
     const live = url.searchParams.get("live") === "1";
+    const authHeader = request.headers.get("authorization") || request.headers.get("Authorization") || "";
+    const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
 
-    if (!emailParam) {
-      return Response.json({ error: "Missing email parameter" }, { status: 400 });
+    const activeDb = bearer ? getFirestoreForToken(bearer) : db;
+    const activeProjectId = (bearer ? getProjectIdForToken(bearer) : undefined) || (admin.app()?.options as any)?.projectId;
+
+    console.log("Player stats API called", { emailParam, uidParam, live, bearer: !!bearer, activeProjectId, database: activeDb === db ? "default" : "token-based" });
+
+    if (!emailParam && !uidParam) {
+      return Response.json({ error: "Missing email or uid parameter" }, { status: 400 });
     }
 
-    if (!db) {
+    if (!activeDb) {
       return Response.json({ error: "Database not available" }, { status: 503 });
     }
 
-    const docId = normalizeEmail(emailParam);
-    const doc = await db.collection("playerStats").doc(docId).get();
+    let resolvedEmail = emailParam ? normalizeEmail(emailParam) : "";
+    const resolvedUid = (uidParam || "").trim();
+
+    if (!resolvedEmail && resolvedUid) {
+      const userDoc = await activeDb.collection("users").doc(resolvedUid).get();
+      if (userDoc.exists) {
+        const userData = userDoc.data() || {};
+        const uidEmail = typeof userData.email === "string" ? userData.email.trim().toLowerCase() : "";
+        if (uidEmail) {
+          resolvedEmail = uidEmail;
+        }
+      }
+      // Fallback: if no email found in user doc, check hardcoded UID mappings
+      if (!resolvedEmail && FALLBACK_UID_EMAILS[resolvedUid]) {
+        resolvedEmail = FALLBACK_UID_EMAILS[resolvedUid];
+        console.log("Used UID-to-email fallback", { resolvedUid, resolvedEmail });
+      }
+    }
+
+    const docId = resolvedEmail || resolvedUid;
+    console.log("Resolved identifiers", { resolvedEmail, resolvedUid, docId });
+    
+    // Try to get data from the token-based database first
+    let doc = await activeDb.collection("playerStats").doc(docId).get();
+    let usedDb = activeDb;
+    let usedProjectId = activeProjectId;
+    
+    // If not found and we're using a token-based DB, try the default DB as fallback
+    if (!doc.exists && activeDb !== db) {
+      console.log("Data not found in token-based DB, trying default DB");
+      doc = await db.collection("playerStats").doc(docId).get();
+      usedDb = db;
+      usedProjectId = (admin.app()?.options as any)?.projectId;
+    }
 
     if (!doc.exists) {
-      const fallbackUrl = FALLBACK_PLAYCRICKET_URLS[docId];
+      const usersCollectionUrl = resolvedEmail
+        ? await resolvePlayCricketUrlFromUsersCollection(usedDb, resolvedEmail)
+        : null;
+      const fallbackUrl = usersCollectionUrl || (resolvedEmail ? FALLBACK_PLAYCRICKET_URLS[resolvedEmail] : undefined);
 
       if (fallbackUrl) {
         let liveStats: Record<string, number | string | undefined> | null = null;
@@ -280,7 +391,7 @@ export async function GET(request: Request) {
         const sanitizedStats = liveStats ? stripUndefined(liveStats) : null;
         const sanitizedSummary = liveSummary ? stripUndefined(liveSummary) : null;
 
-        await db
+        await usedDb
           .collection("playerStats")
           .doc(docId)
           .set(
@@ -309,19 +420,21 @@ export async function GET(request: Request) {
           {
             exists: true,
             id: docId,
-            email: docId,
+            email: resolvedEmail || undefined,
             playCricketUrl: fallbackUrl,
             ...(sanitizedStats ? { stats: sanitizedStats, statsSource: "playcricket-live" } : null),
             ...(sanitizedSummary ? { summary: sanitizedSummary, summarySource: "playcricket-live" } : null),
             ...(debug
               ? {
                   debug: {
-                    projectId: (admin.app()?.options as any)?.projectId,
+                    projectId: activeProjectId,
                     docPath: `playerStats/${docId}`,
-                    usedFallbackUrl: true,
+                    usedFallbackUrl: Boolean(resolvedEmail ? FALLBACK_PLAYCRICKET_URLS[resolvedEmail] : undefined),
+                    usedUsersCollectionUrl: Boolean(usersCollectionUrl),
                     liveRequested: live,
                     liveStatsFound: Boolean(liveStats),
                     liveSummaryFound: Boolean(liveSummary),
+                    resolvedByUid: Boolean(!emailParam && resolvedUid),
                   },
                 }
               : null),
@@ -336,8 +449,10 @@ export async function GET(request: Request) {
           ...(debug
             ? {
                 debug: {
-                  projectId: (admin.app()?.options as any)?.projectId,
+                  projectId: activeProjectId,
                   docPath: `playerStats/${docId}`,
+                  checkedUsersCollection: true,
+                  resolvedByUid: Boolean(!emailParam && resolvedUid),
                 },
               }
             : null),
@@ -358,7 +473,7 @@ export async function GET(request: Request) {
       const sanitizedSummary = liveSummary ? stripUndefined(liveSummary) : null;
 
       if (sanitizedStats || sanitizedSummary) {
-        await db
+        await usedDb
           .collection("playerStats")
           .doc(docId)
           .set(
@@ -389,6 +504,15 @@ export async function GET(request: Request) {
       }
     }
 
+    console.log("Player stats API result:", {
+      email: emailParam,
+      uid: resolvedUid,
+      hasStats: Boolean(data && Object.keys(data).length > 0),
+      hasLiveStats: Boolean(liveStats),
+      hasLiveSummary: Boolean(liveSummary),
+      resolvedByUid: Boolean(!emailParam && resolvedUid),
+    });
+
     return Response.json(
       {
         exists: true,
@@ -399,11 +523,13 @@ export async function GET(request: Request) {
         ...(debug
           ? {
               debug: {
-                projectId: (admin.app()?.options as any)?.projectId,
+                projectId: usedProjectId,
+                databaseUsed: usedDb === db ? "default" : "token-based",
                 docPath: `playerStats/${docId}`,
                 liveRequested: live,
                 liveStatsFound: Boolean(liveStats),
                 liveSummaryFound: Boolean(liveSummary),
+                resolvedByUid: Boolean(!emailParam && resolvedUid),
               },
             }
           : null),

@@ -12,13 +12,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { login, loginWithGoogle, loginWithFacebook } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSuccessMessage("");
 
     try {
       await login(email, password);
@@ -26,8 +27,13 @@ export default function LoginPage() {
       // Log analytics event
       await logAnalyticsEvent("form_submit", "login");
       
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Show success message
+      setSuccessMessage("Login successful! Redirecting to dashboard...");
+      
+      // Wait a moment for auth state to update and user to see the message
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login failed";
       setError(message);
@@ -41,6 +47,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
@@ -49,8 +56,13 @@ export default function LoginPage() {
       // Log analytics event
       await logAnalyticsEvent("form_submit", "google_login");
       
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Show success message
+      setSuccessMessage("Google login successful! Redirecting to dashboard...");
+      
+      // Wait a moment for auth state to update and user to see the message
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
     } catch (err: any) {
       // Don't show error if user cancelled
       if (err?.code === 'auth/popup-closed-by-user') {
@@ -79,6 +91,7 @@ export default function LoginPage() {
 
   const handleFacebookLogin = async () => {
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
@@ -87,8 +100,13 @@ export default function LoginPage() {
       // Log analytics event
       await logAnalyticsEvent("form_submit", "facebook_login");
       
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Show success message
+      setSuccessMessage("Facebook login successful! Redirecting to dashboard...");
+      
+      // Wait a moment for auth state to update and user to see the message
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
     } catch (err: any) {
       // Don't show error if user cancelled
       if (err?.code === 'auth/popup-closed-by-user') {
@@ -122,6 +140,13 @@ export default function LoginPage() {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm font-semibold text-red-700">{error}</p>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm font-semibold text-green-700">{successMessage}</p>
             </div>
           )}
 
