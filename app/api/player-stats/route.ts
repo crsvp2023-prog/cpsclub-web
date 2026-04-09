@@ -329,7 +329,7 @@ export async function GET(request: Request) {
     const activeDb = bearer ? getFirestoreForToken(bearer) : db;
     const activeProjectId = (bearer ? getProjectIdForToken(bearer) : undefined) || (admin.app()?.options as any)?.projectId;
 
-    console.log("Player stats API called", { emailParam, uidParam, live, bearer: !!bearer, activeProjectId });
+    console.log("Player stats API called", { emailParam, uidParam, live, bearer: !!bearer, activeProjectId, database: activeDb === db ? "default" : "token-based" });
 
     if (!emailParam && !uidParam) {
       return Response.json({ error: "Missing email or uid parameter" }, { status: 400 });
@@ -360,11 +360,23 @@ export async function GET(request: Request) {
 
     const docId = resolvedEmail || resolvedUid;
     console.log("Resolved identifiers", { resolvedEmail, resolvedUid, docId });
-    const doc = await activeDb.collection("playerStats").doc(docId).get();
+    
+    // Try to get data from the token-based database first
+    let doc = await activeDb.collection("playerStats").doc(docId).get();
+    let usedDb = activeDb;
+    let usedProjectId = activeProjectId;
+    
+    // If not found and we're using a token-based DB, try the default DB as fallback
+    if (!doc.exists && activeDb !== db) {
+      console.log("Data not found in token-based DB, trying default DB");
+      doc = await db.collection("playerStats").doc(docId).get();
+      usedDb = db;
+      usedProjectId = (admin.app()?.options as any)?.projectId;
+    }
 
     if (!doc.exists) {
       const usersCollectionUrl = resolvedEmail
-        ? await resolvePlayCricketUrlFromUsersCollection(activeDb, resolvedEmail)
+        ? await resolvePlayCricketUrlFromUsersCollection(usedDb, resolvedEmail)
         : null;
       const fallbackUrl = usersCollectionUrl || (resolvedEmail ? FALLBACK_PLAYCRICKET_URLS[resolvedEmail] : undefined);
 
@@ -379,7 +391,7 @@ export async function GET(request: Request) {
         const sanitizedStats = liveStats ? stripUndefined(liveStats) : null;
         const sanitizedSummary = liveSummary ? stripUndefined(liveSummary) : null;
 
-        await activeDb
+        await usedDb
           .collection("playerStats")
           .doc(docId)
           .set(
@@ -461,7 +473,7 @@ export async function GET(request: Request) {
       const sanitizedSummary = liveSummary ? stripUndefined(liveSummary) : null;
 
       if (sanitizedStats || sanitizedSummary) {
-        await activeDb
+        await usedDb
           .collection("playerStats")
           .doc(docId)
           .set(
@@ -511,7 +523,8 @@ export async function GET(request: Request) {
         ...(debug
           ? {
               debug: {
-                projectId: activeProjectId,
+                projectId: usedProjectId,
+                databaseUsed: usedDb === db ? "default" : "token-based",
                 docPath: `playerStats/${docId}`,
                 liveRequested: live,
                 liveStatsFound: Boolean(liveStats),
