@@ -19,6 +19,11 @@ export default function RegisterPage() {
     experience: "Beginner",
     matchInterest: "",
   });
+
+  // Disable registration for NCU Summer
+  const isNCUSummer =
+    formData.name.toLowerCase().includes("ncu summer") ||
+    formData.matchInterest.toLowerCase().includes("ncu summer");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -38,6 +43,13 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Block registration for NCU Summer
+    if (isNCUSummer) {
+      setError("Registration is disabled for NCU Summer");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
@@ -277,10 +289,14 @@ export default function RegisterPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || isNCUSummer}
               className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-2)] text-white px-6 py-3 rounded-lg font-bold text-lg hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Registering..." : "Register Now"}
+              {isNCUSummer
+                ? "Registration Disabled for NCU Summer"
+                : loading
+                ? "Registering..."
+                : "Register Now"}
             </button>
           </form>
 
