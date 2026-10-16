@@ -39,4 +39,12 @@ export const sponsors = [
     tier: "partner",
     role: "Official Apparel Partner",
   },
+  {
+    name: "CPS",
+    logo: "/images/sponsors/CPS.png",
+    website: "https://cpsanz.com/",
+    description: "Proud partner of Chatswood Premier Sports Club.",
+    tier: "partner",
+    role: "Official Partner",
+  },
 ];
