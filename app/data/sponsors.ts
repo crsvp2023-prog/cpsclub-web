@@ -24,6 +24,14 @@ export const sponsors = [
     role: "Sponsored By",
   },
   {
+    name: "CPS",
+    logo: "/images/sponsors/CPS.png",
+    website: "https://cpsanz.com/",
+    description: "City People Solutions delivers practical HR, recruitment, and talent acquisition support to help businesses build stronger teams.",
+    tier: "partner",
+    role: "Official Partner",
+  },
+  {
     name: "Cricket Mantra",
     logo: "/images/sponsors/Cricket mantra.png",
     website: "https://www.facebook.com/cricketmantraau/",
@@ -38,13 +46,5 @@ export const sponsors = [
     description: "Premium sportswear with custom team uniforms. KRIDA combines performance, style, and innovation to deliver high-quality gear for every team.",
     tier: "partner",
     role: "Official Apparel Partner",
-  },
-  {
-    name: "CPS",
-    logo: "/images/sponsors/CPS.png",
-    website: "https://cpsanz.com/",
-    description: "Proud partner of Chatswood Premier Sports Club.",
-    tier: "partner",
-    role: "Official Partner",
   },
 ];
