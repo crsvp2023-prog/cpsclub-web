@@ -13,20 +13,26 @@ interface Match {
   venue: string;
   status: string;
   result: string;
-  team1: {
+  commentary: string;
+  highlights: string[];
+  team1: MatchTeam;
+  team2: MatchTeam;
+}
+
+interface MatchTeam {
     name: string;
     score: number;
     wickets: number;
     overs: string;
-    batting: any[];
-  };
-  team2: {
-    name: string;
-    score: number;
-    wickets: number;
-    overs: string;
-    batting: any[];
-  };
+    batting: BattingPerformance[];
+}
+
+interface BattingPerformance {
+  name: string;
+  runs: number;
+  balls: number;
+  fours: number;
+  sixes: number;
 }
 
 export default function MatchesAdmin() {
@@ -41,6 +47,10 @@ export default function MatchesAdmin() {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [whatsappMessage, setWhatsappMessage] = useState('');
+  const [isDrafting, setIsDrafting] = useState(false);
+  const [matchDraft, setMatchDraft] = useState<Match | null>(null);
+  const [draftTarget, setDraftTarget] = useState('');
 
   const loadCurrentMatches = async () => {
     try {
@@ -84,7 +94,6 @@ export default function MatchesAdmin() {
     if (authLoading || adminChecking) return;
     if (!isAuthenticated || !isAdmin) return;
     loadCurrentMatches();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, adminChecking, isAuthenticated, isAdmin]);
 
   // Show loading while checking authentication/admin
@@ -106,7 +115,7 @@ export default function MatchesAdmin() {
         <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
           <p className="text-gray-600 mb-6">
-            You don't have permission to access this page. Admin access required.
+            You don&apos;t have permission to access this page. Admin access required.
           </p>
           <button
             onClick={() => router.push('/')}
@@ -119,20 +128,27 @@ export default function MatchesAdmin() {
     );
   }
 
-  const updateMatch = (index: number, field: string, value: string | number) => {
+  const updateMatch = <Field extends keyof Pick<Match, 'matchName' | 'category' | 'date' | 'venue' | 'status' | 'result' | 'commentary' | 'highlights'>,>(
+    index: number,
+    field: Field,
+    value: Match[Field]
+  ) => {
     const newMatches = [...matches];
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      newMatches[index] = {
-        ...newMatches[index],
-        [parent]: {
-          ...newMatches[index][parent as keyof Match] as any,
-          [child]: value
-        }
-      };
-    } else {
-      newMatches[index] = { ...newMatches[index], [field]: value };
-    }
+    newMatches[index] = { ...newMatches[index], [field]: value };
+    setMatches(newMatches);
+  };
+
+  const updateTeam = (
+    index: number,
+    team: 'team1' | 'team2',
+    field: 'name' | 'score' | 'wickets' | 'overs',
+    value: string | number
+  ) => {
+    const newMatches = [...matches];
+    newMatches[index] = {
+      ...newMatches[index],
+      [team]: { ...newMatches[index][team], [field]: value },
+    };
     setMatches(newMatches);
   };
 
@@ -145,6 +161,8 @@ export default function MatchesAdmin() {
       venue: "Chatswood Premier Sports Club",
       status: "UPCOMING",
       result: "",
+      commentary: "",
+      highlights: [],
       team1: {
         name: "",
         score: 0,
@@ -171,9 +189,16 @@ export default function MatchesAdmin() {
     setMessage('');
 
     try {
+      if (!firebaseUser) {
+        throw new Error('Please sign in again before saving matches.');
+      }
+      const idToken = await firebaseUser.getIdToken();
       const response = await fetch('/api/update-matches', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
         body: JSON.stringify({
           matches: matches,
           source: 'Admin Manual Update'
@@ -190,10 +215,130 @@ export default function MatchesAdmin() {
       }
     } catch (error) {
       console.error('Update error:', error);
-      setMessage('❌ Error: Failed to update matches');
+      setMessage(error instanceof Error ? `❌ ${error.message}` : '❌ Error: Failed to update matches');
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleDraftFromWhatsApp = async () => {
+    if (!firebaseUser) {
+      setMessage('❌ Please sign in again before drafting a match update.');
+      return;
+    }
+
+    setIsDrafting(true);
+    setMatchDraft(null);
+    setMessage('');
+    try {
+      const idToken = await firebaseUser.getIdToken();
+      const response = await fetch('/api/admin/matches/parse-whatsapp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ message: whatsappMessage }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not draft match update');
+      }
+
+      const draft = data.draft as Partial<Match> & {
+        team1?: Partial<Match['team1']>;
+        team2?: Partial<Match['team2']>;
+      };
+      if (
+        typeof draft.matchName !== 'string' ||
+        !draft.team1 ||
+        typeof draft.team1.name !== 'string' ||
+        !draft.team2 ||
+        typeof draft.team2.name !== 'string' ||
+        !Array.isArray(draft.highlights)
+      ) {
+        throw new Error('The AI returned an incomplete draft. Please try again or enter the details manually.');
+      }
+
+      const normalizedDraft: Match = {
+        id: 0,
+        matchName: draft.matchName,
+        category: draft.category || '',
+        date: draft.date || '',
+        venue: draft.venue || '',
+        status: draft.status === 'COMPLETED' ? 'COMPLETED' : 'UPCOMING',
+        result: draft.result || '',
+        commentary: draft.commentary || '',
+        highlights: draft.highlights.filter((highlight): highlight is string => typeof highlight === 'string'),
+        team1: {
+          name: draft.team1.name,
+          score: typeof draft.team1.score === 'number' ? draft.team1.score : 0,
+          wickets: typeof draft.team1.wickets === 'number' ? draft.team1.wickets : 0,
+          overs: typeof draft.team1.overs === 'string' ? draft.team1.overs : '0.0',
+          batting: Array.isArray(draft.team1.batting) ? draft.team1.batting : [],
+        },
+        team2: {
+          name: draft.team2.name,
+          score: typeof draft.team2.score === 'number' ? draft.team2.score : 0,
+          wickets: typeof draft.team2.wickets === 'number' ? draft.team2.wickets : 0,
+          overs: typeof draft.team2.overs === 'string' ? draft.team2.overs : '0.0',
+          batting: Array.isArray(draft.team2.batting) ? draft.team2.batting : [],
+        },
+      };
+      setMatchDraft(normalizedDraft);
+      const existing = matches.find(
+        (match) => match.matchName.trim().toLowerCase() === normalizedDraft.matchName.trim().toLowerCase()
+      );
+      setDraftTarget(existing ? String(existing.id) : '');
+    } catch (error) {
+      console.error('WhatsApp match draft error:', error);
+      setMessage(error instanceof Error ? `❌ ${error.message}` : '❌ Could not draft match update');
+    } finally {
+      setIsDrafting(false);
+    }
+  };
+
+  const applyMatchDraft = () => {
+    if (!matchDraft) return;
+    const exactMatchIndex = matches.findIndex(
+      (match) => match.matchName.trim().toLowerCase() === matchDraft.matchName.trim().toLowerCase()
+    );
+    const existingIndex = draftTarget
+      ? matches.findIndex((match) => String(match.id) === draftTarget)
+      : exactMatchIndex;
+    if (existingIndex === -1) {
+      setMatches([
+        ...matches,
+        { ...matchDraft, id: Math.max(0, ...matches.map((match) => match.id)) + 1 },
+      ]);
+    } else {
+      const updated = [...matches];
+      const existing = updated[existingIndex];
+      updated[existingIndex] = {
+        ...existing,
+        ...matchDraft,
+        id: existing.id,
+        category: matchDraft.category || existing.category,
+        date: matchDraft.date || existing.date,
+        venue: matchDraft.venue || existing.venue,
+        result: matchDraft.result || existing.result,
+        commentary: matchDraft.commentary || existing.commentary,
+        highlights: matchDraft.highlights.length ? matchDraft.highlights : existing.highlights,
+        team1: {
+          ...existing.team1,
+          ...matchDraft.team1,
+          batting: matchDraft.team1.batting.length ? matchDraft.team1.batting : existing.team1.batting,
+        },
+        team2: {
+          ...existing.team2,
+          ...matchDraft.team2,
+          batting: matchDraft.team2.batting.length ? matchDraft.team2.batting : existing.team2.batting,
+        },
+      };
+      setMatches(updated);
+    }
+    setMatchDraft(null);
+    setMessage('Draft added to the editable match list. Review it, then choose Update Matches to publish.');
   };
 
   const handleImportCsv = async () => {
@@ -207,11 +352,16 @@ export default function MatchesAdmin() {
     setMessage('');
 
     try {
+      if (!firebaseUser) {
+        throw new Error('Please sign in again before importing matches.');
+      }
+      const idToken = await firebaseUser.getIdToken();
       const form = new FormData();
       form.append('file', csvFile);
 
       const response = await fetch('/api/update-matches-from-csv', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}` },
         body: form,
       });
 
@@ -227,7 +377,7 @@ export default function MatchesAdmin() {
       }
     } catch (error) {
       console.error('CSV import error:', error);
-      setMessage('❌ Error: Failed to import CSV');
+      setMessage(error instanceof Error ? `❌ ${error.message}` : '❌ Error: Failed to import CSV');
     } finally {
       setIsImporting(false);
     }
@@ -261,6 +411,80 @@ export default function MatchesAdmin() {
                 ← Back to Scores
               </button>
             </div>
+
+            <section className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-5">
+              <h2 className="text-lg font-bold text-[var(--color-dark)]">Draft from WhatsApp</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Paste the team message. AI will extract the fixture, result, player performances, and a short recap.
+                Check the draft before adding it to the match list.
+              </p>
+              <p className="mt-1 text-xs text-gray-500">The pasted message is sent to Gemini to prepare the draft.</p>
+              <textarea
+                value={whatsappMessage}
+                onChange={(event) => setWhatsappMessage(event.target.value)}
+                rows={5}
+                maxLength={8000}
+                placeholder="Paste the WhatsApp match update here..."
+                className="mt-3 w-full rounded-md border border-gray-300 bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              />
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleDraftFromWhatsApp}
+                  disabled={isDrafting || !whatsappMessage.trim()}
+                  className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-white transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isDrafting ? 'Drafting…' : 'Create match draft'}
+                </button>
+                <span className="text-xs text-gray-500">Nothing is published until you review and save the match list.</span>
+              </div>
+
+              {matchDraft && (
+                <div className="mt-4 rounded-lg border border-blue-200 bg-white p-4">
+                  <h3 className="font-semibold text-gray-900">Draft preview</h3>
+                  <p className="mt-1 text-sm text-gray-700">
+                    <strong>{matchDraft.matchName || 'Match name not found'}</strong>
+                    {matchDraft.date ? ` · ${matchDraft.date}` : ''}
+                    {matchDraft.venue ? ` · ${matchDraft.venue}` : ''}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-700">
+                    {matchDraft.status === 'COMPLETED' ? matchDraft.result || 'Result needs review' : 'Upcoming fixture'}
+                  </p>
+                  {matchDraft.highlights.length > 0 && (
+                    <ul className="mt-2 list-inside list-disc text-sm text-gray-700">
+                      {matchDraft.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}
+                    </ul>
+                  )}
+                  {matchDraft.commentary && <p className="mt-2 text-sm text-gray-600">{matchDraft.commentary}</p>}
+                  <label className="mt-3 block text-sm font-medium text-gray-700">
+                    Add as a new match or update an existing one
+                    <select
+                      value={draftTarget}
+                      onChange={(event) => setDraftTarget(event.target.value)}
+                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                    >
+                      <option value="">Add as a new match</option>
+                      {matches.map((match) => (
+                        <option key={match.id} value={String(match.id)}>
+                          Update #{match.id}: {match.matchName}{match.date ? ` (${match.date})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    onClick={applyMatchDraft}
+                    className="mt-3 rounded-lg bg-green-700 px-4 py-2 text-white hover:bg-green-800"
+                  >
+                    Add draft to editable matches
+                  </button>
+                  <button
+                    onClick={() => setMatchDraft(null)}
+                    className="ml-2 rounded-lg px-4 py-2 text-gray-600 hover:bg-gray-100"
+                  >
+                    Discard
+                  </button>
+                </div>
+              )}
+            </section>
 
             <div className="mb-6 p-4 rounded-lg border border-gray-200 bg-gray-50">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -365,6 +589,29 @@ export default function MatchesAdmin() {
                     </div>
                   </div>
 
+                  <div className="mt-4 grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Match write-up</label>
+                      <textarea
+                        value={match.commentary || ''}
+                        onChange={(e) => updateMatch(index, 'commentary', e.target.value)}
+                        rows={3}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                        placeholder="Short factual recap for the scores page"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Player highlights (one per line)</label>
+                      <textarea
+                        value={(match.highlights || []).join('\n')}
+                        onChange={(e) => updateMatch(index, 'highlights', e.target.value.split('\n').filter(Boolean))}
+                        rows={3}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                        placeholder="e.g. Alex took 3 wickets; Sam scored 45 runs"
+                      />
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div className="bg-white p-4 rounded-lg border">
                       <h4 className="font-semibold text-[var(--color-dark)] mb-3">Team 1</h4>
@@ -374,7 +621,7 @@ export default function MatchesAdmin() {
                           <input
                             type="text"
                             value={match.team1.name}
-                            onChange={(e) => updateMatch(index, 'team1.name', e.target.value)}
+                            onChange={(e) => updateTeam(index, 'team1', 'name', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                           />
                         </div>
@@ -384,7 +631,7 @@ export default function MatchesAdmin() {
                             <input
                               type="number"
                               value={match.team1.score}
-                              onChange={(e) => updateMatch(index, 'team1.score', parseInt(e.target.value) || 0)}
+                              onChange={(e) => updateTeam(index, 'team1', 'score', parseInt(e.target.value) || 0)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                             />
                           </div>
@@ -393,7 +640,7 @@ export default function MatchesAdmin() {
                             <input
                               type="number"
                               value={match.team1.wickets}
-                              onChange={(e) => updateMatch(index, 'team1.wickets', parseInt(e.target.value) || 0)}
+                              onChange={(e) => updateTeam(index, 'team1', 'wickets', parseInt(e.target.value) || 0)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                             />
                           </div>
@@ -402,7 +649,7 @@ export default function MatchesAdmin() {
                             <input
                               type="text"
                               value={match.team1.overs}
-                              onChange={(e) => updateMatch(index, 'team1.overs', e.target.value)}
+                              onChange={(e) => updateTeam(index, 'team1', 'overs', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                             />
                           </div>
@@ -418,7 +665,7 @@ export default function MatchesAdmin() {
                           <input
                             type="text"
                             value={match.team2.name}
-                            onChange={(e) => updateMatch(index, 'team2.name', e.target.value)}
+                            onChange={(e) => updateTeam(index, 'team2', 'name', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                           />
                         </div>
@@ -428,7 +675,7 @@ export default function MatchesAdmin() {
                             <input
                               type="number"
                               value={match.team2.score}
-                              onChange={(e) => updateMatch(index, 'team2.score', parseInt(e.target.value) || 0)}
+                              onChange={(e) => updateTeam(index, 'team2', 'score', parseInt(e.target.value) || 0)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                             />
                           </div>
@@ -437,7 +684,7 @@ export default function MatchesAdmin() {
                             <input
                               type="number"
                               value={match.team2.wickets}
-                              onChange={(e) => updateMatch(index, 'team2.wickets', parseInt(e.target.value) || 0)}
+                              onChange={(e) => updateTeam(index, 'team2', 'wickets', parseInt(e.target.value) || 0)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                             />
                           </div>
@@ -446,7 +693,7 @@ export default function MatchesAdmin() {
                             <input
                               type="text"
                               value={match.team2.overs}
-                              onChange={(e) => updateMatch(index, 'team2.overs', e.target.value)}
+                              onChange={(e) => updateTeam(index, 'team2', 'overs', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                             />
                           </div>

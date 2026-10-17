@@ -37,6 +37,7 @@ const matchesData = [
     status: "COMPLETED",
     result: "CPS Club won by 28 runs",
     commentary: "Strong batting performance from CPS Club with Richardson's explosive 54 off 32 balls setting the tone. The middle order contributed well with Thompson's steady 48 providing crucial support. North Sydney fought back through Hayes' aggressive 45, but couldn't match the pace. A clinical victory showcasing CPS Club's batting depth.",
+    highlights: [],
     team1: {
       name: "CPS Club",
       score: 168,
@@ -73,6 +74,7 @@ const matchesData = [
     status: "COMPLETED",
     result: "CPS Club won by 18 runs",
     commentary: "An intense contest where CPS Club's balanced batting attack proved decisive. Richardson continued his fine form with 46, while Thompson's composed 39 provided stability. Eastern Suburbs' Jackson fought hard with a brisk 42, but the bowling attack held firm under pressure. A well-deserved victory for CPS Club in a closely contested match.",
+    highlights: [],
     team1: {
       name: "CPS Club",
       score: 152,
@@ -136,6 +138,7 @@ export default function ScoresPage() {
     fetchStandings();
   }, []);
   const [matches, setMatches] = useState(matchesData);
+  const [hasStoredMatches, setHasStoredMatches] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStandings, setIsLoadingStandings] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
@@ -162,6 +165,7 @@ export default function ScoresPage() {
 
         if (data?.matches && data.matches.length > 0) {
           setMatches(data.matches);
+          setHasStoredMatches(true);
           console.log('✅ Matches loaded successfully from API');
         } else {
           console.error('No matches data in file, using defaults');
@@ -478,8 +482,7 @@ export default function ScoresPage() {
           </div>
         </div>
 
-        {/* Match Highlights Section - Hidden */}
-        {false && (
+        {hasStoredMatches && matches.some((match) => match.status === 'COMPLETED') && (
           <>
             <h2 className="text-4xl md:text-5xl font-black text-[var(--color-dark)] mb-8 text-center">
               📋 Match Highlights
@@ -510,7 +513,7 @@ export default function ScoresPage() {
                         {/* Scores */}
                         <div className="flex items-center justify-center gap-6">
                           <div className="text-center">
-                            <p className="text-sm opacity-90 font-bold uppercase tracking-wide">CPS Club</p>
+                            <p className="text-sm opacity-90 font-bold uppercase tracking-wide">{match.team1.name}</p>
                             <p className="text-5xl font-black">{match.team1.score}</p>
                             <p className="text-sm opacity-75">{match.team1.wickets}/{match.team1.overs}</p>
                           </div>
@@ -560,6 +563,17 @@ export default function ScoresPage() {
                           <div className="mb-8 pb-8 border-b-2 border-gray-300 bg-blue-50 p-6 rounded-lg">
                             <p className="text-xs text-[var(--color-primary)] font-bold uppercase tracking-wide mb-3">📝 Match Commentary</p>
                             <p className="text-gray-700 leading-relaxed text-base">{match.commentary}</p>
+                          </div>
+                        )}
+
+                        {match.highlights?.length > 0 && (
+                          <div className="mb-8 rounded-lg border-b-2 border-gray-300 bg-amber-50 p-6">
+                            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-amber-800">Player highlights</p>
+                            <ul className="list-inside list-disc space-y-1 text-gray-700">
+                              {match.highlights.map((highlight, highlightIndex) => (
+                                <li key={highlightIndex}>{highlight}</li>
+                              ))}
+                            </ul>
                           </div>
                         )}
 

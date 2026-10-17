@@ -16,6 +16,12 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Draft match updates from WhatsApp
+
+Admins can paste a WhatsApp match message into the match admin page. Gemini drafts the fixture or result, player highlights, and a short recap; review and edit the draft before saving it to the site's match data.
+
+Configure `GEMINI_API_KEY` as a server-only environment variable in local development and in your deployment environment. Do not prefix it with `NEXT_PUBLIC_`. Optionally set `GEMINI_MODEL` to choose a Gemini model; the default is `gemini-2.0-flash`.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
