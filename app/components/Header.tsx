@@ -27,7 +27,6 @@ export default function Header() {
     { href: '/about', label: 'About' },
     { href: '/gallery', label: 'Gallery' },
     { href: '/events', label: 'Events' },
-    { href: '/scores', label: 'Scores' },
     { href: '/news', label: 'Blogs' },
     { href: '/contact', label: 'Contact' },
   ];

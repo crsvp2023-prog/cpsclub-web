@@ -22,6 +22,8 @@ Admins can paste a WhatsApp match message into the match admin page. Gemini draf
 
 Configure `GEMINI_API_KEY` as a server-only environment variable in local development and in your deployment environment. Do not prefix it with `NEXT_PUBLIC_`. Optionally set `GEMINI_MODEL` to choose a Gemini model; the default is `gemini-2.0-flash`.
 
+The scores page does not show sample results or fallback standings. Configure `PLAYHQ_LADDER_URL` with the current PlayHQ ladder URL for live standings, and optionally set `NEXT_PUBLIC_PLAYHQ_COMPETITION_URL` for the public PlayHQ links. When live standings cannot be retrieved, the page shows an unavailable message instead of stale cached or sample data.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
