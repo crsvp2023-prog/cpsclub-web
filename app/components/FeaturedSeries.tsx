@@ -183,15 +183,6 @@ export default function FeaturedSeries() {
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-10 text-center">
-          <a
-            href="/scores"
-            className="inline-block px-8 py-3 bg-gradient-to-r from-[#003B82] via-[#0052CC] to-[#FFB81C] text-white font-black rounded-lg text-sm uppercase tracking-wider hover:shadow-lg hover:scale-105 transition-all duration-300"
-          >
-            View All Scores →
-          </a>
-        </div>
       </div>
     </section>
   );

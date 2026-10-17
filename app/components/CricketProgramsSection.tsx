@@ -13,8 +13,8 @@ export default function CricketProgramsSection() {
     setShowModal(true);
   };
 
-  const handleWinterClick = () => {
-    setSelectedProgram('SENIORS | SMCA -WINTER');
+  const handleSummerClick = () => {
+    setSelectedProgram('SENIORS | NCU -SUMMER');
     setShowModal(true);
   };
 
@@ -87,11 +87,11 @@ export default function CricketProgramsSection() {
                 <p className="text-sm sm:text-base text-gray-600 mb-4 leading-relaxed flex-grow">
                   Compete at a higher level with our senior teams. Challenge yourself, showcase your skills, and be part of our competitive leagues.
                 </p>
-                <button 
-                  disabled
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-300 text-gray-600 rounded-lg font-bold text-xs sm:text-sm cursor-not-allowed opacity-60 uppercase tracking-wider w-full"
+                <button
+                  onClick={handleSummerClick}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#FFD100] to-[#FFC300] text-[var(--color-dark)] rounded-lg font-bold text-xs sm:text-sm hover:shadow-lg hover:scale-105 transition-all duration-300 uppercase tracking-wider w-full"
                 >
-                  Registration Closed →
+                  Register Now →
                 </button>
               </div>
             </div>
@@ -101,7 +101,7 @@ export default function CricketProgramsSection() {
               <div className="relative h-48 sm:h-56 overflow-hidden">
                 <Image
                   src="/images/cricket-programs/winter/team.webp"
-                  alt="Winter Cricket 2025 Season"
+                  alt="SMCA Winter Cricket"
                   fill
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -114,13 +114,14 @@ export default function CricketProgramsSection() {
               <div className="p-4 sm:p-6 flex flex-col flex-grow">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">SENIORS | SMCA -WINTER</h3>
                 <p className="text-sm sm:text-base text-gray-600 mb-4 leading-relaxed flex-grow">
-                  Join us for 9-a-side cricket matches across Sydney. Games held every second weekend from late April to August.
+                  SMCA Winter Grade 18 Champions! Congratulations to the team on winning the championship.
                 </p>
                 <button
-                  onClick={handleWinterClick}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00BCD4] to-[#009688] text-white rounded-lg font-bold text-xs sm:text-sm hover:shadow-lg hover:scale-105 transition-all duration-300 uppercase tracking-wider w-full"
+                  disabled
+                  aria-label="Registration closed for SMCA Winter Grade 18 champions"
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-300 text-gray-600 rounded-lg font-bold text-xs sm:text-sm cursor-not-allowed opacity-80 uppercase tracking-wider w-full"
                 >
-                  Register Now →
+                  SMCA Winter Champions 🏆
                 </button>
               </div>
             </div>

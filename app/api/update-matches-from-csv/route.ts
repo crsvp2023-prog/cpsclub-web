@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import * as Papa from 'papaparse';
 import { db } from '@/app/lib/firebase-admin';
+import { requireAdmin } from '@/app/lib/require-admin';
 
 export const runtime = 'nodejs';
 
@@ -53,6 +54,11 @@ function buildLocalStartDateTime(year: number, month: number, day: number, timeS
 }
 
 export async function POST(request: Request) {
+  const adminCheck = await requireAdmin(request);
+  if (!adminCheck.ok) {
+    return NextResponse.json({ error: adminCheck.error }, { status: adminCheck.status });
+  }
+
   try {
     const contentType = request.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
@@ -134,6 +140,8 @@ export async function POST(request: Request) {
           venue: venueDisplay,
           status: normalizedStatus,
           result: '',
+          commentary: '',
+          highlights: [],
           team1: {
             name: homeTeam || 'Team A',
             score: 0,

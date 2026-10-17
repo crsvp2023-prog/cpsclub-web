@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { db } from '@/app/lib/firebase-admin';
+import { requireAdmin } from '@/app/lib/require-admin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,11 @@ export const dynamic = 'force-dynamic';
 const MATCHES_DOC = db.collection('siteData').doc('matches');
 
 export async function POST(request: NextRequest) {
+  const adminCheck = await requireAdmin(request);
+  if (!adminCheck.ok) {
+    return NextResponse.json({ error: adminCheck.error }, { status: adminCheck.status });
+  }
+
   try {
     const body = await request.json();
     const { matches, source } = body;
@@ -102,7 +108,7 @@ export async function GET() {
       const snap = await MATCHES_DOC.get();
       if (snap.exists) {
         const data = snap.data();
-        if (data && Array.isArray((data as any).matches)) {
+        if (data && Array.isArray(data.matches)) {
           return NextResponse.json(
             {
               success: true,

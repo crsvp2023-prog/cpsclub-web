@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { NextResponse } from 'next/server';
 
 // Dynamic import for puppeteer (only on server)
-let puppeteer: any;
+let puppeteer: (typeof import('puppeteer'))['default'] | undefined;
+
+export const dynamic = 'force-dynamic';
 
 async function getPuppeteer() {
   if (!puppeteer) {
@@ -12,10 +12,30 @@ async function getPuppeteer() {
   return puppeteer;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
+  const competitionUrl = process.env.PLAYHQ_LADDER_URL;
+  if (!competitionUrl) {
+    return NextResponse.json(
+      { error: 'Set PLAYHQ_LADDER_URL to the current PlayHQ competition ladder URL.' },
+      { status: 503 }
+    );
+  }
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(competitionUrl);
+  } catch {
+    return NextResponse.json({ error: 'PLAYHQ_LADDER_URL must be a valid URL.' }, { status: 500 });
+  }
+  if (
+    parsedUrl.protocol !== 'https:' ||
+    (parsedUrl.hostname !== 'playhq.com' && !parsedUrl.hostname.endsWith('.playhq.com'))
+  ) {
+    return NextResponse.json({ error: 'PLAYHQ_LADDER_URL must point to a secure PlayHQ page.' }, { status: 500 });
+  }
+
   let browser = null;
   const startTime = Date.now();
-  const maxDuration = 25000; // 25 second timeout
   
   try {
     const puppeteerLib = await getPuppeteer();
@@ -34,7 +54,7 @@ export async function GET(request: NextRequest) {
     
     // Block unnecessary resources
     await page.setRequestInterception(true);
-    await page.on('request', (req: any) => {
+    page.on('request', (req) => {
       if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
         req.abort();
       } else {
@@ -48,10 +68,7 @@ export async function GET(request: NextRequest) {
     
     // Navigate to all-ladders page to find C One Day Grade
     console.log('Navigating to PlayHQ ladder...');
-    await page.goto(
-      'https://www.playhq.com/cricket-australia/org/chatswood-premier-sports-club/829b8e20/northern-cricket-union-summer-202526/teams/c1-chatswood-premier/c820ec75/ladder',
-      { waitUntil: 'networkidle2' }
-    );
+    await page.goto(competitionUrl, { waitUntil: 'networkidle2' });
 
     // Wait for content to load
     console.log('Waiting for standings content...');
@@ -77,11 +94,19 @@ export async function GET(request: NextRequest) {
     console.log('Page Info:', JSON.stringify(pageInfo));
 
     // Extract standings data with improved selectors
-    const standings: any[] = await page.evaluate(() => {
-      const standingsArray: any[] = [];
+    const standings = await page.evaluate(() => {
+      const standingsArray: {
+        position: number;
+        team: string;
+        played: number;
+        wins: number;
+        losses: number;
+        points: number;
+        nrr: string;
+      }[] = [];
       
       // Strategy 1: Look for table-based data
-      let rows = Array.from(document.querySelectorAll('tbody tr'));
+      let rows: Element[] = Array.from(document.querySelectorAll('tbody tr'));
       console.log('Found tbody rows:', rows.length);
       
       // Strategy 2: If no table rows, try divs with role="row"
@@ -107,7 +132,7 @@ export async function GET(request: NextRequest) {
 
       let position = 1;
       
-      rows.forEach((row: any) => {
+      rows.forEach((row) => {
         // Try td elements first
         let cells = Array.from(row.querySelectorAll('td'));
         if (cells.length === 0) {
@@ -115,17 +140,17 @@ export async function GET(request: NextRequest) {
         }
         
         if (cells.length >= 5) {
-          const cellTexts = cells.map((cell: any) => (cell.textContent?.trim() || '').replace(/\n/g, ' '));
+          const cellTexts = cells.map((cell) => (cell.textContent?.trim() || '').replace(/\n/g, ' '));
           
           console.log('Row cells:', cellTexts);
           
           // Extract team data - try different patterns
-          let team = cellTexts[0];
-          let played = parseInt(cellTexts[1]) || 0;
-          let wins = parseInt(cellTexts[2]) || 0;
-          let losses = parseInt(cellTexts[3]) || 0;
-          let points = parseInt(cellTexts[4]) || 0;
-          let nrr = cellTexts[5] || '0.00';
+          const team = cellTexts[0];
+          const played = parseInt(cellTexts[1]) || 0;
+          const wins = parseInt(cellTexts[2]) || 0;
+          const losses = parseInt(cellTexts[3]) || 0;
+          const points = parseInt(cellTexts[4]) || 0;
+          const nrr = cellTexts[5] || '0.00';
 
           // Skip header rows
           if (team && team.toLowerCase() !== 'team' && team.toLowerCase() !== 'position' && played > 0) {
@@ -150,70 +175,26 @@ export async function GET(request: NextRequest) {
 
     console.log(`Extracted ${standings.length} teams`);
 
-    // Prepare response data
-    let responseData;
-    let shouldSaveToFile = false;
-
-    if (standings.length > 0) {
-      // Scraping succeeded, use scraped data
-      responseData = {
-        grade: foundGrade || 'C One Day Grade',
-        standings: standings,
-        lastUpdated: new Date().toISOString(),
-        source: 'PlayHQ Web Scrape (Puppeteer)',
-        recordsFound: standings.length
-      };
-      shouldSaveToFile = true;
-    } else {
-      // Scraping failed, try to return existing data without overwriting
-      try {
-        const dataDir = path.join(process.cwd(), 'public');
-        const filePath = path.join(dataDir, 'playhq-data.json');
-        if (fs.existsSync(filePath)) {
-          const existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-          responseData = {
-            ...existingData,
-            note: 'Could not extract live data from PlayHQ. To update manually, use /api/update-standings'
-          };
-          console.log('Returning existing data from file');
-        } else {
-          // No existing file, use defaults but don't save
-          responseData = {
-            grade: 'C One Day Grade',
-            standings: getDefaultStandings(),
-            lastUpdated: new Date().toISOString(),
-            source: 'Default Fallback',
-            recordsFound: 0,
-            note: 'Could not extract live data from PlayHQ. To update manually, use /api/update-standings'
-          };
-          console.log('No existing data file, using defaults');
-        }
-      } catch (error) {
-        console.error('Error reading existing data:', error);
-        responseData = {
-          grade: 'C One Day Grade',
-          standings: getDefaultStandings(),
-          lastUpdated: new Date().toISOString(),
-          source: 'Default Fallback',
-          recordsFound: 0,
-          note: 'Could not extract live data from PlayHQ. To update manually, use /api/update-standings'
-        };
-      }
+    if (standings.length === 0) {
+      await page.close();
+      await browser.close();
+      browser = null;
+      return NextResponse.json(
+        {
+          error: 'PlayHQ did not return standings for the configured competition.',
+          duration: `${Date.now() - startTime}ms`,
+        },
+        { status: 502 }
+      );
     }
 
-    // Only save to file if we successfully scraped data
-    if (shouldSaveToFile) {
-      const dataDir = path.join(process.cwd(), 'public');
-      const filePath = path.join(dataDir, 'playhq-data.json');
-
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-
-      fs.writeFileSync(filePath, JSON.stringify(responseData, null, 2));
-      console.log(`Saved ${standings.length} teams to file`);
-    }
-
+    const responseData = {
+      grade: foundGrade,
+      standings,
+      lastUpdated: new Date().toISOString(),
+      source: 'PlayHQ live scrape',
+      recordsFound: standings.length,
+    };
     const elapsedTime = Date.now() - startTime;
     console.log(`Total scrape time: ${elapsedTime}ms`);
 
@@ -224,11 +205,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: standings.length > 0 
-        ? `PlayHQ data scraped successfully! Found ${standings.length} teams`
-        : 'Could not extract live data. Returning existing data. Try /api/update-standings for manual update.',
+      message: `PlayHQ data scraped successfully! Found ${standings.length} teams`,
       data: responseData,
-      standingsCount: responseData.standings.length,
+      standingsCount: standings.length,
       duration: `${elapsedTime}ms`
     });
 
@@ -240,44 +219,14 @@ export async function GET(request: NextRequest) {
       await browser.close().catch(() => {});
     }
 
-    // Return existing data even if scraping fails
-    try {
-      const dataDir = path.join(process.cwd(), 'public');
-      const filePath = path.join(dataDir, 'playhq-data.json');
-      if (fs.existsSync(filePath)) {
-        const existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-        return NextResponse.json({
-          success: false,
-          message: 'Scraping failed, returning existing data',
-          data: existingData,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          duration: `${elapsedTime}ms`
-        }, { status: 200 });
-      }
-    } catch (e) {
-      console.error('Could not load existing data:', e);
-    }
-
     return NextResponse.json(
       { 
         error: 'Failed to scrape PlayHQ data',
         details: error instanceof Error ? error.message : 'Unknown error',
-        hint: 'Try using POST /api/update-standings to manually update standings',
+        hint: 'No cached or sample data is displayed when PlayHQ cannot be reached.',
         duration: `${elapsedTime}ms`
       },
-      { status: 500 }
+      { status: 502 }
     );
   }
-}
-
-// Fallback default standings
-function getDefaultStandings() {
-  return [
-    { position: 1, team: "CPS Club", played: 8, wins: 7, losses: 1, points: 14, nrr: "+0.85" },
-    { position: 2, team: "Eastern Suburbs", played: 8, wins: 6, losses: 2, points: 12, nrr: "+0.52" },
-    { position: 3, team: "North Sydney", played: 8, wins: 5, losses: 3, points: 10, nrr: "-0.18" },
-    { position: 4, team: "Parramatta", played: 8, wins: 4, losses: 4, points: 8, nrr: "+0.22" },
-    { position: 5, team: "Strathfield", played: 8, wins: 3, losses: 5, points: 6, nrr: "-0.45" },
-    { position: 6, team: "Cronulla-Sutherland", played: 8, wins: 2, losses: 6, points: 4, nrr: "-0.62" }
-  ];
 }
